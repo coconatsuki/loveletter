@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update } from "firebase/database";
 import { getStartingPlayer, shuffleDeck } from "../utils/gamehelpers";
@@ -7,9 +7,12 @@ import { getStartingPlayer, shuffleDeck } from "../utils/gamehelpers";
 export default function Room() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const nickname = state?.nickname;
+  const realName = state?.realName;
   const [players, setPlayers] = useState([]);
   const [host, setHost] = useState("");
+  const [gameStarted, setGameStarted] = useState(false);
   const [roundNumber, setRoundNumber] = useState(1);
 
   useEffect(() => {
@@ -19,6 +22,7 @@ export default function Room() {
       const playerRef = ref(db, `rooms/${roomCode}/players/${nickname}`);
       update(playerRef, {
         name: nickname,
+        realName: realName || "",
         isOut: false,
         tokens: 0,
       });
@@ -32,9 +36,19 @@ export default function Room() {
       if (data?.host) {
         setHost(data.host);
       }
+      if (data?.gameState === "inRound") {
+        setGameStarted(true);
+      }
     });
+
     return () => unsubscribe();
-  }, [roomCode]);
+  }, [roomCode, nickname, realName]);
+
+  useEffect(() => {
+    if (gameStarted) {
+      navigate(`/play/${roomCode}`, { state: { nickname } });
+    }
+  }, [gameStarted, navigate, roomCode, nickname]);
 
   const isHost = nickname === host;
 
@@ -47,9 +61,9 @@ export default function Room() {
         if (!roomData?.players) return;
 
         const playerNames = Object.keys(roomData.players);
-        const fullDeck = Array.from({ length: 32 }, (_, i) => i + 1); // Placeholder 1–32
+        const fullDeck = Array.from({ length: 32 }, (_, i) => i + 1);
         const shuffled = shuffleDeck(fullDeck);
-        const hiddenCard = shuffled.shift(); // remove 1 card
+        const hiddenCard = shuffled.shift();
 
         const hands = {};
         playerNames.forEach((name) => {
@@ -88,7 +102,7 @@ export default function Room() {
       <ul>
         {players.map((player, index) => (
           <li key={index}>
-            {player.name}
+            {player.name} ({player.realName})
             {player.name === host && " 👑 (host)"}
             {player.name === nickname && " ← you"}
           </li>
