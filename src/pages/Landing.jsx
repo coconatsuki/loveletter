@@ -31,54 +31,52 @@ export default function Landing() {
         />
       </div>
 
-      <div style={{ marginTop: "1rem" }}>
-        <label>Nickname:</label>
-        <br />
-        <input
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          placeholder="Funny nickname"
-        />
-        <button onClick={() => setNickname(generateNickname(preferredGender))}>
-          🎲 Generate Name
-        </button>
-      </div>
-
-      <div style={{ marginTop: "1rem" }}>
-        <fieldset>
-          <legend>Choose Your Title:</legend>
-          <label>
-            <input
-              type="radio"
-              name="gender"
-              value="female"
-              checked={preferredGender === "female"}
-              onChange={(e) => setPreferredGender(e.target.value)}
-            />
-            👸 My Lady
-          </label>
-          <label style={{ marginLeft: "1rem" }}>
-            <input
-              type="radio"
-              name="gender"
-              value="male"
-              checked={preferredGender === "male"}
-              onChange={(e) => setPreferredGender(e.target.value)}
-            />
-            🤴 My Lord
-          </label>
-          <label style={{ marginLeft: "1rem" }}>
-            <input
-              type="radio"
-              name="gender"
-              value=""
-              checked={preferredGender === ""}
-              onChange={(e) => setPreferredGender(e.target.value)}
-            />
-            🧙 Whichever suits me
-          </label>
-        </fieldset>
-      </div>
+      <fieldset style={{ marginTop: "1rem" }}>
+        <legend>Choose your courtly title and nickname:</legend>
+        <div style={{ marginBottom: "1rem" }}>
+          <input
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Funny nickname"
+          />
+          <button
+            onClick={() => setNickname(generateNickname(preferredGender))}
+            style={{ marginLeft: "1rem" }}
+          >
+            🎲 Generate Name
+          </button>
+        </div>
+        <label>
+          <input
+            type="radio"
+            name="gender"
+            value="female"
+            checked={preferredGender === "female"}
+            onChange={(e) => setPreferredGender(e.target.value)}
+          />
+          👸 My Lady
+        </label>
+        <label style={{ marginLeft: "1rem" }}>
+          <input
+            type="radio"
+            name="gender"
+            value="male"
+            checked={preferredGender === "male"}
+            onChange={(e) => setPreferredGender(e.target.value)}
+          />
+          🤴 My Lord
+        </label>
+        <label style={{ marginLeft: "1rem" }}>
+          <input
+            type="radio"
+            name="gender"
+            value=""
+            checked={preferredGender === ""}
+            onChange={(e) => setPreferredGender(e.target.value)}
+          />
+          🧙 Whichever suits me
+        </label>
+      </fieldset>
 
       <div style={{ marginTop: "1rem" }}>
         <label>Room Code:</label>

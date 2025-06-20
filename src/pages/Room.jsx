@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update } from "firebase/database";
-import { getStartingPlayer, shuffleDeck } from "../utils/gamehelpers";
+import { generateNickname } from "../utils/names";
+import { buildDeck } from "../utils/deckBuilder";
 
 export default function Room() {
   const { id: roomCode } = useParams();
@@ -14,6 +15,7 @@ export default function Room() {
   const [host, setHost] = useState("");
   const [gameStarted, setGameStarted] = useState(false);
   const [roundNumber, setRoundNumber] = useState(1);
+  const [roomMode, setRoomMode] = useState("normal");
 
   useEffect(() => {
     const roomRef = ref(db, `rooms/${roomCode}`);
@@ -35,6 +37,9 @@ export default function Room() {
       }
       if (data?.host) {
         setHost(data.host);
+      }
+      if (data?.mode) {
+        setRoomMode(data.mode);
       }
       if (data?.gameState === "inRound") {
         setGameStarted(true);
@@ -61,8 +66,9 @@ export default function Room() {
         if (!roomData?.players) return;
 
         const playerNames = Object.keys(roomData.players);
-        const fullDeck = Array.from({ length: 32 }, (_, i) => i + 1);
-        const shuffled = shuffleDeck(fullDeck);
+        const fullDeck = buildDeck(roomData.mode || "normal");
+        const shuffled = [...fullDeck];
+
         const hiddenCard = shuffled.shift();
 
         const hands = {};
@@ -75,7 +81,8 @@ export default function Room() {
           };
         });
 
-        const startingPlayer = getStartingPlayer(roomData.players, roundNumber);
+        const startingPlayer =
+          playerNames[Math.floor(Math.random() * playerNames.length)];
 
         update(roomRef, {
           gameState: "inRound",
