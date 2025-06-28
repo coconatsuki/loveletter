@@ -34,38 +34,20 @@ const cardNames = {
   17: "Count",
 };
 
-const cardEffects = {
-  1: "Guess a strength (≠1). If correct, target is eliminated.",
-  2: "View another player's hand.",
-  3: "Compare hands. Lower card is eliminated.",
-  4: "You are protected until your next turn.",
-  5: "Target discards hand and draws a new one.",
-  6: "Trade hands with another player.",
-  7: "Must be played if with Prince or King.",
-  8: "If discarded, you are eliminated.",
-  9: "Guess a strength. If correct, gain an affection token.",
-  10: "If eliminated, gain 1 affection token.",
-  11: "Compare hands. Higher is eliminated.",
-  12: "Choose who the next player must target.",
-  13: "Choose a player. If they win, you gain a token.",
-  14: "If targeted with Guard, eliminate attacker instead.",
-  15: "Trade hands. View the new card if you wish.",
-  16: "View the hands of two players.",
-  17: "If discarded or played, add +1 to your hand strength.",
-};
-
 export default function Play() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
   const nickname = state?.nickname;
+
   const [roomData, setRoomData] = useState(null);
   const [player, setPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
   const [resultContent, setResultContent] = useState("");
-  const [assassinDecision, setAssassinDecision] = useState(null);
+  const [guardTargetPromptData, setGuardTargetPromptData] = useState(null);
 
   useEffect(() => {
     const roomRef = ref(db, `rooms/${roomCode}`);
@@ -74,6 +56,18 @@ export default function Play() {
       setRoomData(data);
       if (data?.players && nickname) {
         setPlayer(data.players[nickname]);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
+  useEffect(() => {
+    const promptRef = ref(db, `rooms/${roomCode}/guardTargetPrompt`);
+    const unsubscribe = onValue(promptRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.target === nickname) {
+        setGuardTargetPromptData(data);
+        setShowGuardTargetPrompt(true);
       }
     });
     return () => unsubscribe();
@@ -111,18 +105,40 @@ export default function Play() {
     setIsPlaying(true);
 
     if (cardPlayed.id === 1) {
+      console.log(
+        "HandleTargetConfirm Calling applyGuardEffect / cardPlayed.id === 1 / attacker: ",
+        nickname,
+        " / target: ",
+        target,
+        " / guess: " + guess
+      );
+
       const result = await applyGuardEffect({
         roomCode,
         attacker: nickname,
         target,
         guess,
       });
-      if (result.requiresAssassinDecision && target === nickname) {
-        setAssassinDecision({ attacker: result.attacker, target });
+
+      console.log("RESULT from applyGuardEffect: ", result);
+
+      if (result.requiresPrompt) {
+        //setShowGuardTargetPrompt(true);
+        //setGuardTargetPromptData({
+        //...result,
+
+        const promptRef = ref(db, `rooms/${roomCode}/guardTargetPrompt`);
+        await update(promptRef, {
+          ...result,
+          timestamp: Date.now(), // optional
+        });
         return;
-      } else if (result.requiresAssassinDecision) {
-        return;
-      } else if (result.result === "correctGuess") {
+      }
+
+      // TO DO: move the RESULT LOGIC ELSEWHERE in an other function.
+      // Also clean the multiple "setShowResultModal"
+
+      if (!result.requiresPrompt && result.result === "correctGuess") {
         await update(ref(db, `rooms/${roomCode}/players/${target}`), {
           isOut: true,
         });
@@ -131,15 +147,17 @@ export default function Play() {
             cardNames[result.targetCard.id]
           }. They are eliminated.`
         );
-      } else {
+        setShowResultModal(true);
+      } else if (!result.requiresPrompt && result.result === "wrongGuess") {
         setResultContent(`Wrong guess. ${target} was not holding a ${guess}.`);
+        setShowResultModal(true);
       }
+      // ------------------ \\
     } else if (cardPlayed.id === 2) {
       const info = await applyPriestEffect({ roomCode, target });
       setResultContent(`${target}'s card is ${cardNames[info.card.id]}.`);
+      setShowResultModal(true);
     }
-
-    setShowResultModal(true);
   };
 
   const handleEffectResultClose = async () => {
@@ -208,7 +226,7 @@ export default function Play() {
             <li key={name} style={{ marginBottom: "0.5rem" }}>
               <strong>{p.name}</strong> ({p.realName})<br />
               Tokens: {p.tokens} | Discard:{" "}
-              {(p.discard || []).map((card) => card.name).join(", ") || "—"}
+              {(p.discard || []).map((c) => c.name).join(", ") || "—"}
               {name === currentPlayer && " 👑 (current turn)"}
               {name === nickname && " ← you"}
             </li>
@@ -263,31 +281,53 @@ export default function Play() {
         />
       )}
 
-      {showResultModal && (
+      {!showGuardTargetPrompt && showResultModal && (
         <EffectResultModal
           resultText={resultContent}
           onClose={handleEffectResultClose}
         />
       )}
 
-      {assassinDecision && nickname === assassinDecision.target && (
-        <AssassinPromptModal
-          attacker={assassinDecision.attacker}
-          onReveal={async () => {
-            const result = await resolveAssassinDefense(assassinDecision);
-            setAssassinDecision(null);
-            setResultContent(
-              `You revealed the Assassin! ${assassinDecision.attacker} was eliminated. You drew card ${result.newCard.name}.`
-            );
-            setShowResultModal(true);
-          }}
-          onIgnore={() => {
-            setAssassinDecision(null);
-            setResultContent("You chose not to reveal the Assassin.");
-            setShowResultModal(true);
-          }}
-        />
-      )}
+      {showGuardTargetPrompt &&
+        guardTargetPromptData &&
+        nickname === guardTargetPromptData.target && (
+          <AssassinPromptModal
+            promptData={guardTargetPromptData}
+            onDecision={async (outcome) => {
+              const { target, attacker, isCorrectGuess } =
+                guardTargetPromptData;
+
+              if (outcome === "stabAttacker") {
+                const result = await resolveAssassinDefense({
+                  roomCode,
+                  attacker,
+                  target,
+                });
+                setResultContent(
+                  `🩸 You revealed the Assassin! ${attacker} was eliminated. You drew ${
+                    result.newCard?.name || "nothing"
+                  }.`
+                );
+              } else if (outcome === "targetEliminated") {
+                await update(ref(db, `rooms/${roomCode}/players/${target}`), {
+                  isOut: true,
+                });
+                setResultContent(
+                  `🪓 ${target}, you were holding the guessed card. Eliminated!`
+                );
+              } else {
+                setResultContent("🛡️ You're safe this time. No effect!");
+              }
+
+              //setGuardTargetPromptData(null);
+
+              await update(ref(db, `rooms/${roomCode}`), {
+                guardPrompt: null,
+              });
+              setShowResultModal(true);
+            }}
+          />
+        )}
     </div>
   );
 }

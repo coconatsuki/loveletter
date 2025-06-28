@@ -28,23 +28,24 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   const targetPlayer = data.players[target];
   const targetCard = targetPlayer.hand[0];
 
-  const isPremium = data.mode === 'premium';
+  const isPremium = data.mode === "premium";
   const hasAssassin = targetCard.id === 14;
   const wasCorrect = targetCard.strength === guess;
 
-  if (isPremium) {
-    return {
-      requiresPrompt: true,
-      target,
-      attacker,
-      hasAssassin,
-      guessedStrength: guess,
-      actualStrength: targetCard.strength,
-      isCorrectGuess: wasCorrect,
-      targetCard
-    };
-  }
+  return {
+    requiresPrompt: isPremium,
+    target,
+    attacker,
+    hasAssassin,
+    guessedStrength: guess,
+    actualStrength: targetCard.strength,
+    isCorrectGuess: wasCorrect,
+    targetCard,
+    result: wasCorrect ? "correctGuess" : "wrongGuess",
+    eliminatedPlayer: wasCorrect ? target : null,
+  };
 
+  /*
   if (hasAssassin) {
     return {
       requiresAssassinDecision: true,
@@ -52,35 +53,13 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
       target,
     };
   }
-
+ 
   return {
     result: wasCorrect ? "correctGuess" : "wrongGuess",
     targetCard,
     eliminatedPlayer: wasCorrect ? target : null,
   };
-}
-  const snapshot = await get(ref(db, `rooms/${roomCode}`));
-  const data = snapshot.val();
-  const targetPlayer = data.players[target];
-  const targetCard = targetPlayer.hand[0];
-
-  const hasAssassin = targetCard === 0;
-
-  if (hasAssassin) {
-    return {
-      requiresAssassinDecision: true,
-      attacker,
-      target,
-    };
-  }
-
-  const wasCorrect = targetCard.strength === guess;
-
-  return {
-    result: wasCorrect ? "correctGuess" : "wrongGuess",
-    targetCard,
-    eliminatedPlayer: wasCorrect ? target : null,
-  };
+  */
 }
 
 export async function resolveAssassinDefense({ roomCode, attacker, target }) {

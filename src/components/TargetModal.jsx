@@ -19,6 +19,15 @@ export default function TargetModal({
 
   const isGuard = cardPlayed === 1;
 
+  console.log(
+    "TargetModal has been called! / players: ",
+    players,
+    " / currentPlayer: ",
+    currentPlayer,
+    " / cardPlayed: ",
+    cardPlayed
+  );
+
   return (
     <div className="modal">
       <div className="modal-content">
