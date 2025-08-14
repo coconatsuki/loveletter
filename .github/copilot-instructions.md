@@ -121,6 +121,16 @@ The rest of the logic is similar to the normal mode, except if the target has th
 - We kick the attacker out of the game -- they can still Watch but we skip his turn.
 - We notify everyone that the attacker has been eliminated, killed by the target's assassin.
 
+### The Priest's card workflow (id: 2 / strength: 2)
+
+NORMAL & PREMIM MODE
+
+- The attacker picks the Priest card & select a target
+- We notify the target that the card in their hand will be revealed to the attacker (no need of a button on the target's side prompt)
+- We also send a notif on the Notification feed (but without revealing the target's card publicly)
+- The system reveals the target's card to the attacker in a modal containing a "continue" button.
+- When the attacker press "continue", we clear (remove) both modals (on the target & attacker's side) and we move on to next player;
+
 ## Summary of the cards count, strength and effects
 
 ### Normal mode (for 2~5 players)
