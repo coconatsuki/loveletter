@@ -2,7 +2,7 @@ import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 
 const cardStrengths = {
-  0: 0, // Assassin / Jester
+  0: 0, // Jester
   1: 1, // Guard
   2: 2, // Priest
   3: 3, // Baron
@@ -15,11 +15,10 @@ const cardStrengths = {
   10: 6, // Constable
   11: 7, // Dowager Queen
   12: 4, // Sycophant
-  13: 0, // Jester
+  13: 0, // Cardinal
   14: 0, // Assassin
-  15: 2, // Cardinal
-  16: 3, // Baroness
-  17: 5, // Count
+  15: 2, // Baroness
+  16: 3, // Count
 };
 
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
