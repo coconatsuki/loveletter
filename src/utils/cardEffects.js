@@ -1,5 +1,6 @@
 import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
+import { cards } from "./cardsData";
 
 const cardStrengths = {
   0: 0, // Jester
@@ -104,11 +105,51 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
   };
 }
 
-export async function applyPriestEffect({ roomCode, target }) {
-  const snapshot = await get(ref(db, `rooms/${roomCode}/players/${target}`));
+export async function applyPriestEffect({ roomCode, attacker, target }) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+  
+  if (!data || !data.players || !data.players[target]) {
+    return {
+      result: "error",
+      message: "Target player not found",
+    };
+  }
+
+  const targetPlayer = data.players[target];
+  
+  if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) {
+    return {
+      result: "error",
+      message: "Target has no cards",
+    };
+  }
+
+  const targetCard = targetPlayer.hand[0];
+  
+  if (!targetCard) {
+    return {
+      result: "error", 
+      message: "Target has no cards",
+    };
+  }
+
+  // Enrich target card with effect description from cards data
+  const cardData = cards.find(c => c.id === targetCard.id);
+  const enrichedTargetCard = {
+    ...targetCard,
+    effect: cardData?.effect || "Unknown card effect"
+  };
+
   return {
     result: "revealCard",
-    card: snapshot.val()?.hand?.[0],
+    attacker,
+    target,
+    targetCard: enrichedTargetCard,
+    // Fun medieval notification messages 🏰
+    attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret! They hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
+    targetMessage: `🙈⚡ A holy priest peers into your soul! Your ${enrichedTargetCard.name} has been revealed to ${data.players[attacker]?.name || attacker}!`,
+    publicMessage: `🔮📿 ${data.players[attacker]?.name || attacker} plays Priest and communes with the spirits to glimpse ${targetPlayer.name}'s hand! The mystic arts are at work... 🌟`,
   };
 }
 

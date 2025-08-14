@@ -5,6 +5,7 @@ import { ref, onValue, update, set } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
+import PriestTargetModal from "../components/PriestTargetModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -48,6 +49,7 @@ export default function Play() {
   const [resultModalData, setResultModalData] = useState(null);
   const [guardTargetPromptData, setGuardTargetPromptData] = useState(null);
   const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
+  const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [resultContent, setResultContent] = useState("");
   const [notifications, setNotifications] = useState([]);
 
@@ -126,6 +128,23 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
+  // Listen to priest target modal data
+  useEffect(() => {
+    const refPriestTarget = ref(db, `rooms/${roomCode}/priestTarget`);
+    const unsubscribe = onValue(refPriestTarget, (snapshot) => {
+      const data = snapshot.val();
+      
+      if (data && data.visibleTo === nickname) {
+        // Show target modal to the target player
+        setPriestTargetModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        setPriestTargetModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
   const { round, players } = roomData || {};
   const currentPlayer = round?.currentPlayer;
   const isMyTurn = nickname === currentPlayer;
@@ -190,21 +209,45 @@ export default function Play() {
 
     // === PRIEST CARD LOGIC (ID: 2) ===
     else if (cardPlayed.id === 2) {
-      const info = await applyPriestEffect({ roomCode, target });
-      pushNotification(
-        roomCode,
-        `${playerNickname} whispered to the winds... peeking into ${target}'s mind. Behold: the ${
-          cardNames[info.card.id]
-        }!`
-      );
-      setResultContent(`${target}'s card is ${cardNames[info.card.id]}.`);
-
-      // Show result to attacker
-      await update(ref(db, `rooms/${roomCode}/effectResult`), {
-        visibleTo: playerNickname,
+      const priestResult = await applyPriestEffect({ 
+        roomCode, 
+        attacker: nickname,
+        target 
       });
+
+      if (priestResult.result === "error") {
+        setResultModalData({
+          resultText: `❌ Error: ${priestResult.message}`,
+        });
+        return;
+      }
+
+      // Send notifications with medieval fun! 🏰
+      pushNotification(roomCode, priestResult.publicMessage);
+
+      // Show the target modal to the target (no button needed)
+      await update(ref(db, `rooms/${roomCode}/priestTarget`), {
+        visibleTo: target,
+        attacker: nickname,
+        targetCard: priestResult.targetCard,
+      });
+
+      // Show the result to the attacker with card details
+      setResultModalData({
+        resultText: priestResult.attackerMessage,
+        cardDetails: {
+          "Target Player": target,
+          "Revealed Card": `${priestResult.targetCard.name} (Strength ${priestResult.targetCard.strength})`,
+          "Card Effect": priestResult.targetCard.effect || "No effect description available",
+        },
+      });
+      
+      // Priest effect is complete - return early, turn will be completed when result modal is closed
+      return;
     }
 
+    // === OTHER CARD LOGIC (Baron, Prince, King, etc.) ===
+    // This section is for Guard-specific turn completion
     const { playedCardIndex, playerNickname } = cardPlayInfo;
     const attackerPlayer = players[playerNickname];
 
@@ -435,9 +478,12 @@ export default function Play() {
 
           {resultModalData && (
             <EffectResultModal
-              resultText={resultModalData}
+              resultText={resultModalData.resultText || resultModalData}
+              cardDetails={resultModalData.cardDetails || null}
               onClose={async () => {
                 await set(ref(db, `rooms/${roomCode}/actionResult`), null);
+                // Clear priest target modal if it exists
+                await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
                 setResultModalData(null);
 
                 // Only call handleEffectResultClose if selectedCardIndex is valid
@@ -562,6 +608,14 @@ export default function Play() {
                 }}
               />
             )}
+
+          {/* === PRIEST TARGET MODAL === */}
+          {priestTargetModalData && (
+            <PriestTargetModal
+              attacker={priestTargetModalData.attacker}
+              targetCard={priestTargetModalData.targetCard}
+            />
+          )}
         </div>
 
         {/* NOTIFICATION PANEL */}

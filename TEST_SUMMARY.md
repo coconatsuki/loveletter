@@ -5,7 +5,7 @@ Comprehensive test suite established for Love Letter online game, focusing on ca
 
 ## Test Coverage Status ✅
 
-### Completed Tests (14/14 passing)
+### Completed Tests (25/25 passing)
 
 #### 1. Deck Builder Tests (5 tests) ✅
 - **Location**: `src/utils/__tests__/deckBuilder.test.js`
@@ -30,6 +30,27 @@ Comprehensive test suite established for Love Letter online game, focusing on ca
 - ✅ Missing room data handling
 - ✅ Missing player data validation
 - ✅ Empty hands error handling
+
+#### 3. Priest Card Effects Tests (11 tests) ✅
+- **Location**: `src/utils/__tests__/priestEffects.test.js`
+- **Coverage**: Complete Priest card logic with medieval-themed notifications
+
+##### Normal Mode Scenarios (4 tests)
+- ✅ Successful card revelation with proper messages
+- ✅ Different card types (Prince, King, Guard, Princess)
+- ✅ Medieval-geeky notification content validation
+- ✅ Message personalization with player names
+
+##### Premium Mode Scenarios (2 tests)
+- ✅ Assassin card revelation handling
+- ✅ Premium-exclusive cards (Bishop, etc.)
+
+##### Error Handling (5 tests)
+- ✅ Missing room data protection
+- ✅ Missing players data validation
+- ✅ Nonexistent target player handling
+- ✅ Empty hands error detection
+- ✅ Null/undefined hand protection
 
 ## Key Bug Fixes Implemented
 
@@ -102,12 +123,12 @@ npm run test:ui
 
 ## Test Results Summary
 
-- **Total Test Files**: 2
-- **Total Tests**: 14
-- **Passing**: 14 ✅
+- **Total Test Files**: 3
+- **Total Tests**: 25
+- **Passing**: 25 ✅
 - **Failing**: 0 ❌
-- **Coverage**: Core game mechanics fully tested
-- **Status**: All critical Guard card workflows validated
+- **Coverage**: Core game mechanics + Priest card fully tested
+- **Status**: All Guard and Priest card workflows validated
 
 ## Notes
 
