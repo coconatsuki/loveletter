@@ -1,6 +1,12 @@
-import React from 'react';
+import React from "react";
 
-export default function EffectResultModal({ resultText, cardDetails = null, onClose }) {
+export default function EffectResultModal({
+  resultText,
+  cardDetails = null,
+  onClose,
+}) {
+  console.log("EffectResultModal has been called! / resultText: ", resultText);
+
   return (
     <div className="modal">
       <div className="modal-content">

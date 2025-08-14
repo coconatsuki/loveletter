@@ -2,7 +2,7 @@ import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 
 const cardStrengths = {
-  0: 0, // Assassin / Jester
+  0: 0, // Jester
   1: 1, // Guard
   2: 2, // Priest
   3: 3, // Baron
@@ -15,14 +15,30 @@ const cardStrengths = {
   10: 6, // Constable
   11: 7, // Dowager Queen
   12: 4, // Sycophant
-  13: 0, // Jester
+  13: 0, // Cardinal
   14: 0, // Assassin
-  15: 2, // Cardinal
-  16: 3, // Baroness
-  17: 5, // Count
+  15: 2, // Baroness
+  16: 3, // Count
 };
 
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
+  // Guard rule: You cannot guess Guard (strength 1)
+  if (guess === 1) {
+    return {
+      requiresPrompt: false,
+      target,
+      attacker,
+      hasAssassin: false,
+      guessedStrength: guess,
+      actualStrength: null,
+      isCorrectGuess: false,
+      targetCard: null,
+      result: "wrongGuess",
+      eliminatedPlayer: null,
+      error: "Cannot guess Guard (strength 1)",
+    };
+  }
+
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
   const targetPlayer = data.players[target];
