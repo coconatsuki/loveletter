@@ -22,6 +22,23 @@ const cardStrengths = {
 };
 
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
+  // Guard rule: You cannot guess Guard (strength 1)
+  if (guess === 1) {
+    return {
+      requiresPrompt: false,
+      target,
+      attacker,
+      hasAssassin: false,
+      guessedStrength: guess,
+      actualStrength: null,
+      isCorrectGuess: false,
+      targetCard: null,
+      result: "wrongGuess",
+      eliminatedPlayer: null,
+      error: "Cannot guess Guard (strength 1)",
+    };
+  }
+
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
   const targetPlayer = data.players[target];
