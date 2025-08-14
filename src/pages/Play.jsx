@@ -171,52 +171,21 @@ export default function Play() {
         `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
       );
 
-      // PREMIUM MODE: Always show AssassinPromptModal to target (for secrecy)
-      if (result.requiresPrompt) {
-        const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
-        await update(promptRef, {
-          ...result,
-          timestamp: Date.now(),
-          // Store card play info so we can complete the turn later
-          cardPlayInfo: {
-            playedCardIndex: selectedCardIndex,
-            playerNickname: nickname,
-          },
-        });
-        // Exit early - AssassinPromptModal will handle the rest
-        return;
-      }
-
-      // NORMAL MODE: Handle Guard effect immediately (no Assassin cards exist)
-      if (result.result === "correctGuess") {
-        // Target was correctly guessed - eliminate them
-        await update(ref(db, `rooms/${roomCode}/players/${target}`), {
-          isOut: true,
-        });
-        pushNotification(
-          roomCode,
-          `🔮 The guess was true! ${target} held a ${
-            cardNames[result.targetCard.id]
-          }. Exiled from court!`
-        );
-        setResultContent(
-          `Correct! ${target} had a ${
-            cardNames[result.targetCard.id]
-          }. Eliminated.`
-        );
-      } else {
-        // Target was incorrectly guessed - they remain in play
-        pushNotification(
-          roomCode,
-          `❌ Alas! ${target} was wrongly accused. They remain in play.`
-        );
-        setResultContent(`Wrong guess. ${target} was not holding a ${guess}.`);
-      }
-
-      // Show result to attacker for normal mode Guard effects
-      await update(ref(db, `rooms/${roomCode}/effectResult`), {
-        visibleTo: nickname, // Fixed: was 'attacker' which is undefined here
+      // ALWAYS show AssassinPromptModal to target (good UX for both modes)
+      // In premium mode: target can choose to use Assassin or not
+      // In normal mode: target just acknowledges the attack
+      const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
+      await update(promptRef, {
+        ...result,
+        timestamp: Date.now(),
+        // Store card play info so we can complete the turn later
+        cardPlayInfo: {
+          playedCardIndex: selectedCardIndex,
+          playerNickname: nickname,
+        },
       });
+      // Exit early - AssassinPromptModal will handle the rest for both modes
+      return;
     }
 
     // === PRIEST CARD LOGIC (ID: 2) ===
