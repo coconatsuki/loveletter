@@ -28,15 +28,15 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 
 ## 🚧 Cards To Implement
 
-### ⚖️ Baron (ID: 3) - IN PROGRESS
+### ⚖️ Baron (ID: 3) - COMPLETE
 
-- 🔄 Target selection
-- 🔄 Strength comparison logic (already exists in cardEffects.js)
-- 🔄 Modal for showing both cards to both players
-- 🔄 Elimination handling (lower strength player eliminated)
-- 🔄 Tie handling (no elimination)
-- 🔄 Testing suite
-- 🔄 Medieval notifications
+- ✅ Target selection  
+- ✅ Strength comparison logic with dual-player result display
+- ✅ Modal showing both cards to both players
+- ✅ Elimination handling (lower strength player eliminated)
+- ✅ Tie handling (no elimination)  
+- ✅ 10 comprehensive tests covering all scenarios
+- ✅ Medieval-themed notifications with epic emojis
 
 ### 🛡️ Handmaid (ID: 4) - TODO
 
@@ -140,7 +140,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 
 ## 🔄 Current Priority
 
-**Baron Card Implementation** - Focus on comparison logic and dual-player result display
+**Handmaid Card Implementation** - Focus on protection mechanics and visual indicators
 
 ## Next steps
 
@@ -155,9 +155,9 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 ## 📝 Notes
 
 - Basic card effects already exist in `cardEffects.js`
-- Modal system established with Guard/Priest
+- Modal system established with Guard/Priest/Baron
 - Firebase real-time sync patterns proven
-- Testing patterns established (25/25 tests passing)
+- Testing patterns established (35/35 tests passing)
 - Medieval notification style guide established
 
 ---

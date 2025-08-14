@@ -6,6 +6,7 @@ import TargetModal from "../components/TargetModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
+import BaronResultModal from "../components/BaronResultModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -51,6 +52,8 @@ export default function Play() {
   const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
   const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [resultContent, setResultContent] = useState("");
+  const [baronResultModalData, setBaronResultModalData] = useState(null);
+  const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
 
   /**
@@ -140,6 +143,23 @@ export default function Play() {
       } else if (!data) {
         // Clear the modal when data is cleared
         setPriestTargetModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
+  // Listen to baron target modal data
+  useEffect(() => {
+    const refBaronTarget = ref(db, `rooms/${roomCode}/baronTarget`);
+    const unsubscribe = onValue(refBaronTarget, (snapshot) => {
+      const data = snapshot.val();
+      
+      if (data && data.visibleTo === nickname) {
+        // Show Baron target modal to the target player
+        setBaronTargetModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        setBaronTargetModalData(null);
       }
     });
     return () => unsubscribe();
@@ -243,6 +263,52 @@ export default function Play() {
       });
       
       // Priest effect is complete - return early, turn will be completed when result modal is closed
+      return;
+    }
+
+    // === BARON CARD LOGIC (ID: 3) ===
+    else if (cardPlayed.id === 3) {
+      const baronResult = await applyBaronEffect({ 
+        roomCode, 
+        attacker: nickname,
+        target 
+      });
+
+      if (baronResult.result === "error") {
+        setResultModalData({
+          resultText: `❌ Error: ${baronResult.message}`,
+        });
+        return;
+      }
+
+      // Send the public notification (reveals eliminated player's card only)
+      pushNotification(roomCode, baronResult.publicMessage);
+
+      // Show Baron result modal to the target (no button needed)
+      await update(ref(db, `rooms/${roomCode}/baronTarget`), {
+        visibleTo: target,
+        attacker: nickname,
+        targetName: target,
+        attackerCard: baronResult.attackerCard,
+        targetCard: baronResult.targetCard,
+        eliminatedPlayer: baronResult.eliminatedPlayer,
+        isTie: baronResult.isTie,
+        targetMessage: baronResult.targetMessage,
+      });
+
+      // Show Baron result modal to the attacker (with confirm button to control game flow)
+      setBaronResultModalData({
+        attackerName: nickname,
+        targetName: target,
+        attackerCard: baronResult.attackerCard,
+        targetCard: baronResult.targetCard,
+        eliminatedPlayer: baronResult.eliminatedPlayer,
+        isTie: baronResult.isTie,
+        attackerMessage: baronResult.attackerMessage,
+        targetMessage: baronResult.targetMessage,
+      });
+      
+      // Baron effect is complete - return early, turn will be completed when result modal is closed
       return;
     }
 
@@ -484,6 +550,8 @@ export default function Play() {
                 await set(ref(db, `rooms/${roomCode}/actionResult`), null);
                 // Clear priest target modal if it exists
                 await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
+                // Clear baron target modal if it exists
+                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
                 setResultModalData(null);
 
                 // Only call handleEffectResultClose if selectedCardIndex is valid
@@ -609,11 +677,57 @@ export default function Play() {
               />
             )}
 
+          {/* === BARON RESULT MODAL === */}
+          {baronResultModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole={nickname === baronResultModalData.attackerName ? "attacker" : "target"}
+              attackerName={baronResultModalData.attackerName}
+              targetName={baronResultModalData.targetName}
+              attackerCard={baronResultModalData.attackerCard}
+              targetCard={baronResultModalData.targetCard}
+              eliminatedPlayer={baronResultModalData.eliminatedPlayer}
+              isTie={baronResultModalData.isTie}
+              message={
+                nickname === baronResultModalData.attackerName 
+                  ? baronResultModalData.attackerMessage 
+                  : baronResultModalData.targetMessage
+              }
+              onConfirm={async () => {
+                // Only attacker can confirm to proceed with the game
+                // Clear Baron target data in Firebase
+                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+                setBaronResultModalData(null);
+                
+                // Complete the Baron turn (discard card, advance turn)
+                if (selectedCardIndex !== null) {
+                  handleEffectResultClose();
+                }
+              }}
+            />
+          )}
+
           {/* === PRIEST TARGET MODAL === */}
           {priestTargetModalData && (
             <PriestTargetModal
               attacker={priestTargetModalData.attacker}
               targetCard={priestTargetModalData.targetCard}
+            />
+          )}
+
+          {/* === BARON TARGET MODAL === */}
+          {baronTargetModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole="target"
+              attackerName={baronTargetModalData.attacker}
+              targetName={baronTargetModalData.targetName}
+              attackerCard={baronTargetModalData.attackerCard}
+              targetCard={baronTargetModalData.targetCard}
+              eliminatedPlayer={baronTargetModalData.eliminatedPlayer}
+              isTie={baronTargetModalData.isTie}
+              message={baronTargetModalData.targetMessage}
+              // No onConfirm for target - they just observe
             />
           )}
         </div>

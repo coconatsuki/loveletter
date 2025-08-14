@@ -157,13 +157,33 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
 
-  const aCard = data.players[attacker].hand[0];
-  const tCard = data.players[target].hand[0];
+  const attackerCard = data.players[attacker].hand[0];
+  const targetCard = data.players[target].hand[0];
+  
+  // Enrich card data with names and effects from cardsData
+  const enrichedAttackerCard = cards.find(c => c.id === attackerCard.id) || attackerCard;
+  const enrichedTargetCard = cards.find(c => c.id === targetCard.id) || targetCard;
 
   let eliminatedPlayer = null;
-  if (aCard > tCard) eliminatedPlayer = target;
-  else if (tCard > aCard) eliminatedPlayer = attacker;
+  let winner = null;
+  let winnerCard = null;
+  let loserCard = null;
 
+  // Compare card strengths - lower strength is eliminated
+  if (attackerCard.strength > targetCard.strength) {
+    eliminatedPlayer = target;
+    winner = attacker;
+    winnerCard = enrichedAttackerCard;
+    loserCard = enrichedTargetCard;
+  } else if (targetCard.strength > attackerCard.strength) {
+    eliminatedPlayer = attacker;
+    winner = target;
+    winnerCard = enrichedTargetCard;
+    loserCard = enrichedAttackerCard;
+  }
+  // If strengths are equal, it's a tie - no elimination
+
+  // Eliminate the loser if there is one
   if (eliminatedPlayer) {
     await update(ref(db, `rooms/${roomCode}/players/${eliminatedPlayer}`), {
       isOut: true,
@@ -171,9 +191,31 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   }
 
   return {
-    attackerCard: aCard,
-    targetCard: tCard,
+    requiresPrompt: false,
+    attacker,
+    target,
+    attackerCard: enrichedAttackerCard,
+    targetCard: enrichedTargetCard,
     eliminatedPlayer,
+    winner,
+    isTie: !eliminatedPlayer,
+    result: eliminatedPlayer ? "elimination" : "tie",
+    // Medieval notifications for different audiences
+    attackerMessage: eliminatedPlayer === target
+      ? `⚔️🏆 Your Baron's duel is victorious! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) defeats ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). They are eliminated from the round!`
+      : eliminatedPlayer === attacker
+      ? `⚔️💀 Your Baron's duel ends in defeat! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) falls to ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). You are eliminated!`
+      : `⚔️🤝 An honorable draw! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) matches ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). Both knights live to fight another day!`,
+    
+    targetMessage: eliminatedPlayer === target
+      ? `⚔️💀 A Baron challenges you to a duel and emerges victorious! Their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) defeats your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). You are eliminated from the round!`
+      : eliminatedPlayer === attacker
+      ? `⚔️🏆 A Baron challenges you to a duel but you triumph! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) defeats their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). The challenger is eliminated!`
+      : `⚔️🤝 A Baron challenges you to an honorable duel! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) matches their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). 'Tis a tie - both knights stand strong!`,
+
+    publicMessage: eliminatedPlayer
+      ? `⚖️💥 ${data.players[attacker]?.name || attacker} plays Baron and challenges ${data.players[target]?.name || target} to a duel of honor! ${loserCard.name} (${loserCard.strength}) falls to superior strength - ${data.players[eliminatedPlayer]?.name || eliminatedPlayer} is eliminated! ⚔️👑`
+      : `⚖️🤝 ${data.players[attacker]?.name || attacker} plays Baron and challenges ${data.players[target]?.name || target} to a duel! Both cards match in strength - an honorable draw with no casualties! 🛡️✨`
   };
 }
 
