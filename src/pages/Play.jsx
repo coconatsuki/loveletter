@@ -12,6 +12,7 @@ import {
   resolveAssassinDefense,
   applyPriestEffect,
   applyBaronEffect,
+  applyHandmaidEffect,
   applyPrinceEffect,
   applyKingEffect,
 } from "../utils/cardEffects";
@@ -186,13 +187,51 @@ export default function Play() {
     if ([1, 2, 3, 5, 6].includes(card.id)) {
       setSelectedCardIndex(index);
       setShowTargetModal(true);
+    } else if (card.id === 4) {
+      // HANDMAID CARD - No target needed, apply effect immediately
+      playHandmaid(index);
     }
+  };
+
+  const playHandmaid = async (index) => {
+    setSelectedCardIndex(index);
+    setIsPlaying(true);
+
+    // Apply Handmaid protection
+    const result = await applyHandmaidEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show protection confirmation modal to the player
+    setResultModalData({
+      resultText: result.playerMessage,
+      isHandmaidProtection: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
   };
 
   const handleTargetConfirm = async ({ target, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
     setIsPlaying(true);
+
+    // === SKIP TURN CASE (All players protected by Handmaid) ===
+    if (target === "SKIP_TURN") {
+      // Show a result modal explaining the skip
+      setResultModalData({
+        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
+          cardNames[cardPlayed.id]
+        } cannot find a target, so your turn is skipped. The card takes no effect! ☕🛡️`,
+      });
+
+      // Note: Turn will be completed when player closes the result modal
+      return;
+    }
 
     // === GUARD CARD LOGIC (ID: 1) ===
     if (cardPlayed.id === 1) {
@@ -352,11 +391,18 @@ export default function Play() {
 
     const nextPlayer = activePlayers[nextIndex];
 
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), {
       [`players/${playerNickname}/hand`]: [remainingCard],
       [`players/${playerNickname}/discard`]: newDiscard,
       [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
     });
 
     // Notify all players about the turn change
@@ -415,11 +461,18 @@ export default function Play() {
       return;
     }
 
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), {
       [`players/${nickname}/hand`]: [remainingCard],
       [`players/${nickname}/discard`]: newDiscard,
       [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
     });
 
     // Notify all players about the turn change
@@ -483,15 +536,31 @@ export default function Play() {
           <div style={{ marginTop: "1rem" }}>
             <h3>Players:</h3>
             <ul>
-              {Object.entries(players).map(([name, p]) => (
-                <li key={name} style={{ marginBottom: "0.5rem" }}>
-                  <strong>{p.name}</strong> ({p.realName})<br />
-                  Tokens: {p.tokens} | Discard:{" "}
-                  {(p.discard || []).map((card) => card.name).join(", ") || "—"}
-                  {name === currentPlayer && " 👑 (current turn)"}
-                  {name === nickname && " ← you"}
-                </li>
-              ))}
+              {Object.entries(players).map(([name, p]) => {
+                const isProtected = roomData?.protectedPlayers?.includes(name);
+                const playerStyle = isProtected
+                  ? {
+                      marginBottom: "0.5rem",
+                      padding: "5px",
+                      border: "2px solid #FFD700",
+                      borderRadius: "8px",
+                      backgroundColor: "#FFF8DC",
+                      boxShadow: "0 0 8px rgba(255,215,0,0.3)",
+                    }
+                  : { marginBottom: "0.5rem" };
+
+                return (
+                  <li key={name} style={playerStyle}>
+                    <strong>{p.name}</strong> ({p.realName})<br />
+                    Tokens: {p.tokens} | Discard:{" "}
+                    {(p.discard || []).map((card) => card.name).join(", ") ||
+                      "—"}
+                    {name === currentPlayer && " 👑 (current turn)"}
+                    {name === nickname && " ← you"}
+                    {isProtected && " 🫖✨ (protected by Handmaid)"}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -538,6 +607,7 @@ export default function Play() {
               players={players}
               currentPlayer={nickname}
               cardPlayed={player.hand[selectedCardIndex].id}
+              protectedPlayers={roomData?.protectedPlayers || []}
               onConfirm={handleTargetConfirm}
               onCancel={() => setShowTargetModal(false)}
             />

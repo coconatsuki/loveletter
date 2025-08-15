@@ -309,3 +309,31 @@ export async function applyKingEffect({ roomCode, attacker, target }) {
     targetCard,
   };
 }
+
+export async function applyHandmaidEffect({ roomCode, player }) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+  
+  // Get current protected players array (or initialize if doesn't exist)
+  const currentProtected = data.protectedPlayers || [];
+  
+  // Add this player to protected players if not already there
+  const updatedProtected = currentProtected.includes(player) 
+    ? currentProtected 
+    : [...currentProtected, player];
+
+  // Update Firebase with new protected players list
+  await update(ref(db, `rooms/${roomCode}`), {
+    protectedPlayers: updatedProtected
+  });
+
+  return {
+    requiresPrompt: false,
+    result: "protection",
+    protectedPlayer: player,
+    // Cozy medieval notification for everyone
+    publicMessage: `🫖✨ ${data.players[player]?.name || player} calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. They are now protected until their next turn! ☕🛡️`,
+    // Personal message for the protected player's modal
+    playerMessage: `🫖✨ THE PRINCESS' HANDMAID ✨🫖\n\nThe Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`
+  };
+}

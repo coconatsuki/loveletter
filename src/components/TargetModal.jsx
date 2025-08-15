@@ -4,6 +4,7 @@ export default function TargetModal({
   players,
   currentPlayer,
   cardPlayed,
+  protectedPlayers = [],
   onConfirm,
   onCancel,
 }) {
@@ -14,10 +15,11 @@ export default function TargetModal({
     ([name, p]) =>
       name !== currentPlayer &&
       !p.isOut &&
-      p.discard?.[p.discard.length - 1] !== 4 // not protected by Handmaid
+      !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
   const isGuard = cardPlayed === 1;
+  const hasNoTargets = validTargets.length === 0;
 
   console.log(
     "TargetModal has been called! / players: ",
@@ -25,13 +27,22 @@ export default function TargetModal({
     " / currentPlayer: ",
     currentPlayer,
     " / cardPlayed: ",
-    cardPlayed
+    cardPlayed,
+    " / protectedPlayers: ",
+    protectedPlayers,
+    " / hasNoTargets: ",
+    hasNoTargets
   );
 
   return (
     <div className="modal">
       <div className="modal-content">
         <h3>Select a target for your card</h3>
+        {hasNoTargets && (
+          <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '10px' }}>
+            🫖 All other players are enjoying tea with the Princess' Handmaid and cannot be targeted.
+          </p>
+        )}
         <select
           value={selectedTarget}
           onChange={(e) => setSelectedTarget(e.target.value)}
@@ -42,6 +53,9 @@ export default function TargetModal({
               {p.name} ({p.realName})
             </option>
           ))}
+          {hasNoTargets && (
+            <option value="SKIP_TURN">Skip turn (no available targets)</option>
+          )}
         </select>
 
         {isGuard && (
