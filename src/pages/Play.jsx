@@ -18,23 +18,23 @@ import {
 import { pushNotification } from "../utils/pushNotification";
 
 const cardNames = {
+  0: "Jester",
   1: "Guard",
   2: "Priest",
   3: "Baron",
   4: "Handmaid",
   5: "Prince",
-  6: "King",
+  6: "Phantom King",
   7: "Countess",
   8: "Princess",
-  9: "Bishop",
-  10: "Constable",
-  11: "Dowager Queen",
-  12: "Sycophant",
-  13: "Jester",
+  9: "Inquisitor",
+  10: "Chamberlain",
+  11: "Regent Queen",
+  12: "Court Whisperer",
+  13: "Royal Confessor",
   14: "Assassin",
-  15: "Cardinal",
-  16: "Baroness",
-  17: "Count",
+  15: "Baroness",
+  16: "Duke",
 };
 
 export default function Play() {
@@ -136,7 +136,7 @@ export default function Play() {
     const refPriestTarget = ref(db, `rooms/${roomCode}/priestTarget`);
     const unsubscribe = onValue(refPriestTarget, (snapshot) => {
       const data = snapshot.val();
-      
+
       if (data && data.visibleTo === nickname) {
         // Show target modal to the target player
         setPriestTargetModalData(data);
@@ -153,7 +153,7 @@ export default function Play() {
     const refBaronTarget = ref(db, `rooms/${roomCode}/baronTarget`);
     const unsubscribe = onValue(refBaronTarget, (snapshot) => {
       const data = snapshot.val();
-      
+
       if (data && data.visibleTo === nickname) {
         // Show Baron target modal to the target player
         setBaronTargetModalData(data);
@@ -229,10 +229,10 @@ export default function Play() {
 
     // === PRIEST CARD LOGIC (ID: 2) ===
     else if (cardPlayed.id === 2) {
-      const priestResult = await applyPriestEffect({ 
-        roomCode, 
+      const priestResult = await applyPriestEffect({
+        roomCode,
         attacker: nickname,
-        target 
+        target,
       });
 
       if (priestResult.result === "error") {
@@ -258,20 +258,21 @@ export default function Play() {
         cardDetails: {
           "Target Player": target,
           "Revealed Card": `${priestResult.targetCard.name} (Strength ${priestResult.targetCard.strength})`,
-          "Card Effect": priestResult.targetCard.effect || "No effect description available",
+          "Card Effect":
+            priestResult.targetCard.effect || "No effect description available",
         },
       });
-      
+
       // Priest effect is complete - return early, turn will be completed when result modal is closed
       return;
     }
 
     // === BARON CARD LOGIC (ID: 3) ===
     else if (cardPlayed.id === 3) {
-      const baronResult = await applyBaronEffect({ 
-        roomCode, 
+      const baronResult = await applyBaronEffect({
+        roomCode,
         attacker: nickname,
-        target 
+        target,
       });
 
       if (baronResult.result === "error") {
@@ -307,12 +308,12 @@ export default function Play() {
         attackerMessage: baronResult.attackerMessage,
         targetMessage: baronResult.targetMessage,
       });
-      
+
       // Baron effect is complete - return early, turn will be completed when result modal is closed
       return;
     }
 
-    // === OTHER CARD LOGIC (Baron, Prince, King, etc.) ===
+    // === OTHER CARD LOGIC (Prince, Phantom King, etc.) ===
     // This section is for Guard-specific turn completion
     const { playedCardIndex, playerNickname } = cardPlayInfo;
     const attackerPlayer = players[playerNickname];
@@ -681,7 +682,11 @@ export default function Play() {
           {baronResultModalData && (
             <BaronResultModal
               isOpen={true}
-              userRole={nickname === baronResultModalData.attackerName ? "attacker" : "target"}
+              userRole={
+                nickname === baronResultModalData.attackerName
+                  ? "attacker"
+                  : "target"
+              }
               attackerName={baronResultModalData.attackerName}
               targetName={baronResultModalData.targetName}
               attackerCard={baronResultModalData.attackerCard}
@@ -689,8 +694,8 @@ export default function Play() {
               eliminatedPlayer={baronResultModalData.eliminatedPlayer}
               isTie={baronResultModalData.isTie}
               message={
-                nickname === baronResultModalData.attackerName 
-                  ? baronResultModalData.attackerMessage 
+                nickname === baronResultModalData.attackerName
+                  ? baronResultModalData.attackerMessage
                   : baronResultModalData.targetMessage
               }
               onConfirm={async () => {
@@ -698,7 +703,7 @@ export default function Play() {
                 // Clear Baron target data in Firebase
                 await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
                 setBaronResultModalData(null);
-                
+
                 // Complete the Baron turn (discard card, advance turn)
                 if (selectedCardIndex !== null) {
                   handleEffectResultClose();

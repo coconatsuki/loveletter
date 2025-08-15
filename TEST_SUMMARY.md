@@ -37,13 +37,13 @@ Comprehensive test suite established for Love Letter online game, focusing on ca
 
 ##### Normal Mode Scenarios (4 tests)
 - ✅ Successful card revelation with proper messages
-- ✅ Different card types (Prince, King, Guard, Princess)
+- ✅ Different card types (Prince, Phantom King, Guard, Princess)
 - ✅ Medieval-geeky notification content validation
 - ✅ Message personalization with player names
 
 ##### Premium Mode Scenarios (2 tests)
 - ✅ Assassin card revelation handling
-- ✅ Premium-exclusive cards (Bishop, etc.)
+- ✅ Premium-exclusive cards (Inquisitor, etc.)
 
 ##### Error Handling (5 tests)
 - ✅ Missing room data protection
@@ -97,8 +97,8 @@ src/
 - Priest card (viewing hands)
 - Baron card (strength comparison)
 - Prince card (discard and draw)
-- King card (hand swapping)
-- Premium-exclusive cards (Bishop, Constable, etc.)
+- Phantom King card (hand swapping)
+- Premium-exclusive cards (Inquisitor, Chamberlain, etc.)
 
 ### Integration Tests
 - Complete Guard workflow end-to-end

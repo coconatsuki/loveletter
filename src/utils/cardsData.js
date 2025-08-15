@@ -49,7 +49,7 @@ export const cards = [
   },
   {
     id: 6,
-    name: "King",
+    name: "Phantom King",
     strength: 6,
     countNormal: 1,
     countPremium: 1,
@@ -61,7 +61,7 @@ export const cards = [
     strength: 7,
     countNormal: 1,
     countPremium: 1,
-    effect: "Must be played if with Prince or King.",
+    effect: "Must be played if with Prince or Phantom King.",
   },
   {
     id: 8,
@@ -73,7 +73,7 @@ export const cards = [
   },
   {
     id: 9,
-    name: "Bishop",
+    name: "Inquisitor",
     strength: 9,
     countNormal: 0,
     countPremium: 1,
@@ -81,7 +81,7 @@ export const cards = [
   },
   {
     id: 10,
-    name: "Constable",
+    name: "Chamberlain",
     strength: 6,
     countNormal: 0,
     countPremium: 1,
@@ -89,7 +89,7 @@ export const cards = [
   },
   {
     id: 11,
-    name: "Dowager Queen",
+    name: "Regent Queen",
     strength: 7,
     countNormal: 0,
     countPremium: 1,
@@ -97,7 +97,7 @@ export const cards = [
   },
   {
     id: 12,
-    name: "Sycophant",
+    name: "Court Whisperer",
     strength: 4,
     countNormal: 0,
     countPremium: 2,
@@ -105,7 +105,7 @@ export const cards = [
   },
   {
     id: 13,
-    name: "Cardinal",
+    name: "Royal Confessor",
     strength: 2,
     countNormal: 0,
     countPremium: 2,
@@ -130,7 +130,7 @@ export const cards = [
   },
   {
     id: 16,
-    name: "Count",
+    name: "Duke",
     strength: 5,
     countNormal: 0,
     countPremium: 2,

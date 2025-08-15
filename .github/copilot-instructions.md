@@ -2,7 +2,16 @@
 
 ## General context & overview
 
-Public: a group of (fun & geeky) colleagues composed of developers, analyst, product owner & people lead & scrum master.
+Public: a group of (fun & geeky) colleagues composed of developers, analID 6 → Phantom King (Strength: 6, Count: 1)
+→ Player may trade hands with another player.
+
+ID 7 → Countess (Strength: 7, Count: 1)
+→ Does nothing when played, but if the player has this card and either the Phantom King or the Prince in their hand, this card must be played immediately.
+
+ID 8 → Princess (Strength: 8, Count: 1)
+→ If the player plays or discards this card for any reason, they are eliminated from the round.
+
+### Premium mode (for 5~9 players)ct owner & people lead & scrum master.
 
 Context: the "Friday fun" weekly meetings: 30 minutes meetings that we organize each Friday morning to play together and bond as a cross-country & cross-nationality & remote team.
 
@@ -138,95 +147,84 @@ NORMAL & PREMIM MODE
 Card ID → Card Name (Strength, Count) → Effect(s)
 
 ID 1 → Guard (Strength: 1, Count: 5)
-→ Choose another player and name a card (except Guard).
-→ If that player holds the named card, they're eliminated from the round.
+→ Player must choose another player and say a number other than 1.
+If the chosen player's hand contains a card with the strength matching that number, that player is eliminated from the round.
 
 ID 2 → Priest (Strength: 2, Count: 2)
-→ Privately look at another player's hand.
+→ Player may privately look at another player's hand.
 
 ID 3 → Baron (Strength: 3, Count: 2)
-→ Choose another player. You both secretly compare hands.
-→ The player with the lower-strength card is eliminated.
+→ Player may choose another player and privately compare hands.
+The player with the lower strength-numbered card is eliminated from the round.
 
 ID 4 → Handmaid (Strength: 4, Count: 2)
-→ You are immune to all card effects until your next turn.
+→ Player cannot be affected by any other player's cards until their next turn.
 
 ID 5 → Prince (Strength: 5, Count: 2)
-→ Choose any player (yourself included). They discard their hand and draw a new one.
+→ Player may choose any player (including themselves) to discard their hand and draw a new one.
 
-ID 6 → King (Strength: 6, Count: 1)
-→ Trade hands with another player.
+ID 6 → Phantom King (Strength: 6, Count: 1)
+→ Player may trade hands with another player.
 
 ID 7 → Countess (Strength: 7, Count: 1)
-→ Must be played immediately if held with either the King or the Prince.
-→ Otherwise, does nothing when played.
+→ Does nothing when played, but if the player has this card and either the Phantom King or the Prince in their hand, this card must be played immediately.
 
 ID 8 → Princess (Strength: 8, Count: 1)
-→ If you play or discard this card for any reason, you're eliminated from the round.
+→ If the player plays or discards this card for any reason, they are eliminated from the round.
 
 ### Premium mode (for 5~9 players)
 
 ID 0 → Jester (Strength: 0, Count: 1)
-→ Give another player the Jester token.
-→ If that player wins the round, you also win an Affection Token.
+→ Player may give another player the Jester token. If that player wins the current round, the player who gave them the Jester token also wins an Affection Token.
 
 ID 1 → Guard (Strength: 1, Count: 8)
-→ Choose a player and name a strength (except 1).
-→ If they hold a card with that strength, they're eliminated.
+→ Player must choose another player and say a number other than 1. If the chosen player's hand contains a card with the strength matching that number, that player is eliminated from the round.
 
 ID 2 → Priest (Strength: 2, Count: 2)
-→ Privately look at another player's hand.
+→ Player may privately look at another player's hand.
 
 ID 3 → Baron (Strength: 3, Count: 2)
-→ Privately compare hands with another player.
-→ The one with the lower strength is eliminated.
+→ Player may choose another player and privately compare hands.
+The player with the lower strength-numbered card is eliminated from the round.
 
 ID 4 → Handmaid (Strength: 4, Count: 2)
-→ You are immune to all card effects until your next turn.
+→ Player cannot be affected by any other player's cards until their next turn.
 
 ID 5 → Prince (Strength: 5, Count: 2)
-→ Choose any player (yourself included).
-→ They discard their hand and draw a new one.
+→ Player may choose any player (including themselves) to discard their hand and draw a new one.
 
-ID 6 → King (Strength: 6, Count: 1)
-→ Trade hands with another player.
+ID 6 → Phantom King (Strength: 6, Count: 1)
+→ Player may trade hands with another player.
 
 ID 7 → Countess (Strength: 7, Count: 1)
-→ If held with the King or Prince, this must be played immediately.
-→ Otherwise, does nothing when played.
+→ Does nothing when played, but if the player has this card and either the Phantom King or the Prince in their hand, this card must be played immediately.
 
 ID 8 → Princess (Strength: 8, Count: 1)
-→ If you play or discard this card for any reason, you're eliminated.
+→ If the player plays or discards this card for any reason, they are eliminated from the round.
 
-ID 9 → Bishop (Strength: 9, Count: 1)
-→ Choose a player and name a strength.
-→ If correct: they discard and draw a new card, and you win an Affection Token (round continues).
-→ At round end, this card beats all except the Princess.
+ID 9 → Inquisitor (Strength: 9, Count: 1)
+→ Player may choose another player and say a number.
+If the chosen player's hand contains the card with the strength matching that number, the player who played the Inquisitor wins an Love Token immediately (but the round does not end).
+If the guess is correct, the chosen player must discard their hand and draw a new one.
+At the end of the round, this card beats all other cards except the Princess.
 
-ID 10 → Constable (Strength: 6, Count: 1)
-→ If played or discarded and you get eliminated before round end,
-→ You still win an Affection Token.
+ID 10 → Chamberlain (Strength: 6, Count: 1)
+→ If the player has played or discarded this card and is eliminated before the end of the round, they win an Affection Token.
 
-ID 11 → Dowager Queen (Strength: 7, Count: 1)
-→ Privately compare hands with another player.
-→ The player with the higher card is eliminated.
+ID 11 → Regent Queen (Strength: 7, Count: 1)
+→ Player may choose another player and privately compare hands. The player with the higher strength-numbered card is eliminated from the round.
 
-ID 12 → Sycophant (Strength: 4, Count: 2)
-→ Choose a player.
-→ That player becomes the forced target of the next effect-card.
+ID 12 → Court Whisperer (Strength: 4, Count: 2)
+→ Player may choose another player (who's not protected by a Handmaid) as the target for the next card played targeting an opponent.
 
-ID 13 → Cardinal (Strength: 2, Count: 2)
-→ Choose any two players (including yourself). They swap hands.
-→ If you are one of them, you may look at your new hand.
+ID 13 → Royal Confessor (Strength: 2, Count: 2)
+→ Player chooses any two players (including themselves) and the chosen players trade hands. The player may then look at the chosen player's hand if they chose to trade hands themselves.
 
 ID 14 → Assassin (Strength: 0, Count: 1)
-→ Does nothing when played.
-→ If targeted by a Guard, you may reveal this to eliminate the attacker.
-→ Then discard this card and draw a new one.
+→ Does nothing when played, but if the player has this card in their hand, they can reveal it when another player targets them with the Guard; that player is eliminated from the round. Afterwards, this card is discarded and the player draws a new hand.
 
 ID 15 → Baroness (Strength: 3, Count: 2)
-→ Privately view up to two other players' hands.
+→ Player may privately see up to two other players' hands.
 
-ID 16 → Count (Strength: 5, Count: 2)
-→ If played or discarded and you survive until the end of the round,
-→ Add 1 to the strength of your hand card.
+ID 16 → Duke (Strength: 5, Count: 2)
+→ If the player has played or discarded this card and remains in play until the end of the round, they add one to the strength of the card in their hand.
