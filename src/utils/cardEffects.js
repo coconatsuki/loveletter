@@ -9,17 +9,17 @@ const cardStrengths = {
   3: 3, // Baron
   4: 4, // Handmaid
   5: 5, // Prince
-  6: 6, // King
+  6: 6, // Phantom King
   7: 7, // Countess
   8: 8, // Princess
-  9: 9, // Bishop
-  10: 6, // Constable
-  11: 7, // Dowager Queen
-  12: 4, // Sycophant
-  13: 0, // Cardinal
+  9: 9, // Inquisitor
+  10: 6, // Chamberlain
+  11: 7, // Regent Queen
+  12: 4, // Court Whisperer
+  13: 0, // Royal Confessor
   14: 0, // Assassin
   15: 2, // Baroness
-  16: 3, // Count
+  16: 3, // Duke
 };
 
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
@@ -108,7 +108,7 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
 export async function applyPriestEffect({ roomCode, attacker, target }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
-  
+
   if (!data || !data.players || !data.players[target]) {
     return {
       result: "error",
@@ -117,7 +117,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   }
 
   const targetPlayer = data.players[target];
-  
+
   if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) {
     return {
       result: "error",
@@ -126,19 +126,19 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   }
 
   const targetCard = targetPlayer.hand[0];
-  
+
   if (!targetCard) {
     return {
-      result: "error", 
+      result: "error",
       message: "Target has no cards",
     };
   }
 
   // Enrich target card with effect description from cards data
-  const cardData = cards.find(c => c.id === targetCard.id);
+  const cardData = cards.find((c) => c.id === targetCard.id);
   const enrichedTargetCard = {
     ...targetCard,
-    effect: cardData?.effect || "Unknown card effect"
+    effect: cardData?.effect || "Unknown card effect",
   };
 
   return {
@@ -148,8 +148,14 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     targetCard: enrichedTargetCard,
     // Fun medieval notification messages 🏰
     attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret! They hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
-    targetMessage: `🙈⚡ A holy priest peers into your soul! Your ${enrichedTargetCard.name} has been revealed to ${data.players[attacker]?.name || attacker}!`,
-    publicMessage: `🔮📿 ${data.players[attacker]?.name || attacker} plays Priest and communes with the spirits to glimpse ${targetPlayer.name}'s hand! The mystic arts are at work... 🌟`,
+    targetMessage: `🙈⚡ A holy priest peers into your soul! Your ${
+      enrichedTargetCard.name
+    } has been revealed to ${data.players[attacker]?.name || attacker}!`,
+    publicMessage: `🔮📿 ${
+      data.players[attacker]?.name || attacker
+    } plays Priest and communes with the spirits to glimpse ${
+      targetPlayer.name
+    }'s hand! The mystic arts are at work... 🌟`,
   };
 }
 
@@ -159,10 +165,12 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
 
   const attackerCard = data.players[attacker].hand[0];
   const targetCard = data.players[target].hand[0];
-  
+
   // Enrich card data with names and effects from cardsData
-  const enrichedAttackerCard = cards.find(c => c.id === attackerCard.id) || attackerCard;
-  const enrichedTargetCard = cards.find(c => c.id === targetCard.id) || targetCard;
+  const enrichedAttackerCard =
+    cards.find((c) => c.id === attackerCard.id) || attackerCard;
+  const enrichedTargetCard =
+    cards.find((c) => c.id === targetCard.id) || targetCard;
 
   let eliminatedPlayer = null;
   let winner = null;
@@ -201,21 +209,53 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
     isTie: !eliminatedPlayer,
     result: eliminatedPlayer ? "elimination" : "tie",
     // Medieval notifications for different audiences
-    attackerMessage: eliminatedPlayer === target
-      ? `⚔️🏆 Your Baron's duel is victorious! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) defeats ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). They are eliminated from the round!`
-      : eliminatedPlayer === attacker
-      ? `⚔️💀 Your Baron's duel ends in defeat! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) falls to ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). You are eliminated!`
-      : `⚔️🤝 An honorable draw! Your ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) matches ${data.players[target]?.name || target}'s ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). Both knights live to fight another day!`,
-    
-    targetMessage: eliminatedPlayer === target
-      ? `⚔️💀 A Baron challenges you to a duel and emerges victorious! Their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) defeats your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). You are eliminated from the round!`
-      : eliminatedPlayer === attacker
-      ? `⚔️🏆 A Baron challenges you to a duel but you triumph! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) defeats their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). The challenger is eliminated!`
-      : `⚔️🤝 A Baron challenges you to an honorable duel! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) matches their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). 'Tis a tie - both knights stand strong!`,
+    attackerMessage:
+      eliminatedPlayer === target
+        ? `⚔️🏆 Your Baron's duel is victorious! Your ${
+            enrichedAttackerCard.name
+          } (${enrichedAttackerCard.strength}) defeats ${
+            data.players[target]?.name || target
+          }'s ${enrichedTargetCard.name} (${
+            enrichedTargetCard.strength
+          }). They are eliminated from the round!`
+        : eliminatedPlayer === attacker
+        ? `⚔️💀 Your Baron's duel ends in defeat! Your ${
+            enrichedAttackerCard.name
+          } (${enrichedAttackerCard.strength}) falls to ${
+            data.players[target]?.name || target
+          }'s ${enrichedTargetCard.name} (${
+            enrichedTargetCard.strength
+          }). You are eliminated!`
+        : `⚔️🤝 An honorable draw! Your ${enrichedAttackerCard.name} (${
+            enrichedAttackerCard.strength
+          }) matches ${data.players[target]?.name || target}'s ${
+            enrichedTargetCard.name
+          } (${
+            enrichedTargetCard.strength
+          }). Both knights live to fight another day!`,
+
+    targetMessage:
+      eliminatedPlayer === target
+        ? `⚔️💀 A Baron challenges you to a duel and emerges victorious! Their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}) defeats your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}). You are eliminated from the round!`
+        : eliminatedPlayer === attacker
+        ? `⚔️🏆 A Baron challenges you to a duel but you triumph! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) defeats their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). The challenger is eliminated!`
+        : `⚔️🤝 A Baron challenges you to an honorable duel! Your ${enrichedTargetCard.name} (${enrichedTargetCard.strength}) matches their ${enrichedAttackerCard.name} (${enrichedAttackerCard.strength}). 'Tis a tie - both knights stand strong!`,
 
     publicMessage: eliminatedPlayer
-      ? `⚖️💥 ${data.players[attacker]?.name || attacker} plays Baron and challenges ${data.players[target]?.name || target} to a duel of honor! ${loserCard.name} (${loserCard.strength}) falls to superior strength - ${data.players[eliminatedPlayer]?.name || eliminatedPlayer} is eliminated! ⚔️👑`
-      : `⚖️🤝 ${data.players[attacker]?.name || attacker} plays Baron and challenges ${data.players[target]?.name || target} to a duel! Both cards match in strength - an honorable draw with no casualties! 🛡️✨`
+      ? `⚖️💥 ${
+          data.players[attacker]?.name || attacker
+        } plays Baron and challenges ${
+          data.players[target]?.name || target
+        } to a duel of honor! ${loserCard.name} (${
+          loserCard.strength
+        }) falls to superior strength - ${
+          data.players[eliminatedPlayer]?.name || eliminatedPlayer
+        } is eliminated! ⚔️👑`
+      : `⚖️🤝 ${
+          data.players[attacker]?.name || attacker
+        } plays Baron and challenges ${
+          data.players[target]?.name || target
+        } to a duel! Both cards match in strength - an honorable draw with no casualties! 🛡️✨`,
   };
 }
 
@@ -267,5 +307,33 @@ export async function applyKingEffect({ roomCode, attacker, target }) {
   return {
     attackerCard,
     targetCard,
+  };
+}
+
+export async function applyHandmaidEffect({ roomCode, player }) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+  
+  // Get current protected players array (or initialize if doesn't exist)
+  const currentProtected = data.protectedPlayers || [];
+  
+  // Add this player to protected players if not already there
+  const updatedProtected = currentProtected.includes(player) 
+    ? currentProtected 
+    : [...currentProtected, player];
+
+  // Update Firebase with new protected players list
+  await update(ref(db, `rooms/${roomCode}`), {
+    protectedPlayers: updatedProtected
+  });
+
+  return {
+    requiresPrompt: false,
+    result: "protection",
+    protectedPlayer: player,
+    // Cozy medieval notification for everyone
+    publicMessage: `🫖✨ ${data.players[player]?.name || player} calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. They are now protected until their next turn! ☕🛡️`,
+    // Personal message for the protected player's modal
+    playerMessage: `🫖✨ THE PRINCESS' HANDMAID ✨🫖\n\nThe Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`
   };
 }

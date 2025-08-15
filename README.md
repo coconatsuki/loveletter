@@ -30,11 +30,11 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 
 ### ⚖️ Baron (ID: 3) - COMPLETE
 
-- ✅ Target selection  
+- ✅ Target selection
 - ✅ Strength comparison logic with dual-player result display
 - ✅ Modal showing both cards to both players
 - ✅ Elimination handling (lower strength player eliminated)
-- ✅ Tie handling (no elimination)  
+- ✅ Tie handling (no elimination)
 - ✅ 10 comprehensive tests covering all scenarios
 - ✅ Medieval-themed notifications with epic emojis
 
@@ -56,7 +56,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Testing suite
 - 🔄 Medieval notifications
 
-### 🤴 King (ID: 6) - TODO
+### 🤴 Phantom King (ID: 6) - TODO
 
 - 🔄 Target selection
 - 🔄 Hand trading logic (already exists in cardEffects.js)
@@ -66,7 +66,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 
 ### 👸 Countess (ID: 7) - TODO
 
-- 🔄 Auto-play when holding King or Prince
+- 🔄 Auto-play when holding Phantom King or Prince
 - 🔄 Manual play option when safe
 - 🔄 No effect when played
 - 🔄 Testing suite
@@ -87,24 +87,24 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Give Jester token to target
 - 🔄 Shared victory condition
 
-### ⛪ Bishop (ID: 9)
+### ⛪ Inquisitor (ID: 9)
 
 - 🔄 Guess and win token mechanic
 - 🔄 Strength 9 at round end
 
-### 🏛️ Constable (ID: 10)
+### 🏛️ Chamberlain (ID: 10)
 
 - 🔄 Posthumous token award
 
-### 👑 Dowager Queen (ID: 11)
+### 👑 Regent Queen (ID: 11)
 
 - 🔄 Reverse Baron (higher strength eliminated)
 
-### 🎪 Sycophant (ID: 12)
+### 🎪 Court Whisperer (ID: 12)
 
 - 🔄 Force next effect targeting
 
-### 🔄 Cardinal (ID: 13)
+### 🔄 Royal Confessor (ID: 13)
 
 - 🔄 Two-player hand swap
 
@@ -118,7 +118,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 
 - 🔄 View up to two hands
 
-### 📊 Count (ID: 16)
+### 📊 Duke (ID: 16)
 
 - 🔄 +1 strength if survive round
 
