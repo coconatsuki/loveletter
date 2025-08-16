@@ -175,7 +175,7 @@ ID 8 → Princess (Strength: 8, Count: 1)
 ### Premium mode (for 5~9 players)
 
 ID 0 → Jester (Strength: 0, Count: 1)
-→ Player may give another player the Jester token. If that player wins the current round, the player who gave them the Jester token also wins an Affection Token.
+→ Player may give another player the Jester token. If that player wins the current round, the player who gave them the Jester token also wins a love Token.
 
 ID 1 → Guard (Strength: 1, Count: 8)
 → Player must choose another player and say a number other than 1. If the chosen player's hand contains a card with the strength matching that number, that player is eliminated from the round.
@@ -209,7 +209,7 @@ If the guess is correct, the chosen player must discard their hand and draw a ne
 At the end of the round, this card beats all other cards except the Princess.
 
 ID 10 → Chamberlain (Strength: 6, Count: 1)
-→ If the player has played or discarded this card and is eliminated before the end of the round, they win an Affection Token.
+→ If the player has played or discarded this card and is eliminated before the end of the round, they win a Love Token.
 
 ID 11 → Regent Queen (Strength: 7, Count: 1)
 → Player may choose another player and privately compare hands. The player with the higher strength-numbered card is eliminated from the round.

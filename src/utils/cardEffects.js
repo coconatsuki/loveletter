@@ -259,34 +259,98 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   };
 }
 
-export async function applyPrinceEffect({ roomCode, target }) {
+export async function applyPrinceEffect({ roomCode, attacker, target }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
-  const targetCard = data.players[target].hand[0];
+  
+  if (!data || !data.players[target]) {
+    return {
+      requiresPrompt: false,
+      result: "error",
+      error: "Invalid target player"
+    };
+  }
+
+  const targetPlayer = data.players[target];
+  const targetCard = targetPlayer.hand[0]; // Target's current card
   const deck = data.round.deck || [];
-  const draw = deck.length > 0 ? deck[0] : null;
-  const newDeck = deck.slice(1);
+  const isSelfTarget = attacker === target;
+  
+  // Discard target's card
+  const newTargetDiscard = [...(targetPlayer.discard || []), targetCard];
+  
+  // Check if Princess was discarded (instant elimination!)
+  const wasPrincessDiscarded = targetCard.id === 8;
+  
+  let newHand = [];
+  let deckAfterDraw = [...deck];
+  let drewNewCard = false;
+  let newCard = null;
 
-  const isEliminated = targetCard === 8;
+  // Draw new card if deck isn't empty and Princess wasn't discarded
+  if (!wasPrincessDiscarded && deckAfterDraw.length > 0) {
+    newCard = deckAfterDraw.pop(); // Draw from top
+    newHand = [newCard];
+    drewNewCard = true;
+  }
 
+  // Update Firebase
   const updates = {
-    [`players/${target}/discard`]: [
-      ...(data.players[target].discard || []),
-      targetCard,
-    ],
-    [`players/${target}/hand`]: isEliminated ? [] : draw ? [draw] : [],
-    round: { ...data.round, deck: newDeck },
+    [`players/${target}/hand`]: newHand,
+    [`players/${target}/discard`]: newTargetDiscard,
+    [`round/deck`]: deckAfterDraw
   };
-  if (isEliminated) {
+
+  // If Princess was discarded, eliminate the target
+  if (wasPrincessDiscarded) {
     updates[`players/${target}/isOut`] = true;
   }
 
   await update(ref(db, `rooms/${roomCode}`), updates);
 
+  // Generate royal messages! 👑✨
+  const attackerName = data.players[attacker]?.name || attacker;
+  const targetName = data.players[target]?.name || target;
+  const discardedCardName = targetCard.name;
+  const newCardName = newCard?.name || "none";
+
+  let publicMessage, attackerMessage, targetMessage;
+
+  if (wasPrincessDiscarded) {
+    // Princess elimination scenario! 😱💀
+    if (isSelfTarget) {
+      publicMessage = `👑💀 OH NO! ${attackerName} commanded themselves to discard... and revealed the PRINCESS! They are eliminated from the royal court! The Princess cannot be discarded! 💀👑`;
+      attackerMessage = `👑💀 ROYAL TRAGEDY! 💀👑\n\nBy your own royal decree, you commanded yourself to discard your hand...\nBut alas! You held the PRINCESS!\n\n💀 The Princess cannot be discarded for any reason!\n💀 You are eliminated from the round!\n\n"Even royalty must follow the rules of love..."\n- The Court`;
+    } else {
+      publicMessage = `👑💀 ROYAL CATASTROPHE! ${attackerName} commanded ${targetName} to discard their hand... revealing the PRINCESS! ${targetName} is eliminated! The Princess's beauty cannot be discarded! 💀👑`;
+      attackerMessage = `👑💀 ROYAL CATASTROPHE! 💀👑\n\nYour royal decree was followed...\nBut ${targetName} held the PRINCESS!\n\nDiscarded Card: ${discardedCardName} (Strength: ${targetCard.strength})\n\n💀 The Princess cannot be discarded!\n💀 ${targetName} is eliminated!\n\n"Love's greatest treasure cannot be cast aside..."\n- The Royal Court`;
+      targetMessage = `👑💀 ROYAL DOOM! 💀👑\n\n${attackerName} commanded you with the Prince's authority to discard your hand...\n\nYour card was: ${discardedCardName} (Strength: ${targetCard.strength})\n\nBut... it was the PRINCESS! 💀\n\nThe Princess cannot be discarded for any reason!\nYou are eliminated from the round!\n\n"Even under royal command, love cannot be discarded..."\n- The Princess`;
+    }
+  } else {
+    // Normal Prince effect
+    if (isSelfTarget) {
+      publicMessage = `👑✨ ${attackerName} uses the Prince's wisdom on themselves! They discard ${discardedCardName} and ${drewNewCard ? `draw ${newCardName}` : 'find no cards left in the royal deck'}! A fresh start from the royal court! ✨👑`;
+      attackerMessage = `👑✨ ROYAL SELF-REFLECTION! ✨👑\n\nBy your own royal decree, you have renewed your hand!\n\nDiscarded: ${discardedCardName} (Strength: ${targetCard.strength})\n${drewNewCard ? `New Card: ${newCardName} (Strength: ${newCard.strength})` : 'No cards remain in the royal deck!'}\n\n"Wisdom lies in knowing when to start anew..."\n- His Royal Highness, The Prince`;
+    } else {
+      publicMessage = `👑✨ ${attackerName} commands ${targetName} with the Prince's authority! ${targetName} discards ${discardedCardName} and ${drewNewCard ? `draws a fresh card` : 'finds the royal deck empty'}! By royal decree! ✨👑`;
+      attackerMessage = `👑✨ ROYAL DECREE EXECUTED! ✨👑\n\nYour command has been followed!\n${targetName} discarded: ${discardedCardName} (Strength: ${targetCard.strength})\n${drewNewCard ? `They drew a new card from the royal deck!` : 'The royal deck was empty - no new card drawn!'}\n\n"The Prince's wisdom guides the court..."\n- The Royal Court`;
+      targetMessage = `👑✨ ROYAL COMMAND! ✨👑\n\n${attackerName} has commanded you with the Prince's authority!\n\nYour discarded card: ${discardedCardName} (Strength: ${targetCard.strength})\n${targetCard.effect ? `Effect: ${targetCard.effect}` : ''}\n\n${drewNewCard ? `Your new card: ${newCardName} (Strength: ${newCard.strength})\n${newCard.effect ? `Effect: ${newCard.effect}` : ''}` : 'The royal deck was empty - you draw no new card!'}\n\n"By royal decree, a fresh beginning awaits..."\n- His Royal Highness, The Prince`;
+    }
+  }
+
   return {
+    requiresPrompt: false,
+    result: wasPrincessDiscarded ? "princessEliminated" : "cardSwapped",
+    attacker,
+    target,
+    isSelfTarget,
     discardedCard: targetCard,
-    isEliminated,
-    newCard: draw,
+    newCard: drewNewCard ? newCard : null,
+    wasPrincessDiscarded,
+    eliminatedPlayer: wasPrincessDiscarded ? target : null,
+    publicMessage,
+    attackerMessage,
+    targetMessage: isSelfTarget ? null : targetMessage // No separate target message if self-targeting
   };
 }
 
