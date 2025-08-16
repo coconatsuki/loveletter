@@ -19,7 +19,8 @@ export default function TargetModal({
   );
 
   const isGuard = cardPlayed === 1;
-  const hasNoTargets = validTargets.length === 0;
+  const isPrince = cardPlayed === 5;
+  const hasNoTargets = validTargets.length === 0 && !isPrince; // Prince can always target self
 
   console.log(
     "TargetModal has been called! / players: ",
@@ -38,9 +39,14 @@ export default function TargetModal({
     <div className="modal">
       <div className="modal-content">
         <h3>Select a target for your card</h3>
-        {hasNoTargets && (
+        {hasNoTargets && !isPrince && (
           <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '10px' }}>
             🫖 All other players are enjoying tea with the Princess' Handmaid and cannot be targeted.
+          </p>
+        )}
+        {isPrince && validTargets.length === 0 && (
+          <p style={{ color: '#D4AF37', fontStyle: 'italic', marginBottom: '10px' }}>
+            👑 All other players are protected, but as royalty, you may always command yourself!
           </p>
         )}
         <select
@@ -53,7 +59,12 @@ export default function TargetModal({
               {p.name} ({p.realName})
             </option>
           ))}
-          {hasNoTargets && (
+          {isPrince && (
+            <option value={currentPlayer}>
+              👑 Yourself ({players[currentPlayer]?.name || currentPlayer})
+            </option>
+          )}
+          {hasNoTargets && !isPrince && (
             <option value="SKIP_TURN">Skip turn (no available targets)</option>
           )}
         </select>
