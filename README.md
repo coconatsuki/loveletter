@@ -47,7 +47,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Testing suite
 - 🔄 Medieval notifications
 
-### 👑 Prince (ID: 5) - TODO
+### 👑 Prince (ID: 5) - COMPLETE
 
 - 🔄 Target selection (can target self)
 - 🔄 Discard and draw logic (already exists in cardEffects.js)
@@ -56,7 +56,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Testing suite
 - 🔄 Medieval notifications
 
-### 🤴 Phantom King (ID: 6) - TODO
+### 🤴 Phantom King (ID: 6) - IN PROGRESS
 
 - 🔄 Target selection
 - 🔄 Hand trading logic (already exists in cardEffects.js)

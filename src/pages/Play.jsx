@@ -15,6 +15,8 @@ import {
   applyHandmaidEffect,
   applyPrinceEffect,
   applyKingEffect,
+  applyPhantomKingEffect,
+  shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
 
@@ -81,9 +83,20 @@ export default function Play() {
       ) {
         setResultModalData(null);
       }
+
+      // Auto-clear target message modals when it becomes this player's turn
+      // This ensures target modals don't block the player from seeing their turn
+      if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
+        console.log(
+          "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
+        );
+        setTargetMessageModalData(null);
+        // Also clear from Firebase to prevent other players from seeing stale data
+        set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+      }
     });
     return () => unsubscribe();
-  }, [roomCode, nickname, resultModalData]);
+  }, [roomCode, nickname, resultModalData, targetMessageModalData]);
 
   // Listen for Guard prompts targeting this player (premium mode Assassin interactions)
   useEffect(() => {
@@ -401,10 +414,10 @@ export default function Play() {
     else if (cardPlayed.id === 5) {
       // Clear any existing target messages to ensure clean state
       await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-      
+
       // Store the original attacker hand before Prince effect modifies it
       const originalAttackerHand = [...player.hand];
-      
+
       const princeResult = await applyPrinceEffect({
         roomCode,
         attacker: nickname,
@@ -435,7 +448,7 @@ export default function Play() {
         isSelfTarget: princeResult.isSelfTarget,
         attackerMessage: princeResult.attackerMessage,
         targetMessage: princeResult.targetMessage,
-        originalAttackerHand
+        originalAttackerHand,
       });
 
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
@@ -447,13 +460,106 @@ export default function Play() {
         cardName: "Prince",
         shouldAdvanceTurn: true, // This modal controls turn advancement
         selectedCardIndex: selectedCardIndex, // Store the card index for turn completion
-        originalAttackerHand: originalAttackerHand // Store original hand for turn completion
+        originalAttackerHand: originalAttackerHand, // Store original hand for turn completion
       });
 
       console.log(
         "🤴 PRINCE DEBUG: Target message sent to Firebase for player:",
         target
-      );      // Prince effect is complete - return early, turn will be completed when result modal is closed
+      ); // Prince effect is complete - return early, turn will be completed when result modal is closed
+      return;
+    }
+
+    // === PHANTOM KING CARD LOGIC (ID: 6) ===
+    else if (cardPlayed.id === 6) {
+      console.log(
+        "🎭 PHANTOM KING DEBUG: The ethereal sovereign awakens, preparing mystical exchange with target:",
+        target
+      );
+
+      try {
+        // STEP 1: Discard Phantom King FIRST, before any effect processing
+        console.log(
+          "🎭 PHANTOM KING STEP 1: Discarding the ethereal sovereign..."
+        );
+        const newHand = player.hand.filter(
+          (_, index) => index !== selectedCardIndex
+        );
+        const newDiscard = [...(player.discard || []), cardPlayed];
+
+        // Apply the discard immediately to Firebase
+        await update(ref(db, `rooms/${roomCode}`), {
+          [`players/${nickname}/hand`]: newHand,
+          [`players/${nickname}/discard`]: newDiscard,
+        });
+
+        console.log(
+          "🎭 PHANTOM KING STEP 1 COMPLETE: Phantom King banished to discard pile"
+        );
+
+        // STEP 2: Apply hand swap effect (now both players have exactly 1 card)
+        console.log(
+          "🎭 PHANTOM KING STEP 2: Weaving mystical hand exchange..."
+        );
+        const result = await applyPhantomKingEffect({
+          roomCode,
+          attacker: nickname,
+          target: target,
+        });
+
+        if (result.result === "success") {
+          console.log(
+            "🎭 PHANTOM KING STEP 2 COMPLETE: Hands have been exchanged"
+          );
+
+          // STEP 3: Show modals and notifications
+          console.log(
+            "🎭 PHANTOM KING STEP 3: Manifesting ethereal communications..."
+          );
+
+          // Send target message if there's a target involved
+          if (result.targetMessage) {
+            console.log("🎭 PHANTOM KING: Sending ethereal message to target");
+            await update(
+              ref(db, `rooms/${roomCode}/targetMessage`),
+              result.targetMessage
+            );
+          }
+
+          // Show attacker result modal (this will advance turn)
+          setResultModalData({
+            resultText: result.resultText,
+            isInfoOnly: false, // Phantom King attacker modal advances turn
+            cardPlayed: 6, // Phantom King ID
+          });
+
+          // Push notification to the royal court
+          await pushNotification(roomCode, result.message);
+
+          console.log(
+            "🎭 PHANTOM KING STEP 3 COMPLETE: All communications sent"
+          );
+        } else if (result.result === "skipped") {
+          // Handle the king's discretion
+          setResultModalData({
+            resultText: result.resultText,
+            isInfoOnly: false, // Still advance turn even when skipped
+            cardPlayed: 6, // Phantom King ID
+          });
+          await pushNotification(roomCode, result.message);
+        } else {
+          console.error("🎭 Phantom King exchange failed:", result.message);
+          setResultModalData({
+            resultText: `💀 The Phantom King's power falters... ${result.message}`,
+          });
+        }
+      } catch (error) {
+        console.error("🎭 Error invoking Phantom King magic:", error);
+        setResultModalData({
+          resultText: `💀 The shadows reject this exchange: ${error.message}`,
+        });
+      }
+
       return;
     }
 
@@ -522,11 +628,21 @@ export default function Play() {
    * This handles discarding the played card and advancing to the next player
    */
   const handleEffectResultClose = async () => {
-    // Validate that we have the necessary data to complete the turn
+    // Special handling for Phantom King - effect is already complete
+    if (resultModalData?.cardPlayed === 6) {
+      console.log("👻 PHANTOM KING: Using special turn completion");
+      await completePhantomKingTurn();
+      return;
+    }
+
+    // Standard validation for other cards
     if (
       selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      selectedCardIndex < 0 ||
       !player?.hand ||
-      player.hand.length !== 2
+      player.hand.length === 0 ||
+      selectedCardIndex >= player.hand.length
     ) {
       console.error(
         "Cannot complete turn - invalid selectedCardIndex or hand state:",
@@ -559,8 +675,10 @@ export default function Play() {
     if (
       cardIndex === null ||
       cardIndex === undefined ||
+      cardIndex < 0 ||
       !player?.hand ||
-      player.hand.length !== 2
+      player.hand.length === 0 ||
+      cardIndex >= player.hand.length
     ) {
       console.error(
         "🔄 TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
@@ -575,7 +693,8 @@ export default function Play() {
     }
 
     const playedCard = player.hand[cardIndex];
-    const remainingCard = player.hand[1 - cardIndex];
+    // Build remaining hand by filtering out the played card
+    const remainingHand = player.hand.filter((_, index) => index !== cardIndex);
     const newDiscard = [...(player.discard || []), playedCard];
 
     // Calculate next player in turn order (skip eliminated players)
@@ -593,10 +712,10 @@ export default function Play() {
     const nextPlayer = activePlayers[nextIndex];
 
     // Final validation before Firebase update
-    if (!playedCard || !remainingCard || !nextPlayer) {
+    if (!playedCard || !nextPlayer) {
       console.error("Invalid values detected before Firebase update:", {
         playedCard,
-        remainingCard,
+        remainingHand,
         nextPlayer,
       });
       return;
@@ -610,7 +729,7 @@ export default function Play() {
 
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/hand`]: [remainingCard],
+      [`players/${nickname}/hand`]: remainingHand,
       [`players/${nickname}/discard`]: newDiscard,
       [`round/currentPlayer`]: nextPlayer,
       protectedPlayers: updatedProtected,
@@ -628,9 +747,46 @@ export default function Play() {
   };
 
   /**
+   * Completes the Guard turn using data from guardTargetPromptData
+   */
+  const completeGuardTurn = async (guardData) => {
+    if (!guardData?.cardPlayInfo) {
+      console.error(
+        "🔄 GUARD TURN COMPLETION ERROR: Missing cardPlayInfo in guardData:",
+        guardData
+      );
+      return;
+    }
+
+    const { playedCardIndex, playerNickname } = guardData.cardPlayInfo;
+
+    console.log("🛡️ GUARD TURN COMPLETION DEBUG: Starting with data:", {
+      playedCardIndex,
+      playerNickname,
+      currentNickname: nickname,
+      guardData,
+    });
+
+    // Only the attacker should complete their own turn
+    if (playerNickname !== nickname) {
+      console.log(
+        "🛡️ GUARD TURN COMPLETION: Not the attacker, skipping turn completion"
+      );
+      return;
+    }
+
+    // Use the existing turn completion logic
+    await completeTurnWithCardIndex(playedCardIndex);
+  };
+
+  /**
    * Completes the Prince turn - special logic since Prince effect has already been applied
    */
-  const completePrinceTurn = async (cardIndex, attackerNickname, originalAttackerHand) => {
+  const completePrinceTurn = async (
+    cardIndex,
+    attackerNickname,
+    originalAttackerHand
+  ) => {
     console.log("👑 PRINCE TURN COMPLETION DEBUG: Starting with data:", {
       cardIndex,
       attackerNickname,
@@ -643,16 +799,22 @@ export default function Play() {
     // For self-targeting, use the original hand. For external targeting, get current attacker data.
     const isSelfTargeting = attackerNickname === nickname;
     let attackerHand;
-    
+
     if (isSelfTargeting && originalAttackerHand) {
       // Use the stored original hand for self-targeting
       attackerHand = originalAttackerHand;
-      console.log("👑 PRINCE TURN: Using original hand for self-targeting:", attackerHand);
+      console.log(
+        "👑 PRINCE TURN: Using original hand for self-targeting:",
+        attackerHand
+      );
     } else {
       // Use current attacker data for external targeting
       const attackerData = players[attackerNickname];
       attackerHand = attackerData?.hand;
-      console.log("👑 PRINCE TURN: Using current attacker hand for external targeting:", attackerHand);
+      console.log(
+        "👑 PRINCE TURN: Using current attacker hand for external targeting:",
+        attackerHand
+      );
     }
 
     // Validate that we have the necessary data to complete the turn
@@ -670,7 +832,7 @@ export default function Play() {
           attackerHand,
           attackerHandLength: attackerHand?.length,
           isSelfTargeting,
-          originalAttackerHand
+          originalAttackerHand,
         }
       );
       return;
@@ -697,11 +859,14 @@ export default function Play() {
 
     // Final validation before Firebase update
     if (!playedCard || !remainingCard || !nextPlayer) {
-      console.error("👑 PRINCE Invalid values detected before Firebase update:", {
-        playedCard,
-        remainingCard,
-        nextPlayer,
-      });
+      console.error(
+        "👑 PRINCE Invalid values detected before Firebase update:",
+        {
+          playedCard,
+          remainingCard,
+          nextPlayer,
+        }
+      );
       return;
     }
 
@@ -737,6 +902,53 @@ export default function Play() {
       setIsPlaying(false);
       setSelectedCardIndex(null);
     }
+  };
+
+  /**
+   * Completes the Phantom King turn - special logic since the effect has already been applied
+   * The Phantom King card is already discarded and hands are already swapped
+   */
+  const completePhantomKingTurn = async () => {
+    console.log(
+      "👻 PHANTOM KING TURN COMPLETION: The ethereal sovereign completes their mystical work"
+    );
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
+    // Update only the current player and protection (hands are already updated by the effect)
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+    );
+
+    // Reset local state
+    setIsPlaying(false);
+    setSelectedCardIndex(null);
   };
 
   if (!roomData || !player || !round || !players) {
@@ -896,10 +1108,25 @@ export default function Play() {
                   // Only call handleEffectResultClose if selectedCardIndex is valid
                   // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
                   if (selectedCardIndex !== null) {
-                    console.log(
-                      "⚔️ ATTACKER MODAL DEBUG: Advancing turn for non-Prince card"
-                    );
-                    handleEffectResultClose();
+                    // Use the new turn advancement system to determine if attacker modal should advance turn
+                    const lastPlayedCard =
+                      player?.discard?.[player.discard.length - 1];
+                    const cardId = lastPlayedCard?.id;
+
+                    if (shouldAdvanceTurnOnModal(cardId, true)) {
+                      // isAttacker = true
+                      console.log(
+                        "⚔️ ATTACKER MODAL DEBUG: Advancing turn for card ID:",
+                        cardId
+                      );
+                      handleEffectResultClose();
+                    } else {
+                      console.log(
+                        "⚔️ ATTACKER MODAL DEBUG: Card ID",
+                        cardId,
+                        "attacker modal should not advance turn"
+                      );
+                    }
                   }
                 } else {
                   console.log(
@@ -1113,17 +1340,41 @@ export default function Play() {
                     targetMessageModalData.selectedCardIndex
                   );
 
-                  // For Prince cards, we need special turn completion logic since the effect has already been applied
-                  if (targetMessageModalData.cardName === "Prince") {
-                    await completePrinceTurn(
-                      targetMessageModalData.selectedCardIndex,
-                      targetMessageModalData.from,
-                      targetMessageModalData.originalAttackerHand
-                    );
+                  // Use the new turn advancement system to determine if target modal should advance turn
+                  const cardId =
+                    targetMessageModalData.cardName === "Prince"
+                      ? 5
+                      : targetMessageModalData.cardName === "Phantom King"
+                      ? 6
+                      : null;
+
+                  if (shouldAdvanceTurnOnModal(cardId, false)) {
+                    // isAttacker = false
+                    // For Prince cards, we need special turn completion logic since the effect has already been applied
+                    if (targetMessageModalData.cardName === "Prince") {
+                      console.log(
+                        "🎯 TARGET MODAL DEBUG: Prince - completing turn"
+                      );
+                      await completePrinceTurn(
+                        targetMessageModalData.selectedCardIndex,
+                        targetMessageModalData.from,
+                        targetMessageModalData.originalAttackerHand
+                      );
+                    } else {
+                      console.log(
+                        "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
+                        targetMessageModalData.cardName
+                      );
+                      // Complete the turn directly using the stored card index
+                      await completeTurnWithCardIndex(
+                        targetMessageModalData.selectedCardIndex
+                      );
+                    }
                   } else {
-                    // Complete the turn directly using the stored card index
-                    await completeTurnWithCardIndex(
-                      targetMessageModalData.selectedCardIndex
+                    console.log(
+                      "🎯 TARGET MODAL DEBUG: Target modal for",
+                      targetMessageModalData.cardName,
+                      "should not advance turn"
                     );
                   }
                 } else {
