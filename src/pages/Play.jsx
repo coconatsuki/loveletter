@@ -83,9 +83,20 @@ export default function Play() {
       ) {
         setResultModalData(null);
       }
+
+      // Auto-clear target message modals when it becomes this player's turn
+      // This ensures target modals don't block the player from seeing their turn
+      if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
+        console.log(
+          "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
+        );
+        setTargetMessageModalData(null);
+        // Also clear from Firebase to prevent other players from seeing stale data
+        set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+      }
     });
     return () => unsubscribe();
-  }, [roomCode, nickname, resultModalData]);
+  }, [roomCode, nickname, resultModalData, targetMessageModalData]);
 
   // Listen for Guard prompts targeting this player (premium mode Assassin interactions)
   useEffect(() => {
