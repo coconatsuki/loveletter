@@ -13,13 +13,12 @@ export default function TargetModal({
 
   const validTargets = Object.entries(players).filter(
     ([name, p]) =>
-      name !== currentPlayer &&
-      !p.isOut &&
-      !protectedPlayers.includes(name) // Use new protectedPlayers array
+      name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
   const isGuard = cardPlayed === 1;
   const isPrince = cardPlayed === 5;
+  const isPhantomKing = cardPlayed === 6;
   const hasNoTargets = validTargets.length === 0 && !isPrince; // Prince can always target self
 
   console.log(
@@ -40,13 +39,35 @@ export default function TargetModal({
       <div className="modal-content">
         <h3>Select a target for your card</h3>
         {hasNoTargets && !isPrince && (
-          <p style={{ color: '#888', fontStyle: 'italic', marginBottom: '10px' }}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid and cannot be targeted.
+          <p
+            style={{ color: "#888", fontStyle: "italic", marginBottom: "10px" }}
+          >
+            🫖 All other players are enjoying tea with the Princess' Handmaid
+            and cannot be targeted.
           </p>
         )}
         {isPrince && validTargets.length === 0 && (
-          <p style={{ color: '#D4AF37', fontStyle: 'italic', marginBottom: '10px' }}>
-            👑 All other players are protected, but as royalty, you may always command yourself!
+          <p
+            style={{
+              color: "#D4AF37",
+              fontStyle: "italic",
+              marginBottom: "10px",
+            }}
+          >
+            👑 All other players are protected, but as royalty, you may always
+            command yourself!
+          </p>
+        )}
+        {isPhantomKing && (
+          <p
+            style={{
+              color: "#8A2BE2",
+              fontStyle: "italic",
+              marginBottom: "10px",
+            }}
+          >
+            👻 The Phantom King may choose to trade hands with someone... or
+            remain in the shadows.
           </p>
         )}
         <select
@@ -54,6 +75,9 @@ export default function TargetModal({
           onChange={(e) => setSelectedTarget(e.target.value)}
         >
           <option value="">-- Choose a player --</option>
+          {isPhantomKing && (
+            <option value="Nobody">👻 Nobody (skip effect)</option>
+          )}
           {validTargets.map(([name, p]) => (
             <option key={name} value={name}>
               {p.name} ({p.realName})
