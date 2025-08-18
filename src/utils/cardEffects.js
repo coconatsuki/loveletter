@@ -450,6 +450,46 @@ export async function applyHandmaidEffect({ roomCode, player }) {
   };
 }
 
+export async function applyCountessEffect({ roomCode, player }) {
+  console.log("🎭 COUNTESS DEBUG: The royal matriarch takes the stage...", {
+    player,
+  });
+
+  try {
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error("The royal chambers have vanished...");
+    }
+
+    const gameData = snapshot.val();
+    const playerData = gameData.players[player];
+
+    console.log("🎭 COUNTESS: Royal presence confirmed", {
+      player,
+      hand: playerData.hand,
+    });
+
+    return {
+      result: "countess_played",
+      message: `The Countess has graced the court with her presence!`,
+      // Royal notification for everyone in the court
+      publicMessage: `🎭✨ The Countess herself has appeared in court with ${
+        playerData.name || player
+      }! Her regal presence commands attention as she whispers secrets of court intrigue. What royal machinations are afoot? 👑💫`,
+      // Personal message for the player's modal (if needed)
+      playerMessage: `🎭✨ THE COUNTESS ✨🎭\n\nYou have played the Countess!\n\n👑 Royal Effect: None.\n🎪 Protocol: Always takes precedence over the Prince or the King, for matters related to the Princess.\n\n"My dear, no one knows the Princess as I do. Let me handle that."\n- The Countess`,
+    };
+  } catch (error) {
+    console.error("🎭 COUNTESS ERROR: Royal scandal!", error);
+    return {
+      result: "error",
+      message: "The Countess encountered a royal mishap!",
+    };
+  }
+}
+
 export async function applyPhantomKingEffect({ roomCode, attacker, target }) {
   console.log("🎭 PHANTOM KING DEBUG: The ethereal sovereign awakens...", {
     attacker,

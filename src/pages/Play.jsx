@@ -16,6 +16,7 @@ import {
   applyPrinceEffect,
   applyKingEffect,
   applyPhantomKingEffect,
+  applyCountessEffect,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
@@ -235,6 +236,37 @@ export default function Play() {
     });
   };
 
+  // 🎭 Countess Force-Play Detection
+  const getCountessForcePlay = (hand) => {
+    if (!hand || hand.length !== 2) return { forced: false };
+
+    const hasCountess = hand.some((card) => card.id === 7);
+    const hasPrince = hand.some((card) => card.id === 5);
+    const hasPhantomKing = hand.some((card) => card.id === 6);
+
+    if (hasCountess && hasPrince) {
+      return {
+        forced: true,
+        countessIndex: hand.findIndex((card) => card.id === 7),
+        blockedCard: "Prince",
+        reason:
+          "🎭 The Countess knows the Princess's preferences better than the Prince - she must handle this personally!",
+      };
+    }
+
+    if (hasCountess && hasPhantomKing) {
+      return {
+        forced: true,
+        countessIndex: hand.findIndex((card) => card.id === 7),
+        blockedCard: "Phantom King",
+        reason:
+          "🎭 The Countess is a master of court etiquette - she insists on handling this delicate matter herself!",
+      };
+    }
+
+    return { forced: false };
+  };
+
   const playCard = (index) => {
     const card = player.hand[index];
     if ([1, 2, 3, 6].includes(card.id)) {
@@ -248,6 +280,9 @@ export default function Play() {
       // PRINCE CARD - Needs target selection (including "Yourself" option)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
+    } else if (card.id === 7) {
+      // COUNTESS CARD - No target needed, royal presence effect immediately
+      playCountess(index);
     }
   };
 
@@ -268,6 +303,28 @@ export default function Play() {
     setResultModalData({
       resultText: result.playerMessage,
       isHandmaidProtection: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playCountess = async (index) => {
+    setSelectedCardIndex(index);
+    setIsPlaying(true);
+
+    // Apply Countess effect (royal presence)
+    const result = await applyCountessEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification about the royal appearance
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show royal confirmation modal to the player
+    setResultModalData({
+      resultText: result.playerMessage,
+      isCountessRoyalty: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -635,6 +692,13 @@ export default function Play() {
       return;
     }
 
+    // Special handling for Countess - simple discard and turn advancement
+    if (resultModalData?.isCountessRoyalty) {
+      console.log("🎭 COUNTESS: Using special turn completion");
+      await completeCountessTurn();
+      return;
+    }
+
     // Standard validation for other cards
     if (
       selectedCardIndex === null ||
@@ -951,6 +1015,71 @@ export default function Play() {
     setSelectedCardIndex(null);
   };
 
+  /**
+   * Completes the Countess turn - simple discard and turn advancement
+   * The Countess has no effect other than royal presence
+   */
+  const completeCountessTurn = async () => {
+    console.log(
+      "🎭 COUNTESS TURN COMPLETION: Her royal majesty completes her audience"
+    );
+
+    // Get the Countess card from the player's hand
+    const countessCard = player.hand[selectedCardIndex];
+
+    if (!countessCard || countessCard.id !== 7) {
+      console.error(
+        "🎭 COUNTESS ERROR: Cannot complete turn - invalid Countess card"
+      );
+      return;
+    }
+
+    // Remove Countess from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), countessCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
+    // Update game state: discard Countess, advance turn, clear protection
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🕰️ The royal audience concludes. The crown now passes to ${nextPlayer}. 👑`
+    );
+
+    // Reset local state
+    setIsPlaying(false);
+    setSelectedCardIndex(null);
+  };
+
   if (!roomData || !player || !round || !players) {
     return <div style={{ padding: "2rem" }}>⏳ Loading game state...</div>;
   } else {
@@ -1043,19 +1172,77 @@ export default function Play() {
               )}
               {player.hand?.length === 2 && (
                 <div>
-                  <p>Choose a card to play:</p>
-                  {player.hand.map((card, index) => (
-                    <button
-                      key={index}
-                      onClick={() => playCard(index)}
-                      style={{ marginRight: "1rem", padding: "0.5rem 1rem" }}
-                      disabled={isPlaying}
-                    >
-                      <strong>{card.name}</strong> (Strength {card.strength})
-                      <br />
-                      <small>{card.effect}</small>
-                    </button>
-                  ))}
+                  {(() => {
+                    const countessForce = getCountessForcePlay(player.hand);
+                    console.log("🎭 COUNTESS DEBUG: Force play check result:", {
+                      hand: player.hand,
+                      countessForce,
+                      handLength: player.hand?.length,
+                    });
+
+                    return (
+                      <>
+                        <p>Choose a card to play:</p>
+                        {countessForce.forced && (
+                          <div
+                            style={{
+                              backgroundColor: "#fff3cd",
+                              border: "1px solid #ffc107",
+                              borderRadius: "4px",
+                              padding: "0.75rem",
+                              marginBottom: "1rem",
+                              fontSize: "0.9rem",
+                            }}
+                          >
+                            <strong>🎭 Royal Protocol Alert:</strong>
+                            <br />
+                            {countessForce.reason}
+                          </div>
+                        )}
+
+                        {player.hand.map((card, index) => {
+                          const isBlocked =
+                            countessForce.forced &&
+                            ((card.id === 5 &&
+                              countessForce.blockedCard === "Prince") ||
+                              (card.id === 6 &&
+                                countessForce.blockedCard === "Phantom King"));
+
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => playCard(index)}
+                              style={{
+                                marginRight: "1rem",
+                                padding: "0.5rem 1rem",
+                                opacity: isBlocked ? 0.5 : 1,
+                                cursor: isBlocked ? "not-allowed" : "pointer",
+                              }}
+                              disabled={isPlaying || isBlocked}
+                              title={
+                                isBlocked
+                                  ? `Cannot play ${card.name} - Countess demands precedence!`
+                                  : ""
+                              }
+                            >
+                              <strong>{card.name}</strong> (Strength{" "}
+                              {card.strength})
+                              <br />
+                              <small>{card.effect}</small>
+                              {isBlocked && (
+                                <>
+                                  <br />
+                                  <em style={{ color: "#6c757d" }}>
+                                    🎭 Blocked by Countess
+                                  </em>
+                                </>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
