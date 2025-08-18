@@ -341,6 +341,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     if (isSelfTarget) {
       publicMessage = `👑💀 OH NO! ${attackerName} commanded themselves to discard... and revealed the PRINCESS! They are eliminated from the royal court! The Princess cannot be discarded! 💀👑`;
       attackerMessage = `👑💀 ROYAL TRAGEDY! 💀👑\n\nBy your own royal decree, you commanded yourself to discard your hand...\nBut alas! You held the PRINCESS!\n\n💀 The Princess cannot be discarded for any reason!\n💀 You are eliminated from the round!\n\n"Even royalty must follow the rules of love..."\n- The Court`;
+      targetMessage = attackerMessage; // For self-targeting, target message is same as attacker message
     } else {
       publicMessage = `👑💀 ROYAL CATASTROPHE! ${attackerName} commanded ${targetName} to discard their hand... revealing the PRINCESS! ${targetName} is eliminated! The Princess's beauty cannot be discarded! 💀👑`;
       attackerMessage = `👑💀 ROYAL CATASTROPHE! 💀👑\n\nYour royal decree was followed...\nBut ${targetName} held the PRINCESS!\n\nDiscarded Card: ${discardedCardName} (Strength: ${targetCard.strength})\n\n💀 The Princess cannot be discarded!\n💀 ${targetName} is eliminated!\n\n"Love's greatest treasure cannot be cast aside..."\n- The Royal Court`;
@@ -361,6 +362,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
           ? `New Card: ${newCardName} (Strength: ${newCard.strength})`
           : "No cards remain in the royal deck!"
       }\n\n"Wisdom lies in knowing when to start anew..."\n- His Royal Highness, The Prince`;
+      targetMessage = attackerMessage; // For self-targeting, target message is same as attacker message
     } else {
       publicMessage = `👑✨ ${attackerName} commands ${targetName} with the Prince's authority! ${targetName} discards ${discardedCardName} and ${
         drewNewCard ? `draws a fresh card` : "finds the royal deck empty"
@@ -396,7 +398,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     eliminatedPlayer: wasPrincessDiscarded ? target : null,
     publicMessage,
     attackerMessage,
-    targetMessage: isSelfTarget ? null : targetMessage, // No separate target message if self-targeting
+    targetMessage, // Always return targetMessage, even for self-targeting
   };
 }
 
@@ -682,8 +684,7 @@ export async function applyPrincessEffect({ roomCode, player }) {
 
     // Craft dramatic medieval-geek messages
     const publicMessage = `👑💀 ROYAL CATASTROPHE! ${playerName} has played the PRINCESS herself! 💀👑\n\n💔 In a moment of desperate love, they approached the Princess directly...\n💔 But the Princess, in all her royal dignity, simply turned away!\n💔 "${playerName}, you presume too much!" declared Her Highness.\n💔 They are banished from the royal court! 👑✨💀`;
-
-    const playerMessage = `👑💀 ULTIMATE ROYAL BLUNDER! 💀👑\n\nOh no! You played the PRINCESS! 🙈\n\n💔 Your desperate attempt at love has backfired spectacularly!\n💔 You approached Her Royal Highness directly with your letter...\n💔 But she gave you the coldest royal stare and said:\n\n"Seriously? You thought you could just walk up to ME? \nI'm the PRINCESS! Have some class!"\n\n💀 You are eliminated from the round, you hopeless romantic! 💀\n\n"Next time, try working your way up the social ladder first..."\n- The Princess (probably rolling her eyes) 👑🙄`;
+    const playerMessage = `👑💀 ULTIMATE ROYAL BLUNDER! 💀👑\n\nOh no! You played the PRINCESS! 🙈\n\n💔 You approached Her Royal Highness directly with your letter...\n💔 But she gave you the coldest royal stare before walking away, ignoring you.\n\n💀 You are eliminated from the round, you hopeless romantic! 💀\n\n"Next time, try working your way up the social ladder first..."\n- The Princess (rolling her eyes) 🙄`;
 
     return {
       result: "princess_played",

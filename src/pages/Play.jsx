@@ -518,10 +518,13 @@ export default function Play() {
       pushNotification(roomCode, princeResult.publicMessage);
 
       // Show result modal to the attacker (prince player) - info only, no turn advancement
-      setResultModalData({
-        resultText: princeResult.attackerMessage,
-        isInfoOnly: true, // Flag to indicate this modal shouldn't advance turn
-      });
+      // BUT: For self-targeting, skip the attacker modal since target modal will handle everything
+      if (!princeResult.isSelfTarget) {
+        setResultModalData({
+          resultText: princeResult.attackerMessage,
+          isInfoOnly: true, // Flag to indicate this modal shouldn't advance turn
+        });
+      }
 
       // Always send target message via Firebase (even for self-targeting)
       // The target modal will handle turn advancement
@@ -536,9 +539,7 @@ export default function Play() {
 
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
         visibleTo: target, // For self-targeting, this will be the same player
-        message: princeResult.isSelfTarget
-          ? princeResult.attackerMessage
-          : princeResult.targetMessage,
+        message: princeResult.targetMessage, // Always use targetMessage now
         from: nickname,
         cardName: "Prince",
         shouldAdvanceTurn: true, // This modal controls turn advancement

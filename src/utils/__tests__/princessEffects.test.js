@@ -87,7 +87,7 @@ describe("👑 Princess Effects - The Ultimate Royal Card", () => {
       // Check player message contains medieval humor
       expect(result.playerMessage).toContain("👑💀 ULTIMATE ROYAL BLUNDER!");
       expect(result.playerMessage).toContain("you hopeless romantic!");
-      expect(result.playerMessage).toContain("Have some class!");
+      expect(result.playerMessage).toContain("rolling her eyes");
     });
 
     it("should handle player with fallback name", async () => {
