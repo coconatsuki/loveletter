@@ -17,6 +17,7 @@ import {
   applyKingEffect,
   applyPhantomKingEffect,
   applyCountessEffect,
+  applyPrincessEffect,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
@@ -283,6 +284,9 @@ export default function Play() {
     } else if (card.id === 7) {
       // COUNTESS CARD - No target needed, royal presence effect immediately
       playCountess(index);
+    } else if (card.id === 8) {
+      // PRINCESS CARD - No target needed, immediate elimination!
+      playPrincess(index);
     }
   };
 
@@ -325,6 +329,28 @@ export default function Play() {
     setResultModalData({
       resultText: result.playerMessage,
       isCountessRoyalty: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playPrincess = async (index) => {
+    setSelectedCardIndex(index);
+    setIsPlaying(true);
+
+    // Apply Princess effect (immediate elimination!)
+    const result = await applyPrincessEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification about the royal catastrophe
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show tragic elimination modal to the player
+    setResultModalData({
+      resultText: result.playerMessage,
+      isPrincessElimination: true,
     });
 
     // Note: Turn will be completed when player closes the result modal

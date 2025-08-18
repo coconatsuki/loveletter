@@ -637,3 +637,75 @@ ${attackerCard.name} (Strength: ${attackerCard.strength})
     };
   }
 }
+
+// 👑 Princess Card (ID: 8, Strength: 8)
+// Effect: If the player plays or discards this card for any reason, they are eliminated from the round.
+export async function applyPrincessEffect({ roomCode, player }) {
+  console.log("👑 PRINCESS DEBUG: The ultimate tragedy unfolds...", {
+    player,
+  });
+
+  try {
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(roomRef);
+
+    if (!snapshot.exists()) {
+      throw new Error("The royal court has vanished...");
+    }
+
+    const roomData = snapshot.val();
+    const playerData = roomData.players[player];
+
+    if (!playerData) {
+      throw new Error("The player has disappeared from court...");
+    }
+
+    console.log("👑 PRINCESS: The ultimate sacrifice begins", {
+      player,
+      hand: playerData.hand,
+    });
+
+    // Player name for messages
+    const playerName = playerData.name || player;
+
+    // Mark player as eliminated
+    const updates = {
+      [`rooms/${roomCode}/players/${player}/isOut`]: true,
+    };
+
+    await update(ref(db), updates);
+
+    console.log("👑 PRINCESS: Player eliminated by royal decree", {
+      player,
+      eliminated: true,
+    });
+
+    // Craft dramatic medieval-geek messages
+    const publicMessage = `👑💀 ROYAL CATASTROPHE! ${playerName} has played the PRINCESS herself! 💀👑\n\n💔 In a moment of desperate love, they approached the Princess directly...\n💔 But the Princess, in all her royal dignity, simply turned away!\n💔 "${playerName}, you presume too much!" declared Her Highness.\n💔 They are banished from the royal court! 👑✨💀`;
+
+    const playerMessage = `👑💀 ULTIMATE ROYAL BLUNDER! 💀👑\n\nOh no! You played the PRINCESS! 🙈\n\n💔 Your desperate attempt at love has backfired spectacularly!\n💔 You approached Her Royal Highness directly with your letter...\n💔 But she gave you the coldest royal stare and said:\n\n"Seriously? You thought you could just walk up to ME? \nI'm the PRINCESS! Have some class!"\n\n💀 You are eliminated from the round, you hopeless romantic! 💀\n\n"Next time, try working your way up the social ladder first..."\n- The Princess (probably rolling her eyes) 👑🙄`;
+
+    return {
+      result: "princess_played",
+      message: "The Princess has spoken! You are eliminated!",
+      publicMessage,
+      playerMessage,
+      eliminatedPlayer: player,
+      // Princess modal flow: player confirms → turn advances
+      attackerMessage: {
+        cardName: "Princess",
+        from: player,
+        message: playerMessage,
+        selectedCardIndex: 0,
+        shouldAdvanceTurn: true, // Playing Princess advances turn after modal
+        visibleTo: player,
+      },
+    };
+  } catch (error) {
+    console.error("👑 PRINCESS ERROR: Royal scandal!", error);
+    return {
+      result: "error",
+      message: `👑 The Princess encountered a royal mishap! ${error.message}`,
+    };
+  }
+}
