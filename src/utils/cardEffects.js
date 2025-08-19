@@ -19,6 +19,13 @@ export function shouldAdvanceTurnOnModal(cardId, isAttacker) {
   const flow = CARD_MODAL_FLOW[cardId];
   if (!flow) return isAttacker; // Default: attacker advances
 
+  console.log(
+    "shouldAdvanceTurnOnModal / isAttacker: ",
+    isAttacker,
+    " / function returns: ",
+    isAttacker ? flow.advanceOnAttacker : flow.advanceOnTarget
+  );
+
   return isAttacker ? flow.advanceOnAttacker : flow.advanceOnTarget;
 }
 
@@ -341,7 +348,6 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     if (isSelfTarget) {
       publicMessage = `👑💀 OH NO! ${attackerName} commanded themselves to discard... and revealed the PRINCESS! They are eliminated from the royal court! The Princess cannot be discarded! 💀👑`;
       attackerMessage = `👑💀 ROYAL TRAGEDY! 💀👑\n\nBy your own royal decree, you commanded yourself to discard your hand...\nBut alas! You held the PRINCESS!\n\n💀 The Princess cannot be discarded for any reason!\n💀 You are eliminated from the round!\n\n"Even royalty must follow the rules of love..."\n- The Court`;
-      targetMessage = attackerMessage; // For self-targeting, target message is same as attacker message
     } else {
       publicMessage = `👑💀 ROYAL CATASTROPHE! ${attackerName} commanded ${targetName} to discard their hand... revealing the PRINCESS! ${targetName} is eliminated! The Princess's beauty cannot be discarded! 💀👑`;
       attackerMessage = `👑💀 ROYAL CATASTROPHE! 💀👑\n\nYour royal decree was followed...\nBut ${targetName} held the PRINCESS!\n\nDiscarded Card: ${discardedCardName} (Strength: ${targetCard.strength})\n\n💀 The Princess cannot be discarded!\n💀 ${targetName} is eliminated!\n\n"Love's greatest treasure cannot be cast aside..."\n- The Royal Court`;
@@ -362,7 +368,6 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
           ? `New Card: ${newCardName} (Strength: ${newCard.strength})`
           : "No cards remain in the royal deck!"
       }\n\n"Wisdom lies in knowing when to start anew..."\n- His Royal Highness, The Prince`;
-      targetMessage = attackerMessage; // For self-targeting, target message is same as attacker message
     } else {
       publicMessage = `👑✨ ${attackerName} commands ${targetName} with the Prince's authority! ${targetName} discards ${discardedCardName} and ${
         drewNewCard ? `draws a fresh card` : "finds the royal deck empty"
@@ -398,7 +403,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     eliminatedPlayer: wasPrincessDiscarded ? target : null,
     publicMessage,
     attackerMessage,
-    targetMessage, // Always return targetMessage, even for self-targeting
+    targetMessage: isSelfTarget ? null : targetMessage, // No separate target message if self-targeting
   };
 }
 
