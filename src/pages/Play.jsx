@@ -72,6 +72,26 @@ export default function Play() {
     const roomRef = ref(db, `rooms/${roomCode}`);
     const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
+      
+      // DIAGNOSTIC: Track when currentPlayer changes
+      const oldCurrentPlayer = roomData?.round?.currentPlayer;
+      const newCurrentPlayer = data?.round?.currentPlayer;
+      
+      if (oldCurrentPlayer !== newCurrentPlayer) {
+        console.log("🔄 CURRENT PLAYER CHANGED:", {
+          oldCurrentPlayer,
+          newCurrentPlayer,
+          isMyTurn: newCurrentPlayer === nickname,
+          currentIsPlaying: isPlaying,
+        });
+        
+        // Reset isPlaying when it becomes this player's turn
+        if (newCurrentPlayer === nickname && isPlaying) {
+          console.log("🔄 TURN START: Resetting isPlaying = false for new turn");
+          setIsPlaying(false);
+        }
+      }
+      
       setRoomData(data);
       if (data?.players && nickname) {
         setPlayer(data.players[nickname]);
@@ -228,6 +248,32 @@ export default function Play() {
   const isMyTurn = nickname === currentPlayer;
 
   const drawCard = () => {
+    console.log(
+      "🃏 DRAW CARD button clicked / NOT my Turn? => ",
+      !isMyTurn,
+      " / playerHandLength: ",
+      player.hand?.length,
+      " / isPlaying? ",
+      isPlaying,
+      " / should NOT draw? => ",
+      !isMyTurn || player.hand?.length !== 1 || isPlaying
+    );
+
+    // DIAGNOSTIC: Log detailed state to debug why isPlaying might be stuck
+    console.log("🔍 DIAGNOSTIC - isPlaying state analysis:", {
+      isPlaying,
+      isMyTurn,
+      currentPlayer: currentPlayer,
+      nickname: nickname,
+      playerHandLength: player?.hand?.length,
+      selectedCardIndex,
+      showTargetModal,
+      resultModalData: !!resultModalData,
+      priestTargetModalData: !!priestTargetModalData,
+      baronResultModalData: !!baronResultModalData,
+      targetMessageModalData: !!targetMessageModalData,
+    });
+
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
     const nextCard = round.deck[0];
     const newDeck = round.deck.slice(1);
@@ -294,6 +340,7 @@ export default function Play() {
 
   const playHandmaid = async (index) => {
     setSelectedCardIndex(index);
+    console.log("🛡️ HANDMAID: Setting isPlaying = true");
     setIsPlaying(true);
 
     // Apply Handmaid protection
@@ -316,6 +363,7 @@ export default function Play() {
 
   const playCountess = async (index) => {
     setSelectedCardIndex(index);
+    console.log("🎭 COUNTESS: Setting isPlaying = true");
     setIsPlaying(true);
 
     // Apply Countess effect (royal presence)
@@ -338,6 +386,7 @@ export default function Play() {
 
   const playPrincess = async (index) => {
     setSelectedCardIndex(index);
+    console.log("👑 PRINCESS: Setting isPlaying = true");
     setIsPlaying(true);
 
     // Apply Princess effect (immediate elimination!)
@@ -361,6 +410,7 @@ export default function Play() {
   const handleTargetConfirm = async ({ target, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
+    console.log("🎯 TARGET CONFIRM: Setting isPlaying = true for card:", cardPlayed?.name || cardPlayed?.id);
     setIsPlaying(true);
 
     // === SKIP TURN CASE (All players protected by Handmaid) ===
@@ -958,6 +1008,7 @@ export default function Play() {
         }
       );
 
+      // TODO CHECK IF IT SHOULD ALWAYS BE attackerNickname discard that we update
       // For self-targeting: ONLY update discard and advance turn
       // DO NOT modify hand - it was already correctly updated by applyPrinceEffect
       await update(ref(db, `rooms/${roomCode}`), {
@@ -1068,6 +1119,7 @@ export default function Play() {
 
     // Reset local state (only if we're the attacker)
     if (nickname === attackerNickname) {
+      console.log("🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker");
       setIsPlaying(false);
       setSelectedCardIndex(null);
     }
@@ -1181,6 +1233,7 @@ export default function Play() {
     );
 
     // Reset local state
+    console.log("🔄 COUNTESS TURN COMPLETION: Setting isPlaying = false");
     setIsPlaying(false);
     setSelectedCardIndex(null);
   };
