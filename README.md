@@ -26,8 +26,6 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - ✅ 11 comprehensive tests covering all scenarios
 - ✅ Epic medieval notifications with emojis
 
-## 🚧 Cards To Implement
-
 ### ⚖️ Baron (ID: 3) - COMPLETE
 
 - ✅ Target selection
@@ -38,7 +36,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - ✅ 10 comprehensive tests covering all scenarios
 - ✅ Medieval-themed notifications with epic emojis
 
-### 🛡️ Handmaid (ID: 4) - TODO
+### 🛡️ Handmaid (ID: 4) - COMPLETE
 
 - 🔄 No target selection needed
 - 🔄 Protection until next turn logic
@@ -56,7 +54,7 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Testing suite
 - 🔄 Medieval notifications
 
-### 🤴 Phantom King (ID: 6) - IN PROGRESS
+### 🤴 Phantom King (ID: 6) - COMPLETE
 
 - 🔄 Target selection
 - 🔄 Hand trading logic (already exists in cardEffects.js)
@@ -64,13 +62,15 @@ A real-time multiplayer Love Letter card game built with React + Vite and Fireba
 - 🔄 Testing suite
 - 🔄 Medieval notifications
 
-### 👸 Countess (ID: 7) - TODO
+### 👸 Countess (ID: 7) - COMPLETE
 
 - 🔄 Auto-play when holding Phantom King or Prince
 - 🔄 Manual play option when safe
 - 🔄 No effect when played
 - 🔄 Testing suite
 - 🔄 Medieval notifications
+
+## 🚧 Cards To Implement
 
 ### 💎 Princess (ID: 8) - TODO
 
