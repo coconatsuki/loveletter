@@ -1,6 +1,7 @@
 import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 import { cards } from "./cardsData";
+import { logRoundEndCheck } from "./roundEndDetection";
 
 // Turn advancement control for modal system
 export const CARD_MODAL_FLOW = {
@@ -126,6 +127,9 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
 
   await update(ref(db, `rooms/${roomCode}`), updates);
 
+  // Check for round end after elimination
+  logRoundEndCheck("After Assassin Defense", roomCode);
+
   return {
     attackerEliminated: true,
     newCard: draw,
@@ -223,6 +227,9 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
     await update(ref(db, `rooms/${roomCode}/players/${eliminatedPlayer}`), {
       isOut: true,
     });
+
+    // Check for round end after elimination
+    logRoundEndCheck("After Baron Elimination", roomCode);
   }
 
   return {
@@ -681,6 +688,9 @@ export async function applyPrincessEffect({ roomCode, player }) {
     };
 
     await update(ref(db), updates);
+
+    // Check for round end after Princess elimination
+    logRoundEndCheck("After Princess Elimination", roomCode);
 
     console.log("👑 PRINCESS: Player eliminated by royal decree", {
       player,

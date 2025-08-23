@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update, set } from "firebase/database";
 import TargetModal from "../components/TargetModal";
@@ -21,6 +21,7 @@ import {
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
+import { logRoundEndCheck, checkRoundEndConditions, triggerRoundEnd } from "../utils/roundEndDetection";
 
 const cardNames = {
   0: "Jester",
@@ -45,6 +46,7 @@ const cardNames = {
 export default function Play() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const nickname = state?.nickname;
 
   const [roomData, setRoomData] = useState(null);
@@ -72,11 +74,11 @@ export default function Play() {
     const roomRef = ref(db, `rooms/${roomCode}`);
     const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
-      
+
       // DIAGNOSTIC: Track when currentPlayer changes
       const oldCurrentPlayer = roomData?.round?.currentPlayer;
       const newCurrentPlayer = data?.round?.currentPlayer;
-      
+
       if (oldCurrentPlayer !== newCurrentPlayer) {
         console.log("🔄 CURRENT PLAYER CHANGED:", {
           oldCurrentPlayer,
@@ -84,17 +86,48 @@ export default function Play() {
           isMyTurn: newCurrentPlayer === nickname,
           currentIsPlaying: isPlaying,
         });
-        
+
         // Reset isPlaying when it becomes this player's turn
         if (newCurrentPlayer === nickname && isPlaying) {
-          console.log("🔄 TURN START: Resetting isPlaying = false for new turn");
+          console.log(
+            "🔄 TURN START: Resetting isPlaying = false for new turn"
+          );
           setIsPlaying(false);
         }
       }
-      
+
       setRoomData(data);
       if (data?.players && nickname) {
         setPlayer(data.players[nickname]);
+      }
+
+      // Check if round ended and redirect to round scoring
+      if (data?.gameState === "roundScoring") {
+        console.log("🏆 ROUND ENDED - Checking for active modals before redirect");
+        
+        // Check if any modals are currently active
+        const hasActiveModals = showTargetModal || 
+                              resultModalData || 
+                              priestTargetModalData || 
+                              baronResultModalData || 
+                              targetMessageModalData;
+        
+        if (hasActiveModals) {
+          console.log("⏳ Delaying redirect - modals are active, waiting for players to see effects");
+          // Add delay to let players see and interact with modals
+          setTimeout(() => {
+            console.log("🏆 ROUND ENDED - Now redirecting to Round Scoring Board after modal delay");
+            navigate(`/round_scoring/${roomCode}`, {
+              state: { nickname, realName: state?.realName },
+            });
+          }, 3000); // 3 second delay
+        } else {
+          console.log("🏆 ROUND ENDED - Redirecting to Round Scoring Board immediately (no active modals)");
+          navigate(`/round_scoring/${roomCode}`, {
+            state: { nickname, realName: state?.realName },
+          });
+        }
+        return; // Exit early to prevent further processing
       }
 
       // Auto-clear info-only result modals when it's no longer this player's turn
@@ -248,6 +281,12 @@ export default function Play() {
   const isMyTurn = nickname === currentPlayer;
 
   const drawCard = () => {
+    // Prevent drawing card if round has ended
+    if (roomData?.gameState === "roundScoring") {
+      console.log("🛑 DRAW CARD blocked - Round has ended");
+      return;
+    }
+
     console.log(
       "🃏 DRAW CARD button clicked / NOT my Turn? => ",
       !isMyTurn,
@@ -275,6 +314,15 @@ export default function Play() {
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
+    
+    // Check if deck is empty before trying to draw
+    if (!round.deck || round.deck.length === 0) {
+      console.log("❌ Cannot draw card: deck is empty");
+      // Trigger round end check since deck is empty
+      logRoundEndCheck("Deck Empty on Draw Attempt", roomCode);
+      return;
+    }
+    
     const nextCard = round.deck[0];
     const newDeck = round.deck.slice(1);
     const newHand = [...player.hand, nextCard];
@@ -283,6 +331,21 @@ export default function Play() {
       round: { ...round, deck: newDeck },
       [`players/${nickname}/hand`]: newHand,
     });
+
+    // Check if deck is now empty (round end condition)
+    if (newDeck.length === 0) {
+      console.log(
+        "🏆 DECK EMPTY: Last card drawn, triggering immediate round end check"
+      );
+      // Trigger round end check immediately since deck is empty
+      setTimeout(async () => {
+        const roundEndResult = await checkRoundEndConditions(roomCode);
+        if (roundEndResult.isRoundEnd) {
+          console.log("🏆 IMMEDIATE ROUND END DETECTED (Deck Empty):", roundEndResult);
+          await triggerRoundEnd(roomCode, roundEndResult);
+        }
+      }, 100); // Small delay to ensure Firebase update is processed
+    }
   };
 
   // 🎭 Countess Force-Play Detection
@@ -317,6 +380,12 @@ export default function Play() {
   };
 
   const playCard = (index) => {
+    // Prevent playing card if round has ended
+    if (roomData?.gameState === "roundScoring") {
+      console.log("🛑 PLAY CARD blocked - Round has ended");
+      return;
+    }
+
     const card = player.hand[index];
     if ([1, 2, 3, 6].includes(card.id)) {
       // Cards that need target selection (Guard, Priest, Baron, Phantom King)
@@ -410,7 +479,10 @@ export default function Play() {
   const handleTargetConfirm = async ({ target, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
-    console.log("🎯 TARGET CONFIRM: Setting isPlaying = true for card:", cardPlayed?.name || cardPlayed?.id);
+    console.log(
+      "🎯 TARGET CONFIRM: Setting isPlaying = true for card:",
+      cardPlayed?.name || cardPlayed?.id
+    );
     setIsPlaying(true);
 
     // === SKIP TURN CASE (All players protected by Handmaid) ===
@@ -891,7 +963,25 @@ export default function Play() {
       `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
     );
 
-    // Reset local state
+    // Check for round end conditions after turn completion
+    console.log("🔍 ROUND END CHECK: After Turn Completion");
+    const roundEndResult = await checkRoundEndConditions(roomCode);
+    
+    if (roundEndResult.isRoundEnd) {
+      console.log("🏆 ROUND END DETECTED:", roundEndResult);
+      
+      // Add a small delay to allow modal to be displayed before redirection
+      setTimeout(async () => {
+        await triggerRoundEnd(roomCode, roundEndResult);
+      }, 2000); // 2 second delay to let players see effects
+      
+      return; // Don't reset isPlaying yet, let the round end handle it
+    }
+
+    // Reset local state only if round didn't end
+    console.log(
+      "🔄 TURN COMPLETION: Setting isPlaying = false in completeTurnWithCardIndex"
+    );
     setIsPlaying(false);
     setSelectedCardIndex(null);
   };
@@ -1119,7 +1209,9 @@ export default function Play() {
 
     // Reset local state (only if we're the attacker)
     if (nickname === attackerNickname) {
-      console.log("🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker");
+      console.log(
+        "🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker"
+      );
       setIsPlaying(false);
       setSelectedCardIndex(null);
     }
