@@ -27,6 +27,7 @@ import {
   checkRoundEndConditions,
   triggerRoundEnd,
 } from "../utils/roundEndDetection";
+import "./Play.css";
 
 const cardNames = {
   0: "Jester",
@@ -1339,71 +1340,30 @@ export default function Play() {
   };
 
   if (!roomData || !player || !round || !players) {
-    return <div style={{ padding: "2rem" }}>⏳ Loading game state...</div>;
+    return <div className="play-loading">⏳ Loading game state...</div>;
   } else {
     const roundNumber = roomData?.gameStats?.roundNumber || 1;
     return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: "2rem",
-          padding: "1rem",
-        }}
-      >
+      <div className="play-container">
         {/* ROUND COUNTER - Top Right */}
-        <div
-          style={{
-            position: "fixed",
-            top: "5px",
-            right: "5px",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "linear-gradient(90deg, #8B0000 0%, #FFD700 100%)",
-              color: "#FFD700",
-              border: "2px solid #FFD700",
-              borderRadius: "16px",
-              padding: "0.7rem 1.7rem",
-              fontFamily: "Cinzel, serif",
-              fontWeight: "bold",
-              fontSize: "1.35rem",
-              boxShadow: "0 2px 12px rgba(139,0,0,0.15)",
-              textShadow: "1px 1px 2px #8B0000",
-              letterSpacing: "1px",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.7rem",
-            }}
-          >
+        <div className="round-counter-container">
+          <div className="round-counter">
             <span role="img" aria-label="Round">
               🔢
             </span>
             <span>
-              Round{" "}
-              <span style={{ color: "#fff", fontWeight: "900" }}>
-                {roundNumber}
-              </span>
+              Round <span className="round-counter-number">{roundNumber}</span>
             </span>
           </div>
         </div>
         {/* MAIN GAME BOARD */}
         <div>
-          <h2
-            style={{
-              textAlign: "center",
-              marginTop: "0rem",
-            }}
-          >
-            Current Player: {currentPlayer}
-          </h2>
-          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <h2 className="game-header">Current Player: {currentPlayer}</h2>
+          <div className="hand-display">
             <h3>Your Hand:</h3>
-            <ul>
+            <ul className="hand-list">
               {player?.hand?.map((card, idx) => (
-                <li key={idx}>
+                <li key={idx} className="hand-card-item">
                   <strong>{card.name}</strong> (Strength {card.strength})<br />
                   <em>{card.effect}</em>
                 </li>
@@ -1412,16 +1372,7 @@ export default function Play() {
           </div>
 
           {players[nickname]?.isOut && (
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "1rem",
-                backgroundColor: "#ffeeee",
-                border: "2px solid #cc0000",
-                borderRadius: "8px",
-                color: "#990000",
-              }}
-            >
+            <div className="elimination-message">
               <strong>💀 You’ve been eliminated!</strong>
               <br />
               You can no longer play this round, but may still witness the drama
@@ -1429,24 +1380,17 @@ export default function Play() {
             </div>
           )}
 
-          <div style={{ marginTop: "1rem" }}>
+          <div className="players-section">
             <h3>Players:</h3>
-            <ul>
+            <ul className="players-list">
               {Object.entries(players).map(([name, p]) => {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
-                const playerStyle = isProtected
-                  ? {
-                      marginBottom: "0.5rem",
-                      padding: "5px",
-                      border: "2px solid #FFD700",
-                      borderRadius: "8px",
-                      backgroundColor: "#FFF8DC",
-                      boxShadow: "0 0 8px rgba(255,215,0,0.3)",
-                    }
-                  : { marginBottom: "0.5rem" };
+                const playerClasses = `player-item ${
+                  isProtected ? "protected" : ""
+                }`;
 
                 return (
-                  <li key={name} style={playerStyle}>
+                  <li key={name} className={playerClasses}>
                     <strong>{p.name}</strong> ({p.realName})<br />
                     Tokens: {p.tokens} | Discard:{" "}
                     {(p.discard || []).map((card) => card.name).join(", ") ||
@@ -1461,13 +1405,7 @@ export default function Play() {
           </div>
 
           {isMyTurn && (
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "1rem",
-                backgroundColor: "#ffe5b4",
-              }}
-            >
+            <div className="turn-section">
               <h3>It’s your turn!</h3>
               {player.hand?.length === 1 && (
                 <button onClick={drawCard}>Draw Card</button>
@@ -1486,16 +1424,7 @@ export default function Play() {
                       <>
                         <p>Choose a card to play:</p>
                         {countessForce.forced && (
-                          <div
-                            style={{
-                              backgroundColor: "#fff3cd",
-                              border: "1px solid #ffc107",
-                              borderRadius: "4px",
-                              padding: "0.75rem",
-                              marginBottom: "1rem",
-                              fontSize: "0.9rem",
-                            }}
-                          >
+                          <div className="countess-warning">
                             <strong>🎭 Royal Protocol Alert:</strong>
                             <br />
                             {countessForce.reason}
@@ -1514,12 +1443,9 @@ export default function Play() {
                             <button
                               key={index}
                               onClick={() => playCard(index)}
-                              style={{
-                                marginRight: "1rem",
-                                padding: "0.5rem 1rem",
-                                opacity: isBlocked ? 0.5 : 1,
-                                cursor: isBlocked ? "not-allowed" : "pointer",
-                              }}
+                              className={`card-button ${
+                                isBlocked ? "blocked" : ""
+                              }`}
                               disabled={isPlaying || isBlocked}
                               title={
                                 isBlocked
@@ -1534,7 +1460,7 @@ export default function Play() {
                               {isBlocked && (
                                 <>
                                   <br />
-                                  <em style={{ color: "#6c757d" }}>
+                                  <em className="card-blocked-text">
                                     🎭 Blocked by Countess
                                   </em>
                                 </>
@@ -1551,7 +1477,7 @@ export default function Play() {
           )}
 
           {!isMyTurn && (
-            <div style={{ marginTop: "2rem", color: "#999" }}>
+            <div className="waiting-message">
               <em>Waiting for {currentPlayer} to play...</em>
             </div>
           )}
@@ -1901,18 +1827,10 @@ export default function Play() {
         </div>
 
         {/* NOTIFICATION PANEL */}
-        <div
-          style={{
-            backgroundColor: "#f9f9f9",
-            borderLeft: "3px solid #ccc",
-            padding: "1rem",
-            height: "90vh",
-            overflowY: "auto",
-          }}
-        >
+        <div className="right-sidebar">
           <h3>📜 Game Chronicle</h3>
           {notifications.map((n, i) => (
-            <div key={i} style={{ marginBottom: "1rem", fontSize: "0.95rem" }}>
+            <div key={i} className="notification-item">
               ➤ {n.message}
             </div>
           ))}

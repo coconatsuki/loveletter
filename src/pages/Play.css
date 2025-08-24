@@ -1,0 +1,482 @@
+/* ==========================================
+   PLAY PAGE STYLES - Love Letter Game
+   ========================================== */
+
+/* Loading state */
+.play-loading {
+  padding: 2rem;
+}
+
+/* Main layout */
+.play-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+/* Round Counter - Top Right */
+.round-counter-container {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  z-index: 1000;
+}
+
+.round-counter {
+  background: linear-gradient(90deg, #8b0000 0%, #ffd700 100%);
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  border-radius: 16px;
+  padding: 0.7rem 1.7rem;
+  font-family: "Cinzel", serif;
+  font-weight: bold;
+  font-size: 1.35rem;
+  box-shadow: 0 2px 12px rgba(139, 0, 0, 0.15);
+  text-shadow: 1px 1px 2px #8b0000;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.round-counter-number {
+  color: #fff;
+  font-weight: 900;
+}
+
+/* Game Header */
+.game-header {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.game-header h2 {
+  text-align: center;
+  margin-top: 0rem;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.turn-info {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.current-turn {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.your-turn {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.not-your-turn {
+  color: #6c757d;
+}
+
+/* Hand Display */
+.hand-display {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hand-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hand-card-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Player Lists */
+.players-section {
+  margin-top: 1rem;
+}
+
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-item {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+.player-item.protected {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.player-item.eliminated {
+  background-color: #f8d7da;
+  color: #721c24;
+  text-decoration: line-through;
+}
+
+.player-item.current-player {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  font-weight: bold;
+}
+
+/* Elimination Message */
+.elimination-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #ffeeee;
+  border: 2px solid #cc0000;
+  border-radius: 8px;
+  color: #990000;
+}
+
+/* Players Section */
+.players-section {
+  margin-top: 1rem;
+}
+
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+.player-item.protected {
+  padding: 5px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  background-color: #FFF8DC;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.player-item.eliminated {
+  background-color: #f8d7da;
+  color: #721c24;
+  text-decoration: line-through;
+}
+
+.player-item.current-player {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  font-weight: bold;
+}
+
+/* Turn Section */
+.turn-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #ffe5b4;
+}
+
+/* Countess Warning */
+.countess-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Hand Section */
+.hand-section {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.hand-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.cards-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 200px;
+}
+
+.card:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.card.selected {
+  border-color: #28a745;
+  background-color: #d4edda;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.card-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.card-strength {
+  color: #007bff;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-effect {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Card Buttons in Hand */
+.card-button {
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.card-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-button.blocked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-blocked-text {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Play Button */
+.play-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.play-button:hover {
+  background: #218838;
+}
+
+.play-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Discard Pile */
+.discard-section {
+  margin-top: 2rem;
+  color: #999;
+}
+
+.discard-title {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.discard-empty {
+  color: #999;
+  font-style: italic;
+}
+
+.discard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.discard-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.discard-card-name {
+  font-weight: bold;
+  color: #495057;
+}
+
+.discard-card-details {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Right Sidebar */
+.right-sidebar {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+/* Waiting Message */
+.waiting-message {
+  margin-top: 2rem;
+  color: #999;
+  font-style: italic;
+}
+
+/* Right Sidebar */
+.right-sidebar {
+  background-color: #f9f9f9;
+  border-left: 3px solid #ccc;
+  padding: 1rem;
+  height: 90vh;
+  overflow-y: auto;
+}
+
+/* Notifications */
+.notifications-section {
+  margin-bottom: 2rem;
+}
+
+.notifications-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.notifications-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  background: white;
+}
+
+.notification-item {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Game Info */
+.game-info-section {
+  margin-bottom: 2rem;
+}
+
+.game-info-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.game-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.game-info-item:last-child {
+  border-bottom: none;
+}
+
+.game-info-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.game-info-value {
+  color: #007bff;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .play-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .round-counter-container {
+    top: 10px;
+    right: 10px;
+  }
+
+  .round-counter {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  .cards-container {
+    flex-direction: column;
+  }
+
+  .card {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .play-container {
+    padding: 0.25rem;
+  }
+
+  .round-counter {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .hand-section,
+  .right-sidebar {
+    padding: 1rem;
+  }
+}
