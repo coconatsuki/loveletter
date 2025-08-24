@@ -981,7 +981,7 @@ export default function Play() {
         console.log("🏆 TRIGGERING ROUND END after delay");
         // Trigger round end - it will do a fresh check internally
         await triggerRoundEnd(roomCode);
-      }, 2000); // Reduced delay since modal will handle the timing now
+      }, 3000); // Reduced delay since modal will handle the timing now
 
       return; // Don't reset isPlaying yet, let the round end handle it
     }
