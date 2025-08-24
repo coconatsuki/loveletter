@@ -7,6 +7,7 @@ import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
+import RoundEndModal from "../components/RoundEndModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -21,7 +22,11 @@ import {
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
-import { logRoundEndCheck, checkRoundEndConditions, triggerRoundEnd } from "../utils/roundEndDetection";
+import {
+  logRoundEndCheck,
+  checkRoundEndConditions,
+  triggerRoundEnd,
+} from "../utils/roundEndDetection";
 
 const cardNames = {
   0: "Jester",
@@ -63,6 +68,7 @@ export default function Play() {
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [roundEndModalData, setRoundEndModalData] = useState(null);
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -78,6 +84,7 @@ export default function Play() {
       // DIAGNOSTIC: Track when currentPlayer changes
       const oldCurrentPlayer = roomData?.round?.currentPlayer;
       const newCurrentPlayer = data?.round?.currentPlayer;
+      const isFinalTurn = data?.round?.isFinalTurn;
 
       if (oldCurrentPlayer !== newCurrentPlayer) {
         console.log("🔄 CURRENT PLAYER CHANGED:", {
@@ -85,6 +92,7 @@ export default function Play() {
           newCurrentPlayer,
           isMyTurn: newCurrentPlayer === nickname,
           currentIsPlaying: isPlaying,
+          isFinalTurn: isFinalTurn,
         });
 
         // Reset isPlaying when it becomes this player's turn
@@ -96,37 +104,27 @@ export default function Play() {
         }
       }
 
+      // Log when final turn flag is detected
+      if (isFinalTurn && !roomData?.round?.isFinalTurn) {
+        console.log(
+          "🏆 FINAL TURN FLAG DETECTED: This is the last turn of the round!"
+        );
+      }
+
       setRoomData(data);
       if (data?.players && nickname) {
         setPlayer(data.players[nickname]);
       }
 
-      // Check if round ended and redirect to round scoring
-      if (data?.gameState === "roundScoring") {
-        console.log("🏆 ROUND ENDED - Checking for active modals before redirect");
-        
-        // Check if any modals are currently active
-        const hasActiveModals = showTargetModal || 
-                              resultModalData || 
-                              priestTargetModalData || 
-                              baronResultModalData || 
-                              targetMessageModalData;
-        
-        if (hasActiveModals) {
-          console.log("⏳ Delaying redirect - modals are active, waiting for players to see effects");
-          // Add delay to let players see and interact with modals
-          setTimeout(() => {
-            console.log("🏆 ROUND ENDED - Now redirecting to Round Scoring Board after modal delay");
-            navigate(`/round_scoring/${roomCode}`, {
-              state: { nickname, realName: state?.realName },
-            });
-          }, 3000); // 3 second delay
-        } else {
-          console.log("🏆 ROUND ENDED - Redirecting to Round Scoring Board immediately (no active modals)");
-          navigate(`/round_scoring/${roomCode}`, {
-            state: { nickname, realName: state?.realName },
-          });
-        }
+      // Check if round ended and show round end modal
+      if (data?.gameState === "roundScoring" && data?.roundResult) {
+        console.log(
+          "🏆 ROUND ENDED - Showing round end modal",
+          data.roundResult
+        );
+
+        // Show the round end modal with the round result data
+        setRoundEndModalData(data.roundResult);
         return; // Exit early to prevent further processing
       }
 
@@ -314,37 +312,41 @@ export default function Play() {
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
-    
+
     // Check if deck is empty before trying to draw
     if (!round.deck || round.deck.length === 0) {
       console.log("❌ Cannot draw card: deck is empty");
-      // Trigger round end check since deck is empty
-      logRoundEndCheck("Deck Empty on Draw Attempt", roomCode);
+      // Also check if this is already flagged as final turn
+      if (round.isFinalTurn) {
+        console.log(
+          "🏆 FINAL TURN: Deck is empty and this is flagged as the final turn"
+        );
+      }
+      // Don't trigger round end check here - wait for turn completion
       return;
     }
-    
+
     const nextCard = round.deck[0];
     const newDeck = round.deck.slice(1);
     const newHand = [...player.hand, nextCard];
     const roomRef = ref(db, `rooms/${roomCode}`);
-    update(roomRef, {
-      round: { ...round, deck: newDeck },
-      [`players/${nickname}/hand`]: newHand,
-    });
 
     // Check if deck is now empty (round end condition)
     if (newDeck.length === 0) {
       console.log(
-        "🏆 DECK EMPTY: Last card drawn, triggering immediate round end check"
+        "🏆 DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
       );
-      // Trigger round end check immediately since deck is empty
-      setTimeout(async () => {
-        const roundEndResult = await checkRoundEndConditions(roomCode);
-        if (roundEndResult.isRoundEnd) {
-          console.log("🏆 IMMEDIATE ROUND END DETECTED (Deck Empty):", roundEndResult);
-          await triggerRoundEnd(roomCode, roundEndResult);
-        }
-      }, 100); // Small delay to ensure Firebase update is processed
+      // Flag in Firebase that this is the final turn - all players will see this
+      update(roomRef, {
+        round: { ...round, deck: newDeck, isFinalTurn: true },
+        [`players/${nickname}/hand`]: newHand,
+      });
+    } else {
+      // Normal deck update
+      update(roomRef, {
+        round: { ...round, deck: newDeck },
+        [`players/${nickname}/hand`]: newHand,
+      });
     }
   };
 
@@ -966,15 +968,21 @@ export default function Play() {
     // Check for round end conditions after turn completion
     console.log("🔍 ROUND END CHECK: After Turn Completion");
     const roundEndResult = await checkRoundEndConditions(roomCode);
-    
-    if (roundEndResult.isRoundEnd) {
-      console.log("🏆 ROUND END DETECTED:", roundEndResult);
-      
-      // Add a small delay to allow modal to be displayed before redirection
+
+    // Also check if this was the final turn (deck empty flag)
+    const isFinalTurn = roomData?.round?.isFinalTurn;
+    console.log("🏆 FINAL TURN CHECK:", { isFinalTurn, roundEndResult });
+
+    if (roundEndResult.isRoundEnd || isFinalTurn) {
+      console.log("🏆 ROUND END DETECTED:", { roundEndResult, isFinalTurn });
+
+      // Add a delay to allow modals to be displayed and players to read effects
       setTimeout(async () => {
-        await triggerRoundEnd(roomCode, roundEndResult);
-      }, 2000); // 2 second delay to let players see effects
-      
+        console.log("🏆 TRIGGERING ROUND END after delay");
+        // Trigger round end - it will do a fresh check internally
+        await triggerRoundEnd(roomCode);
+      }, 2000); // Reduced delay since modal will handle the timing now
+
       return; // Don't reset isPlaying yet, let the round end handle it
     }
 
@@ -1865,6 +1873,21 @@ export default function Play() {
             </div>
           ))}
         </div>
+
+        {/* ROUND END MODAL */}
+        {roundEndModalData && (
+          <RoundEndModal
+            roundResult={roundEndModalData}
+            players={roomData?.players || {}}
+            onContinue={() => {
+              console.log("🏆 Round End Modal - Continuing to scoring board");
+              setRoundEndModalData(null);
+              navigate(`/round_scoring/${roomCode}`, {
+                state: { nickname, realName: state?.realName },
+              });
+            }}
+          />
+        )}
       </div>
     );
   }

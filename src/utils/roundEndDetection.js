@@ -46,13 +46,15 @@ export async function checkRoundEndConditions(roomCode) {
       };
     }
 
-    // Case 2: Check if deck is empty and current player has finished their turn
-    if (round.deck && round.deck.length === 0) {
+    // Case 2: Check if deck is empty
+    if (!round.deck || round.deck.length === 0) {
       console.log(
         "🏆 ROUND END DETECTED: Deck empty - checking strength comparison",
         {
           activePlayers,
           type: "deckEmpty",
+          deckExists: !!round.deck,
+          deckLength: round.deck?.length || 0,
         }
       );
 
