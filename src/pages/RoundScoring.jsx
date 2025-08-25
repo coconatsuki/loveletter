@@ -37,6 +37,14 @@ export default function RoundScoring() {
           state: { nickname, realName },
         });
       }
+
+      // Redirect to Game Scoring if host ends the game
+      if (data?.gameState === "gameEnd") {
+        console.log("🏆 Game ended - Redirecting to Game Scoring");
+        navigate(`/game_scoring/${roomCode}`, {
+          state: { nickname, realName },
+        });
+      }
     });
 
     return () => unsubscribe();
@@ -179,8 +187,12 @@ export default function RoundScoring() {
       const roomRef = ref(db, `rooms/${roomCode}`);
       await update(roomRef, updates);
 
-      console.log("🏁 Game ended");
-      // Could navigate to a final results page here
+      console.log("🏁 Game ended - redirecting to Game Scoring");
+
+      // Navigate to the final results page
+      navigate(`/game_scoring/${roomCode}`, {
+        state: { nickname, realName },
+      });
     } catch (error) {
       console.error("❌ Error ending game:", error);
     }

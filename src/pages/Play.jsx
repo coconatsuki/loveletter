@@ -129,6 +129,15 @@ export default function Play() {
         return; // Exit early to prevent further processing
       }
 
+      // Redirect to Game Scoring if host ends the game
+      if (data?.gameState === "gameEnd") {
+        console.log("🏆 Game ended - Redirecting to Game Scoring");
+        navigate(`/game_scoring/${roomCode}`, {
+          state: { nickname, realName },
+        });
+        return; // Exit early to prevent further processing
+      }
+
       // Auto-clear info-only result modals when it's no longer this player's turn
       // This ensures attacker modals don't stay on screen forever
       if (
