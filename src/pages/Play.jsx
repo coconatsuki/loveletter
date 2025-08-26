@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update, set } from "firebase/database";
 import TargetModal from "../components/TargetModal";
@@ -7,6 +7,7 @@ import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
+import RoundEndModal from "../components/RoundEndModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -21,6 +22,12 @@ import {
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
+import {
+  logRoundEndCheck,
+  checkRoundEndConditions,
+  triggerRoundEnd,
+} from "../utils/roundEndDetection";
+import "./Play.css";
 
 const cardNames = {
   0: "Jester",
@@ -45,6 +52,7 @@ const cardNames = {
 export default function Play() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const nickname = state?.nickname;
 
   const [roomData, setRoomData] = useState(null);
@@ -61,6 +69,7 @@ export default function Play() {
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [roundEndModalData, setRoundEndModalData] = useState(null);
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -72,29 +81,61 @@ export default function Play() {
     const roomRef = ref(db, `rooms/${roomCode}`);
     const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
-      
+
       // DIAGNOSTIC: Track when currentPlayer changes
       const oldCurrentPlayer = roomData?.round?.currentPlayer;
       const newCurrentPlayer = data?.round?.currentPlayer;
-      
+      const isFinalTurn = data?.round?.isFinalTurn;
+
       if (oldCurrentPlayer !== newCurrentPlayer) {
         console.log("🔄 CURRENT PLAYER CHANGED:", {
           oldCurrentPlayer,
           newCurrentPlayer,
           isMyTurn: newCurrentPlayer === nickname,
           currentIsPlaying: isPlaying,
+          isFinalTurn: isFinalTurn,
         });
-        
+
         // Reset isPlaying when it becomes this player's turn
         if (newCurrentPlayer === nickname && isPlaying) {
-          console.log("🔄 TURN START: Resetting isPlaying = false for new turn");
+          console.log(
+            "🔄 TURN START: Resetting isPlaying = false for new turn"
+          );
           setIsPlaying(false);
         }
       }
-      
+
+      // Log when final turn flag is detected
+      if (isFinalTurn && !roomData?.round?.isFinalTurn) {
+        console.log(
+          "🏆 FINAL TURN FLAG DETECTED: This is the last turn of the round!"
+        );
+      }
+
       setRoomData(data);
       if (data?.players && nickname) {
         setPlayer(data.players[nickname]);
+      }
+
+      // Check if round ended and show round end modal
+      if (data?.gameState === "roundScoring" && data?.roundResult) {
+        console.log(
+          "🏆 ROUND ENDED - Showing round end modal",
+          data.roundResult
+        );
+
+        // Show the round end modal with the round result data
+        setRoundEndModalData(data.roundResult);
+        return; // Exit early to prevent further processing
+      }
+
+      // Redirect to Game Scoring if host ends the game
+      if (data?.gameState === "gameEnd") {
+        console.log("🏆 Game ended - Redirecting to Game Scoring");
+        navigate(`/game_scoring/${roomCode}`, {
+          state: { nickname, realName },
+        });
+        return; // Exit early to prevent further processing
       }
 
       // Auto-clear info-only result modals when it's no longer this player's turn
@@ -248,6 +289,12 @@ export default function Play() {
   const isMyTurn = nickname === currentPlayer;
 
   const drawCard = () => {
+    // Prevent drawing card if round has ended
+    if (roomData?.gameState === "roundScoring") {
+      console.log("🛑 DRAW CARD blocked - Round has ended");
+      return;
+    }
+
     console.log(
       "🃏 DRAW CARD button clicked / NOT my Turn? => ",
       !isMyTurn,
@@ -275,14 +322,42 @@ export default function Play() {
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
+
+    // Check if deck is empty before trying to draw
+    if (!round.deck || round.deck.length === 0) {
+      console.log("❌ Cannot draw card: deck is empty");
+      // Also check if this is already flagged as final turn
+      if (round.isFinalTurn) {
+        console.log(
+          "🏆 FINAL TURN: Deck is empty and this is flagged as the final turn"
+        );
+      }
+      // Don't trigger round end check here - wait for turn completion
+      return;
+    }
+
     const nextCard = round.deck[0];
     const newDeck = round.deck.slice(1);
     const newHand = [...player.hand, nextCard];
     const roomRef = ref(db, `rooms/${roomCode}`);
-    update(roomRef, {
-      round: { ...round, deck: newDeck },
-      [`players/${nickname}/hand`]: newHand,
-    });
+
+    // Check if deck is now empty (round end condition)
+    if (newDeck.length === 0) {
+      console.log(
+        "🏆 DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
+      );
+      // Flag in Firebase that this is the final turn - all players will see this
+      update(roomRef, {
+        round: { ...round, deck: newDeck, isFinalTurn: true },
+        [`players/${nickname}/hand`]: newHand,
+      });
+    } else {
+      // Normal deck update
+      update(roomRef, {
+        round: { ...round, deck: newDeck },
+        [`players/${nickname}/hand`]: newHand,
+      });
+    }
   };
 
   // 🎭 Countess Force-Play Detection
@@ -317,6 +392,12 @@ export default function Play() {
   };
 
   const playCard = (index) => {
+    // Prevent playing card if round has ended
+    if (roomData?.gameState === "roundScoring") {
+      console.log("🛑 PLAY CARD blocked - Round has ended");
+      return;
+    }
+
     const card = player.hand[index];
     if ([1, 2, 3, 6].includes(card.id)) {
       // Cards that need target selection (Guard, Priest, Baron, Phantom King)
@@ -410,7 +491,10 @@ export default function Play() {
   const handleTargetConfirm = async ({ target, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
-    console.log("🎯 TARGET CONFIRM: Setting isPlaying = true for card:", cardPlayed?.name || cardPlayed?.id);
+    console.log(
+      "🎯 TARGET CONFIRM: Setting isPlaying = true for card:",
+      cardPlayed?.name || cardPlayed?.id
+    );
     setIsPlaying(true);
 
     // === SKIP TURN CASE (All players protected by Handmaid) ===
@@ -891,7 +975,31 @@ export default function Play() {
       `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
     );
 
-    // Reset local state
+    // Check for round end conditions after turn completion
+    console.log("🔍 ROUND END CHECK: After Turn Completion");
+    const roundEndResult = await checkRoundEndConditions(roomCode);
+
+    // Also check if this was the final turn (deck empty flag)
+    const isFinalTurn = roomData?.round?.isFinalTurn;
+    console.log("🏆 FINAL TURN CHECK:", { isFinalTurn, roundEndResult });
+
+    if (roundEndResult.isRoundEnd || isFinalTurn) {
+      console.log("🏆 ROUND END DETECTED:", { roundEndResult, isFinalTurn });
+
+      // Add a delay to allow modals to be displayed and players to read effects
+      setTimeout(async () => {
+        console.log("🏆 TRIGGERING ROUND END after delay");
+        // Trigger round end - it will do a fresh check internally
+        await triggerRoundEnd(roomCode);
+      }, 3000); // Reduced delay since modal will handle the timing now
+
+      return; // Don't reset isPlaying yet, let the round end handle it
+    }
+
+    // Reset local state only if round didn't end
+    console.log(
+      "🔄 TURN COMPLETION: Setting isPlaying = false in completeTurnWithCardIndex"
+    );
     setIsPlaying(false);
     setSelectedCardIndex(null);
   };
@@ -1119,7 +1227,9 @@ export default function Play() {
 
     // Reset local state (only if we're the attacker)
     if (nickname === attackerNickname) {
-      console.log("🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker");
+      console.log(
+        "🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker"
+      );
       setIsPlaying(false);
       setSelectedCardIndex(null);
     }
@@ -1239,27 +1349,30 @@ export default function Play() {
   };
 
   if (!roomData || !player || !round || !players) {
-    return <div style={{ padding: "2rem" }}>⏳ Loading game state...</div>;
+    return <div className="play-loading">⏳ Loading game state...</div>;
   } else {
+    const roundNumber = roomData?.gameStats?.roundNumber || 1;
     return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: "2rem",
-          padding: "2rem",
-        }}
-      >
+      <div className="play-container">
+        {/* ROUND COUNTER - Top Right */}
+        <div className="round-counter-container">
+          <div className="round-counter">
+            <span role="img" aria-label="Round">
+              🔢
+            </span>
+            <span>
+              Round <span className="round-counter-number">{roundNumber}</span>
+            </span>
+          </div>
+        </div>
         {/* MAIN GAME BOARD */}
         <div>
-          <h2>Game Board for Room {roomCode}</h2>
-          <h3>Current Player: {currentPlayer}</h3>
-
-          <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+          <h2 className="game-header">Current Player: {currentPlayer}</h2>
+          <div className="hand-display">
             <h3>Your Hand:</h3>
-            <ul>
+            <ul className="hand-list">
               {player?.hand?.map((card, idx) => (
-                <li key={idx}>
+                <li key={idx} className="hand-card-item">
                   <strong>{card.name}</strong> (Strength {card.strength})<br />
                   <em>{card.effect}</em>
                 </li>
@@ -1268,16 +1381,7 @@ export default function Play() {
           </div>
 
           {players[nickname]?.isOut && (
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "1rem",
-                backgroundColor: "#ffeeee",
-                border: "2px solid #cc0000",
-                borderRadius: "8px",
-                color: "#990000",
-              }}
-            >
+            <div className="elimination-message">
               <strong>💀 You’ve been eliminated!</strong>
               <br />
               You can no longer play this round, but may still witness the drama
@@ -1285,24 +1389,17 @@ export default function Play() {
             </div>
           )}
 
-          <div style={{ marginTop: "1rem" }}>
+          <div className="players-section">
             <h3>Players:</h3>
-            <ul>
+            <ul className="players-list">
               {Object.entries(players).map(([name, p]) => {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
-                const playerStyle = isProtected
-                  ? {
-                      marginBottom: "0.5rem",
-                      padding: "5px",
-                      border: "2px solid #FFD700",
-                      borderRadius: "8px",
-                      backgroundColor: "#FFF8DC",
-                      boxShadow: "0 0 8px rgba(255,215,0,0.3)",
-                    }
-                  : { marginBottom: "0.5rem" };
+                const playerClasses = `player-item ${
+                  isProtected ? "protected" : ""
+                }`;
 
                 return (
-                  <li key={name} style={playerStyle}>
+                  <li key={name} className={playerClasses}>
                     <strong>{p.name}</strong> ({p.realName})<br />
                     Tokens: {p.tokens} | Discard:{" "}
                     {(p.discard || []).map((card) => card.name).join(", ") ||
@@ -1317,13 +1414,7 @@ export default function Play() {
           </div>
 
           {isMyTurn && (
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "1rem",
-                backgroundColor: "#ffe5b4",
-              }}
-            >
+            <div className="turn-section">
               <h3>It’s your turn!</h3>
               {player.hand?.length === 1 && (
                 <button onClick={drawCard}>Draw Card</button>
@@ -1342,16 +1433,7 @@ export default function Play() {
                       <>
                         <p>Choose a card to play:</p>
                         {countessForce.forced && (
-                          <div
-                            style={{
-                              backgroundColor: "#fff3cd",
-                              border: "1px solid #ffc107",
-                              borderRadius: "4px",
-                              padding: "0.75rem",
-                              marginBottom: "1rem",
-                              fontSize: "0.9rem",
-                            }}
-                          >
+                          <div className="countess-warning">
                             <strong>🎭 Royal Protocol Alert:</strong>
                             <br />
                             {countessForce.reason}
@@ -1370,12 +1452,9 @@ export default function Play() {
                             <button
                               key={index}
                               onClick={() => playCard(index)}
-                              style={{
-                                marginRight: "1rem",
-                                padding: "0.5rem 1rem",
-                                opacity: isBlocked ? 0.5 : 1,
-                                cursor: isBlocked ? "not-allowed" : "pointer",
-                              }}
+                              className={`card-button ${
+                                isBlocked ? "blocked" : ""
+                              }`}
                               disabled={isPlaying || isBlocked}
                               title={
                                 isBlocked
@@ -1390,7 +1469,7 @@ export default function Play() {
                               {isBlocked && (
                                 <>
                                   <br />
-                                  <em style={{ color: "#6c757d" }}>
+                                  <em className="card-blocked-text">
                                     🎭 Blocked by Countess
                                   </em>
                                 </>
@@ -1407,7 +1486,7 @@ export default function Play() {
           )}
 
           {!isMyTurn && (
-            <div style={{ marginTop: "2rem", color: "#999" }}>
+            <div className="waiting-message">
               <em>Waiting for {currentPlayer} to play...</em>
             </div>
           )}
@@ -1757,22 +1836,29 @@ export default function Play() {
         </div>
 
         {/* NOTIFICATION PANEL */}
-        <div
-          style={{
-            backgroundColor: "#f9f9f9",
-            borderLeft: "3px solid #ccc",
-            padding: "1rem",
-            height: "90vh",
-            overflowY: "auto",
-          }}
-        >
+        <div className="right-sidebar">
           <h3>📜 Game Chronicle</h3>
           {notifications.map((n, i) => (
-            <div key={i} style={{ marginBottom: "1rem", fontSize: "0.95rem" }}>
+            <div key={i} className="notification-item">
               ➤ {n.message}
             </div>
           ))}
         </div>
+
+        {/* ROUND END MODAL */}
+        {roundEndModalData && (
+          <RoundEndModal
+            roundResult={roundEndModalData}
+            players={roomData?.players || {}}
+            onContinue={() => {
+              console.log("🏆 Round End Modal - Continuing to scoring board");
+              setRoundEndModalData(null);
+              navigate(`/round_scoring/${roomCode}`, {
+                state: { nickname, realName: state?.realName },
+              });
+            }}
+          />
+        )}
       </div>
     );
   }

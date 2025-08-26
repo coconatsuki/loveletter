@@ -2,16 +2,7 @@
 
 ## General context & overview
 
-Public: a group of (fun & geeky) colleagues composed of developers, analID 6 → Phantom King (Strength: 6, Count: 1)
-→ Player may trade hands with another player.
-
-ID 7 → Countess (Strength: 7, Count: 1)
-→ Does nothing when played, but if the player has this card and either the Phantom King or the Prince in their hand, this card must be played immediately.
-
-ID 8 → Princess (Strength: 8, Count: 1)
-→ If the player plays or discards this card for any reason, they are eliminated from the round.
-
-### Premium mode (for 5~9 players)ct owner & people lead & scrum master.
+Public: a group of (fun & geeky) colleagues composed of developers, analyst, scrum master and product owner.
 
 Context: the "Friday fun" weekly meetings: 30 minutes meetings that we organize each Friday morning to play together and bond as a cross-country & cross-nationality & remote team.
 
@@ -33,7 +24,7 @@ This is a real-time multiplayer Love Letter card game built with React + Vite an
 - **Landing** (`/`) → **Room** (`/room/:id`) → **Play** (`/play/:id`)
 - A new room is created using the route (`/create`) that is only accessible to the game admin.
 - Navigation uses React Router with `state` to pass nickname/realName between routes
-- Game flow: Landing form → Room lobby → Play game → back to Room for next round
+- Game flow: Landing form → Room lobby → Play a first round → go to the round scoring board → play an other round, or end game → If end game, go to game scoring board
 
 ## Critical Patterns
 

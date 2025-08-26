@@ -3,6 +3,8 @@ import Landing from "./pages/Landing";
 import CreateRoom from "./pages/CreateRoom";
 import Room from "./pages/Room";
 import Play from "./pages/Play";
+import RoundScoring from "./pages/RoundScoring";
+import GameScoring from "./pages/GameScoring";
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Route path="/create" element={<CreateRoom />} />
         <Route path="/room/:id" element={<Room />} />
         <Route path="/play/:id" element={<Play />} />
+        <Route path="/round_scoring/:id" element={<RoundScoring />} />
+        <Route path="/game_scoring/:id" element={<GameScoring />} />
       </Routes>
     </Router>
   );
