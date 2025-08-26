@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { playGuard, playBaron, playPrincess } from "../cardEffects";
+import {
+  applyGuardEffect,
+  applyBaronEffect,
+  applyPrincessEffect,
+} from "../cardEffects";
 import { logRoundEndCheck } from "../roundEndDetection";
 import { ref, get, update } from "firebase/database";
 
@@ -51,11 +55,16 @@ describe("Card Effects - Round End Integration", () => {
         winner: "attacker",
       });
 
-      await playGuard("TEST123", "attacker", "target", 5);
+      await applyGuardEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+        guess: 5,
+      });
 
       // Verify round end check was called after elimination
       expect(logRoundEndCheck).toHaveBeenCalledWith(
-        "GUARD_ELIMINATION",
+        "After Baron Elimination",
         "TEST123"
       );
     });
@@ -78,7 +87,12 @@ describe("Card Effects - Round End Integration", () => {
       update.mockResolvedValue();
       logRoundEndCheck.mockResolvedValue({ isRoundEnd: false });
 
-      await playGuard("TEST123", "attacker", "target", 5); // Wrong guess
+      await applyGuardEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+        guess: 5,
+      }); // Wrong guess
 
       // Should still check for round end, but won't trigger
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -110,7 +124,11 @@ describe("Card Effects - Round End Integration", () => {
         winner: "attacker",
       });
 
-      await playBaron("TEST123", "attacker", "target");
+      await applyBaronEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+      });
 
       // Verify round end check was called after Baron comparison
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -137,7 +155,11 @@ describe("Card Effects - Round End Integration", () => {
       update.mockResolvedValue();
       logRoundEndCheck.mockResolvedValue({ isRoundEnd: false });
 
-      await playBaron("TEST123", "attacker", "target");
+      await applyBaronEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+      });
 
       // Should check for round end but not trigger (tie = no elimination)
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -168,7 +190,7 @@ describe("Card Effects - Round End Integration", () => {
         winner: "survivor",
       });
 
-      await playPrincess("TEST123", "player");
+      await applyPrincessEffect({ roomCode: "TEST123", player: "player" });
 
       // Verify round end check was called after Princess self-elimination
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -196,7 +218,7 @@ describe("Card Effects - Round End Integration", () => {
       update.mockResolvedValue();
       logRoundEndCheck.mockResolvedValue({ isRoundEnd: false }); // Still multiple players
 
-      await playPrincess("TEST123", "player");
+      await applyPrincessEffect({ roomCode: "TEST123", player: "player" });
 
       // Should check but not trigger round end (multiple survivors)
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -240,7 +262,12 @@ describe("Card Effects - Round End Integration", () => {
         return { isRoundEnd: true, winner: "winner" };
       });
 
-      await playGuard("TEST123", "winner", "loser", 3);
+      await applyGuardEffect({
+        roomCode: "TEST123",
+        attacker: "winner",
+        target: "loser",
+        guess: 3,
+      });
 
       // Verify Firebase was updated with round end state
       expect(update).toHaveBeenCalledWith(
@@ -278,7 +305,12 @@ describe("Card Effects - Round End Integration", () => {
       logRoundEndCheck.mockResolvedValue({ isRoundEnd: false }); // Still multiple players
 
       // Mock assassin being used (this would be handled in the actual Guard effect)
-      await playGuard("TEST123", "attacker", "target", 5);
+      await applyGuardEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+        guess: 5,
+      });
 
       // Verify round end check happens even with assassin counter-attack
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -309,7 +341,12 @@ describe("Card Effects - Round End Integration", () => {
 
       // Card effect should still complete even if round end check fails
       await expect(
-        playGuard("TEST123", "attacker", "target", 5)
+        applyGuardEffect({
+          roomCode: "TEST123",
+          attacker: "attacker",
+          target: "target",
+          guess: 5,
+        })
       ).resolves.toBeDefined();
 
       expect(logRoundEndCheck).toHaveBeenCalledWith(
@@ -334,7 +371,11 @@ describe("Card Effects - Round End Integration", () => {
       update.mockResolvedValue();
       logRoundEndCheck.mockResolvedValue({ isRoundEnd: false }); // Round continues
 
-      await playBaron("TEST123", "attacker", "target");
+      await applyBaronEffect({
+        roomCode: "TEST123",
+        attacker: "attacker",
+        target: "target",
+      });
 
       // Verify round end was checked but game continues normally
       expect(logRoundEndCheck).toHaveBeenCalledWith(

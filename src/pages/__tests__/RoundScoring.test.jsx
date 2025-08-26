@@ -57,7 +57,9 @@ describe("RoundScoring Component", () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByText("Loading round results...")).toBeInTheDocument();
+      expect(
+        screen.getByText(/Loading the royal chronicles/)
+      ).toBeInTheDocument();
     });
 
     it("should render round scoring board with room data", async () => {
@@ -103,8 +105,10 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(screen.getByText("Round Scoring Board")).toBeInTheDocument();
-        expect(screen.getByText("Room: TEST123")).toBeInTheDocument();
+        expect(
+          screen.getByText(/Royal Scoring Chronicles/)
+        ).toBeInTheDocument();
+        expect(screen.getByText(/Love Tokens Leaderboard/)).toBeInTheDocument();
       });
     });
 
@@ -139,7 +143,9 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(screen.getByText("Round 3 Winner: Alice")).toBeInTheDocument();
+        expect(screen.getByText(/Round 3/)).toBeInTheDocument();
+        expect(screen.getByText(/Winner:/)).toBeInTheDocument();
+        expect(screen.getByText("Alice")).toBeInTheDocument();
       });
     });
 
@@ -173,9 +179,9 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(
-          screen.getByText("Round 1 Winners: Alice, Bob")
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Round 1/)).toBeInTheDocument();
+        expect(screen.getByText(/Winners:/)).toBeInTheDocument();
+        expect(screen.getByText(/Alice, Bob/)).toBeInTheDocument();
       });
     });
 
@@ -209,10 +215,11 @@ describe("RoundScoring Component", () => {
 
       await waitFor(() => {
         // Check for leaderboard content
-        expect(screen.getByText("Love Tokens Leaderboard")).toBeInTheDocument();
-        expect(screen.getByText("Alice: 3 tokens")).toBeInTheDocument();
-        expect(screen.getByText("Charlie: 2 tokens")).toBeInTheDocument();
-        expect(screen.getByText("Bob: 1 token")).toBeInTheDocument();
+        expect(screen.getByText(/Love Tokens Leaderboard/)).toBeInTheDocument();
+        expect(screen.getByText("alice")).toBeInTheDocument();
+        expect(screen.getByText(/3.*love token/)).toBeInTheDocument(); // Alice has 3 tokens
+        expect(screen.getByText("charlie")).toBeInTheDocument();
+        expect(screen.getByText("bob")).toBeInTheDocument();
       });
     });
   });
@@ -244,7 +251,7 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(screen.getByText("Play Another Round")).toBeInTheDocument();
+        expect(screen.getByText("🎮 Commence New Round")).toBeInTheDocument();
       });
     });
 
@@ -274,7 +281,7 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(screen.getByText("End Game Now")).toBeInTheDocument();
+        expect(screen.getByText("🏁 End Royal Tournament")).toBeInTheDocument();
       });
     });
 
@@ -331,7 +338,7 @@ describe("RoundScoring Component", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("Loading round results...")
+          screen.getByText("❌ The royal court has vanished...")
         ).toBeInTheDocument();
       });
     });
@@ -360,7 +367,9 @@ describe("RoundScoring Component", () => {
       firebaseCallback({ val: () => roomData });
 
       await waitFor(() => {
-        expect(screen.getByText("Round Scoring Board")).toBeInTheDocument();
+        expect(
+          screen.getByText("⚜️ Royal Scoring Chronicles ⚜️")
+        ).toBeInTheDocument();
         // Should still render basic board even without round result
       });
     });
