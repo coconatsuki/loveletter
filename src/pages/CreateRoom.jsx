@@ -4,115 +4,253 @@ import { db } from "../utils/firebase";
 import { ref, set } from "firebase/database";
 import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
+import princessImage from "../img/princess-square.jpeg";
+import "./LandingPage.css";
 
 export default function CreateRoom() {
   const [nickname, setNickname] = useState("");
   const [realName, setRealName] = useState("");
   const [preferredGender, setPreferredGender] = useState("");
   const [mode, setMode] = useState("normal");
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
 
   const handleCreate = async () => {
     if (!nickname || !realName) return;
-    const roomCode = generateRoomCode();
-    await set(ref(db, `rooms/${roomCode}`), {
-      host: nickname,
-      mode,
-      players: {
-        [nickname]: {
-          name: nickname,
-          realName,
-          tokens: 0,
-          discard: [],
-          isOut: false,
+
+    setIsCreating(true);
+    try {
+      const roomCode = generateRoomCode();
+      await set(ref(db, `rooms/${roomCode}`), {
+        host: nickname,
+        mode,
+        players: {
+          [nickname]: {
+            name: nickname,
+            realName,
+            tokens: 0,
+            discard: [],
+            isOut: false,
+          },
         },
-      },
-      gameState: "waiting",
-    });
-    navigate(`/room/${roomCode}`, { state: { nickname, realName } });
+        gameState: "waiting",
+      });
+      navigate(`/room/${roomCode}`, { state: { nickname, realName } });
+    } catch (error) {
+      console.error("Failed to create room:", error);
+      setIsCreating(false);
+    }
+  };
+
+  const handleGenerateName = () => {
+    const generatedName = generateNickname(preferredGender);
+    setNickname(generatedName);
+    // Add visual feedback
+    const button = document.querySelector(".generate-name-btn");
+    if (button) {
+      button.classList.add("success-glow");
+      setTimeout(() => button.classList.remove("success-glow"), 600);
+    }
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Create Room</h1>
+    <div className="royal-landing-container">
+      {/* Full width centered title */}
+      <div className="royal-header">
+        <h1 className="royal-title-centered floating">Establish Royal Court</h1>
+        <p className="royal-subtitle-centered">
+          "Noble Game Master, Prepare Thy Sacred Chamber for the Grand
+          Tournament of Love Letters!"
+        </p>
+      </div>
 
-      <label>Real Name:</label>
-      <br />
-      <input value={realName} onChange={(e) => setRealName(e.target.value)} />
-      <br />
+      <div className="royal-main-content">
+        {/* 📜 Left Panel - The Royal Game Master Form */}
+        <div className="royal-form-panel">
+          <div className="waiting-message">
+            <p>👑 Hail, Most Esteemed Game Master! 👑</p>
+            <p
+              style={{ fontSize: "0.9rem", opacity: 0.9, marginTop: "0.5rem" }}
+            >
+              Thou art about to establish a legendary court where suitors shall
+              compete for the Princess's heart!
+            </p>
+          </div>
 
-      <fieldset style={{ marginTop: "1rem" }}>
-        <legend>Choose your courtly title and nickname:</legend>
-        <div style={{ marginBottom: "1rem" }}>
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="Funny nickname"
-          />
+          <div className="royal-form-group">
+            <label className="royal-label">Thy Noble Name:</label>
+            <input
+              className="royal-input"
+              value={realName}
+              onChange={(e) => setRealName(e.target.value)}
+              placeholder="By what name shall the court know thee?"
+            />
+          </div>
+
+          <fieldset className="royal-fieldset">
+            <legend className="royal-legend">
+              Thy Courtly Title & Royal Moniker
+            </legend>
+            <p
+              style={{
+                fontSize: "0.9rem",
+                opacity: 0.9,
+                marginBottom: "1rem",
+                fontStyle: "italic",
+              }}
+            >
+              As Game Master, choose a title befitting thy noble station in the
+              royal court!
+            </p>
+
+            <div className="name-generator-container">
+              <div className="name-generator-input royal-form-group">
+                <input
+                  className="royal-input"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder="Enter thy majestic court name"
+                />
+              </div>
+              <button
+                className="royal-button generate-name-btn"
+                onClick={handleGenerateName}
+              >
+                🎲 Generate Royal Name
+              </button>
+            </div>
+
+            <div className="gender-options">
+              <label className="gender-option">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  checked={preferredGender === "female"}
+                  onChange={(e) => setPreferredGender(e.target.value)}
+                />
+                <span className="gender-option-label">👸 Lady name</span>
+              </label>
+              <label className="gender-option">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked={preferredGender === "male"}
+                  onChange={(e) => setPreferredGender(e.target.value)}
+                />
+                <span className="gender-option-label">🤴 Lord name</span>
+              </label>
+              <label className="gender-option">
+                <input
+                  type="radio"
+                  name="gender"
+                  value=""
+                  checked={preferredGender === ""}
+                  onChange={(e) => setPreferredGender(e.target.value)}
+                />
+                <span className="gender-option-label">⚡ Neutral name</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="royal-fieldset">
+            <legend className="royal-legend">Royal Tournament Mode</legend>
+            <p
+              style={{
+                fontSize: "0.9rem",
+                opacity: 0.9,
+                marginBottom: "1rem",
+                fontStyle: "italic",
+              }}
+            >
+              Choose the grandeur of thy court - a intimate gathering or a
+              magnificent feast!
+            </p>
+
+            <div className="mode-options">
+              <label className="mode-option">
+                <input
+                  type="radio"
+                  value="normal"
+                  checked={mode === "normal"}
+                  onChange={(e) => setMode(e.target.value)}
+                  style={{ display: "none" }}
+                />
+                <div className="mode-option-content">
+                  <div>🎲 Classic Court</div>
+                  <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+                    (2–4 Noble Suitors)
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.8rem",
+                      marginTop: "0.5rem",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    A refined gathering for intimate courtship
+                  </div>
+                </div>
+              </label>
+              <label className="mode-option">
+                <input
+                  type="radio"
+                  value="premium"
+                  checked={mode === "premium"}
+                  onChange={(e) => setMode(e.target.value)}
+                  style={{ display: "none" }}
+                />
+                <div className="mode-option-content">
+                  <div>🧙 Premium Court</div>
+                  <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+                    (5–8 Noble Suitors)
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.8rem",
+                      marginTop: "0.5rem",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    A grand tournament with extended royal intrigue
+                  </div>
+                </div>
+              </label>
+            </div>
+          </fieldset>
+
           <button
-            onClick={() => setNickname(generateNickname(preferredGender))}
-            style={{ marginLeft: "1rem" }}
+            onClick={handleCreate}
+            className="royal-button"
+            disabled={!nickname || !realName || isCreating}
+            style={{
+              width: "100%",
+              fontSize: "1.2rem",
+              opacity: !nickname || !realName || isCreating ? 0.6 : 1,
+              cursor:
+                !nickname || !realName || isCreating
+                  ? "not-allowed"
+                  : "pointer",
+            }}
           >
-            🎲 Generate Name
+            {isCreating ? (
+              <>🏗️ Establishing Royal Court... 🏗️</>
+            ) : (
+              <>👑 Establish thy Royal Court 👑</>
+            )}
           </button>
         </div>
-        <label>
-          <input
-            type="radio"
-            name="gender"
-            value="female"
-            checked={preferredGender === "female"}
-            onChange={(e) => setPreferredGender(e.target.value)}
-          />
-          👸 My Lady
-        </label>
-        <label style={{ marginLeft: "1rem" }}>
-          <input
-            type="radio"
-            name="gender"
-            value="male"
-            checked={preferredGender === "male"}
-            onChange={(e) => setPreferredGender(e.target.value)}
-          />
-          🤴 My Lord
-        </label>
-        <label style={{ marginLeft: "1rem" }}>
-          <input
-            type="radio"
-            name="gender"
-            value=""
-            checked={preferredGender === ""}
-            onChange={(e) => setPreferredGender(e.target.value)}
-          />
-          🧙 Whichever suits me
-        </label>
-      </fieldset>
 
-      <fieldset style={{ marginTop: "1rem" }}>
-        <legend>Game Mode:</legend>
-        <label>
-          <input
-            type="radio"
-            value="normal"
-            checked={mode === "normal"}
-            onChange={(e) => setMode(e.target.value)}
+        {/* 🖼️ Right Panel - Princess Artwork */}
+        <div className="royal-artwork-panel">
+          <img
+            src={princessImage}
+            alt="Princess of the Royal Court"
+            className="princess-artwork"
           />
-          🎲 Classic (2–4 players)
-        </label>
-        <label style={{ marginLeft: "1rem" }}>
-          <input
-            type="radio"
-            value="premium"
-            checked={mode === "premium"}
-            onChange={(e) => setMode(e.target.value)}
-          />
-          🧙 Premium (5–8 players)
-        </label>
-      </fieldset>
-
-      <button onClick={handleCreate} style={{ marginTop: "1rem" }}>
-        Create Game
-      </button>
+        </div>
+      </div>
     </div>
   );
 }
