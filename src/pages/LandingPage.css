@@ -26,7 +26,7 @@ Medieval-themed CSS for the most glorious card game experience
 
 /* 🏰 Royal Page Layout */
 .royal-landing-container {
-  /* min-height: 100vh; */
+  min-height: 100vh;
   background: linear-gradient(
     135deg,
     var(--deep-crimson) 0%,
@@ -40,7 +40,7 @@ Medieval-themed CSS for the most glorious card game experience
   font-weight: 400;
   font-style: normal;
   color: var(--ivory);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Full width header for title */
@@ -69,7 +69,7 @@ Medieval-themed CSS for the most glorious card game experience
   display: grid;
   grid-template-columns: 1fr 1fr;
   flex: 1;
-  min-height: calc(100vh - 200px);
+  min-height: 0; /* Allow content to shrink */
 }
 
 /* 📜 Left Panel - The Royal Form */
@@ -255,6 +255,10 @@ Medieval-themed CSS for the most glorious card game experience
 
 .royal-button:hover::before {
   left: 100%;
+}
+
+.create-button {
+  margin-top: 2rem;
 }
 
 /* 🏰 Royal Fieldset */
@@ -460,7 +464,7 @@ Medieval-themed CSS for the most glorious card game experience
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
   }
 }
 
@@ -581,4 +585,29 @@ Medieval-themed CSS for the most glorious card game experience
   100% {
     box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
   }
+}
+
+/* 👑 Royal Footer */
+.royal-footer {
+  width: 100%;
+  padding: 1rem 0;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(139, 0, 0, 0.9) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-top: 2px solid var(--royal-gold);
+  text-align: center;
+  margin-top: auto; /* This pushes footer to bottom */
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+.royal-footer-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ivory);
+  font-family: "Metamorphous", serif;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px var(--shadow-dark);
 }

@@ -177,6 +177,13 @@ export default function Landing() {
           />
         </div>
       </div>
+
+      {/* 👑 Royal Footer */}
+      <footer className="royal-footer">
+        <p className="royal-footer-text">
+          Made by Amandine & Archie, with love ❤️‍🔥
+        </p>
+      </footer>
     </div>
   );
 }

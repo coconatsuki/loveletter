@@ -5,6 +5,7 @@ import { ref, set } from "firebase/database";
 import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
 import princessImage from "../img/princess-square.jpeg";
+import loveLetterImage from "../img/love-letter.png";
 import "./LandingPage.css";
 
 export default function CreateRoom() {
@@ -57,26 +58,30 @@ export default function CreateRoom() {
     <div className="royal-landing-container">
       {/* Full width centered title */}
       <div className="royal-header">
-        <h1 className="royal-title-centered floating">Establish Royal Court</h1>
-        <p className="royal-subtitle-centered">
-          "Noble Game Master, Prepare Thy Sacred Chamber for the Grand
-          Tournament of Love Letters!"
-        </p>
+        <img
+          src={loveLetterImage}
+          alt="Love Letter"
+          className="royal-header-image"
+        />
+        <div className="royal-header-text">
+          <h1 className="royal-title-centered floating">
+            Establish Royal Court
+          </h1>
+          <p className="royal-subtitle-centered">
+            "Noble Game Master, Prepare Thy Sacred Chamber for the Grand
+            Tournament of Love Letters!"
+          </p>
+        </div>
+        <img
+          src={loveLetterImage}
+          alt="Love Letter"
+          className="royal-header-image"
+        />
       </div>
 
       <div className="royal-main-content">
         {/* 📜 Left Panel - The Royal Game Master Form */}
         <div className="royal-form-panel">
-          <div className="waiting-message">
-            <p>👑 Hail, Most Esteemed Game Master! 👑</p>
-            <p
-              style={{ fontSize: "0.9rem", opacity: 0.9, marginTop: "0.5rem" }}
-            >
-              Thou art about to establish a legendary court where suitors shall
-              compete for the Princess's heart!
-            </p>
-          </div>
-
           <div className="royal-form-group">
             <label className="royal-label">Thy Noble Name:</label>
             <input
@@ -91,17 +96,6 @@ export default function CreateRoom() {
             <legend className="royal-legend">
               Thy Courtly Title & Royal Moniker
             </legend>
-            <p
-              style={{
-                fontSize: "0.9rem",
-                opacity: 0.9,
-                marginBottom: "1rem",
-                fontStyle: "italic",
-              }}
-            >
-              As Game Master, choose a title befitting thy noble station in the
-              royal court!
-            </p>
 
             <div className="name-generator-container">
               <div className="name-generator-input royal-form-group">
@@ -156,17 +150,6 @@ export default function CreateRoom() {
 
           <fieldset className="royal-fieldset">
             <legend className="royal-legend">Royal Tournament Mode</legend>
-            <p
-              style={{
-                fontSize: "0.9rem",
-                opacity: 0.9,
-                marginBottom: "1rem",
-                fontStyle: "italic",
-              }}
-            >
-              Choose the grandeur of thy court - a intimate gathering or a
-              magnificent feast!
-            </p>
 
             <div className="mode-options">
               <label className="mode-option">
@@ -222,7 +205,7 @@ export default function CreateRoom() {
 
           <button
             onClick={handleCreate}
-            className="royal-button"
+            className="royal-button create-button"
             disabled={!nickname || !realName || isCreating}
             style={{
               width: "100%",
@@ -251,6 +234,13 @@ export default function CreateRoom() {
           />
         </div>
       </div>
+
+      {/* 👑 Royal Footer */}
+      <footer className="royal-footer">
+        <p className="royal-footer-text">
+          Made by Amandine & Archie, with love ❤️‍🔥
+        </p>
+      </footer>
     </div>
   );
 }
