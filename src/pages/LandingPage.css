@@ -74,7 +74,7 @@ Medieval-themed CSS for the most glorious card game experience
 
 /* 📜 Left Panel - The Royal Form */
 .royal-form-panel {
-  padding: 1rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -146,6 +146,17 @@ Medieval-themed CSS for the most glorious card game experience
   margin-bottom: 1rem;
   position: relative;
   z-index: 2;
+}
+
+.welcome-message-container {
+  padding: 0 1rem;
+  text-align: center;
+  margin: 1.5rem 0;
+
+  .welcome-message {
+    line-height: 2rem;
+    margin: 0 0 1.5rem;
+  }
 }
 
 /* 📋 Royal Form Elements */
@@ -393,7 +404,7 @@ Medieval-themed CSS for the most glorious card game experience
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   position: relative;
   overflow: hidden;
 }
@@ -546,6 +557,53 @@ Medieval-themed CSS for the most glorious card game experience
   .name-generator-container {
     flex-direction: column;
   }
+
+  /* Waiting Room Responsive */
+  .royal-guest-card {
+    padding: 0.8rem;
+  }
+
+  .guest-nickname {
+    font-size: 1rem;
+  }
+
+  .royal-start-button {
+    font-size: 1.1rem !important;
+    padding: 1rem 1.5rem !important;
+  }
+
+  .portrait-placeholder {
+    width: 250px;
+    height: 300px;
+  }
+
+  .portrait-placeholder p:first-child {
+    font-size: 2rem;
+  }
+
+  .waiting-room-artwork {
+    max-width: 300px;
+  }
+
+  /* Guest counter responsive */
+  .royal-section-title {
+    font-size: 1.1rem;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .guest-counter {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .guest-position-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    top: -6px;
+    right: -6px;
+  }
 }
 
 /* 🎯 Special Effects */
@@ -610,4 +668,298 @@ Medieval-themed CSS for the most glorious card game experience
   font-family: "Metamorphous", serif;
   opacity: 0.9;
   text-shadow: 1px 1px 2px var(--shadow-dark);
+}
+
+/* 🏰 ROYAL WAITING ROOM STYLES */
+
+.noble-name {
+  color: var(--royal-gold);
+  text-shadow: 0 0 10px var(--royal-gold);
+}
+
+.royal-section-title {
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+  font-size: 1.3rem;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 2px 2px 4px var(--shadow-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.guest-counter {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--gold-accent);
+  background: linear-gradient(
+    45deg,
+    rgba(212, 175, 55, 0.2) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--royal-gold);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.guest-counter.over-capacity {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 107, 0.2) 0%,
+    rgba(139, 0, 0, 0.3) 100%
+  );
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.royal-guest-section {
+  margin-bottom: 2rem;
+}
+
+.royal-guest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.royal-guest-card {
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  border: 2px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow-royal);
+  transition: all 0.3s ease;
+  animation: royalEntrance 0.6s ease-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guest-position-number {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--royal-gold);
+  color: var(--deep-crimson);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  font-family: "Metamorphous", serif;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  border: 2px solid var(--deep-crimson);
+}
+
+@keyframes royalEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.royal-guest-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px var(--shadow-dark);
+  border-color: var(--gold-accent);
+}
+
+.guest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.guest-nickname {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+  text-shadow: 1px 1px 2px var(--shadow-dark);
+}
+
+.guest-realname {
+  font-size: 0.9rem;
+  color: var(--ivory);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.guest-status {
+  font-size: 0.8rem;
+  color: var(--parchment);
+  margin-top: 0.5rem;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.waiting-notice {
+  background: linear-gradient(
+    45deg,
+    rgba(184, 134, 11, 0.1) 0%,
+    rgba(139, 0, 0, 0.1) 100%
+  );
+  border: 1px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  backdrop-filter: blur(3px);
+}
+
+.waiting-notice p {
+  margin: 0.5rem 0;
+  color: var(--ivory);
+}
+
+.over-capacity-notice {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 107, 0.2) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  border: 1px solid #ff6b6b;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  backdrop-filter: blur(3px);
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+.over-capacity-notice p {
+  margin: 0.5rem 0;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.royal-start-button {
+  width: 100%;
+  font-size: 1.3rem !important;
+  padding: 1.2rem 2rem !important;
+  margin-top: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.royal-start-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px var(--shadow-dark);
+}
+
+.non-host-message {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: linear-gradient(
+    45deg,
+    rgba(139, 0, 0, 0.1) 0%,
+    rgba(30, 58, 95, 0.1) 100%
+  );
+  border: 1px solid var(--royal-blue);
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(3px);
+}
+
+.non-host-message p {
+  margin: 0;
+  color: var(--ivory);
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.royal-portrait-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.portrait-placeholder {
+  width: 300px;
+  height: 400px;
+  background: linear-gradient(
+    145deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(139, 0, 0, 0.1) 100%
+  );
+  border: 3px solid var(--royal-gold);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow-royal);
+  text-align: center;
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+}
+
+.portrait-placeholder p {
+  margin: 0.5rem 0;
+  opacity: 0.7;
+}
+
+.portrait-placeholder p:first-child {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.portrait-placeholder p:nth-child(2) {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.portrait-placeholder p:last-child {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.waiting-room-artwork {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 15px;
+  border: 3px solid var(--royal-gold);
+  box-shadow: var(--shadow-royal);
+  transition: all 0.3s ease;
+  object-fit: cover;
+}
+
+.waiting-room-artwork:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px var(--shadow-dark);
+  border-color: var(--gold-accent);
 }
