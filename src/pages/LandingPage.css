@@ -1,0 +1,1068 @@
+/* 
+🏰 ROYAL LOVE LETTER - LANDING PAGE STYLES 🏰
+Medieval-themed CSS for the most glorious card game experience
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Metamorphous&family=Modern+Antiqua&display=swap");
+
+:root {
+  /* 🎨 Royal Color Palette */
+  --royal-gold: #d4af37;
+  --deep-crimson: #8b0000;
+  --royal-burgundy: #722f37;
+  --parchment: #f4f1e8;
+  --rich-brown: #5d4037;
+  --royal-blue: #1e3a5f;
+  --ivory: #fffef7;
+  --gold-accent: #ffd700;
+  --shadow-dark: rgba(0, 0, 0, 0.6);
+  --shadow-light: rgba(212, 175, 55, 0.3);
+
+  /* 📏 Royal Measurements */
+  --border-radius: 12px;
+  --shadow-royal: 0 8px 25px var(--shadow-dark);
+  --shadow-glow: 0 0 20px var(--shadow-light);
+}
+
+/* 🏰 Royal Page Layout */
+.royal-landing-container {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    var(--deep-crimson) 0%,
+    var(--royal-burgundy) 50%,
+    var(--royal-blue) 100%
+  );
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  font-family: "Metamorphous", serif;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--ivory);
+  overflow: hidden;
+}
+
+/* Full width header for title */
+.royal-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+  text-align: center;
+  padding: 1.2rem 0 1rem 0;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(139, 0, 0, 0.4) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--royal-gold);
+}
+
+.royal-header-image {
+  max-width: 115px;
+}
+
+/* Main content area with two columns */
+.royal-main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0; /* Allow content to shrink */
+}
+
+/* 📜 Left Panel - The Royal Form */
+.royal-form-panel {
+  padding: 1.5rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(139, 0, 0, 0.8) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-right: 3px solid var(--royal-gold);
+  position: relative;
+}
+
+.royal-form-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="crown" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><text x="25" y="35" text-anchor="middle" fill="rgba(212,175,55,0.1)" font-size="30">👑</text></pattern></defs><rect width="100" height="100" fill="url(%23crown)"/></svg>')
+    repeat;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+/* 👑 Royal Title - Centered Full Width */
+.royal-title-centered {
+  font-family: "Metamorphous", serif;
+  font-style: normal;
+  font-size: 4rem;
+  font-weight: 900;
+  text-align: center;
+  margin: 0;
+  background: linear-gradient(
+    45deg,
+    var(--royal-gold),
+    var(--gold-accent),
+    var(--royal-gold)
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s ease-in-out infinite;
+  text-shadow: 2px 2px 4px var(--shadow-dark);
+  line-height: 1.2;
+  position: relative;
+  z-index: 2;
+}
+
+.royal-subtitle-centered {
+  font-family: "Metamorphous", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1.2rem;
+  text-align: center;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+  opacity: 0.9;
+  color: var(--ivory);
+}
+
+.story-container {
+  width: 100%;
+  padding: 1rem 0;
+  border-radius: var(--border-radius);
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.welcome-message-container {
+  padding: 0 1rem;
+  text-align: center;
+  margin: 1.5rem 0;
+
+  .welcome-message {
+    line-height: 2rem;
+    margin: 0 0 1.5rem;
+  }
+}
+
+/* 📋 Royal Form Elements */
+.royal-form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.room-code-group {
+  margin-bottom: 3rem;
+}
+
+.royal-label {
+  display: block;
+  font-weight: 600;
+  margin: 0.5rem 0 0.7rem 0;
+  color: var(--royal-gold);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.royal-input {
+  width: 70%;
+  padding: 0.7rem;
+  border: 2px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  background: rgba(244, 241, 232, 0.95);
+  color: var(--rich-brown);
+  font-family: "Metamorphous", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.royal-input:focus {
+  outline: none;
+  border-color: var(--gold-accent);
+  box-shadow: 0 0 15px var(--shadow-light), inset 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.royal-input::placeholder {
+  color: rgba(93, 64, 55, 0.7);
+  font-style: italic;
+}
+
+/* 🎲 Name Generator */
+.name-generator-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.name-generator-input {
+  flex: 1;
+  margin-bottom: 2rem;
+}
+
+.royal-button {
+  width: 43%;
+  background: linear-gradient(45deg, var(--royal-gold), var(--gold-accent));
+  border: none;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--border-radius);
+  color: var(--rich-brown);
+  font-family: "Metamorphous", serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-royal);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.royal-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px var(--shadow-dark);
+  background: linear-gradient(45deg, var(--gold-accent), var(--royal-gold));
+}
+
+.royal-button:active {
+  transform: translateY(-1px);
+}
+
+.royal-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.royal-button:hover::before {
+  left: 100%;
+}
+
+.create-button {
+  margin-top: 2rem;
+}
+
+/* 🏰 Royal Fieldset */
+.royal-fieldset {
+  border: 2px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  background: rgba(139, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+  position: relative;
+  z-index: 2;
+}
+
+.royal-legend {
+  background: linear-gradient(
+    45deg,
+    var(--deep-crimson),
+    var(--royal-burgundy)
+  );
+  color: var(--royal-gold);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow-royal);
+}
+
+/* 👑 Gender Selection */
+.gender-options {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.gender-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(244, 241, 232, 0.1);
+  font-size: 0.9rem;
+}
+
+.gender-option:hover {
+  background: rgba(244, 241, 232, 0.2);
+  border-color: var(--royal-gold);
+  transform: translateY(-1px);
+}
+
+.gender-option input[type="radio"] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--royal-gold);
+  border-radius: 50%;
+  background: var(--parchment);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gender-option input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--deep-crimson);
+}
+
+.gender-option-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ivory);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+/* 🎮 Game Mode Selection */
+.mode-options {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.mode-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 2px solid var(--royal-gold);
+  background: rgba(244, 241, 232, 0.1);
+  text-align: center;
+  justify-content: center;
+}
+
+.mode-option:hover {
+  background: rgba(244, 241, 232, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-royal);
+}
+
+.mode-option input[type="radio"]:checked + .mode-option-content {
+  background: linear-gradient(45deg, var(--royal-gold), var(--gold-accent));
+  color: var(--rich-brown);
+  border-radius: calc(var(--border-radius) - 2px);
+  padding: 0.5rem;
+}
+
+/* 🖼️ Right Panel - Royal Artwork */
+.royal-artwork-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-1 {
+  color: var(--royal-gold);
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+
+.story-4 {
+  margin-top: 1.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.story-2 {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+}
+
+.story-3 {
+  font-size: 0.9rem;
+  line-height: 1.7rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.princess-artwork {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), 0 0 60px rgba(255, 215, 0, 0.1);
+  border: 3px solid var(--royal-gold);
+  object-fit: cover;
+}
+
+.royal-artwork {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-royal);
+  border: 4px solid var(--royal-gold);
+  transition: all 0.5s ease;
+}
+
+.royal-artwork:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px var(--shadow-dark);
+}
+
+/* ✨ Animations */
+@keyframes shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.floating {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 1024px) {
+  .royal-landing-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .royal-artwork-panel {
+    order: -1;
+    min-height: 40vh;
+  }
+
+  .royal-form-panel {
+    border-right: none;
+    border-top: 3px solid var(--royal-gold);
+  }
+
+  .royal-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .royal-main-content {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .royal-header {
+    padding: 1rem 0;
+  }
+
+  .royal-title-centered {
+    font-size: 2.5rem;
+  }
+
+  .royal-subtitle-centered {
+    font-size: 1rem;
+  }
+
+  .royal-form-panel {
+    padding: 2rem 1rem;
+    border-right: none;
+    border-bottom: 2px solid var(--royal-gold);
+  }
+
+  .royal-artwork-panel {
+    min-height: 300px;
+  }
+
+  .princess-artwork {
+    max-width: 300px;
+  }
+
+  .royal-title {
+    font-size: 2rem;
+  }
+
+  .gender-options {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .gender-option {
+    justify-content: flex-start;
+  }
+
+  .mode-options {
+    flex-direction: column;
+  }
+
+  .name-generator-container {
+    flex-direction: column;
+  }
+
+  /* Waiting Room Responsive */
+  .royal-guest-card {
+    padding: 0.8rem;
+  }
+
+  .guest-nickname {
+    font-size: 1rem;
+  }
+
+  .royal-start-button {
+    font-size: 1.1rem !important;
+    padding: 1rem 1.5rem !important;
+  }
+
+  .portrait-placeholder {
+    width: 250px;
+    height: 300px;
+  }
+
+  .portrait-placeholder p:first-child {
+    font-size: 2rem;
+  }
+
+  .waiting-room-artwork {
+    max-width: 300px;
+  }
+
+  /* Guest counter responsive */
+  .royal-section-title {
+    font-size: 1.1rem;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .guest-counter {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .guest-position-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    top: -6px;
+    right: -6px;
+  }
+
+  .kick-player-button {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    bottom: 6px;
+    right: 6px;
+  }
+}
+
+/* 🎯 Special Effects */
+.royal-form-panel::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, var(--shadow-light) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.success-glow {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--royal-gold);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+/* 👑 Royal Footer */
+.royal-footer {
+  width: 100%;
+  padding: 1rem 0;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(139, 0, 0, 0.9) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-top: 2px solid var(--royal-gold);
+  text-align: center;
+  margin-top: auto; /* This pushes footer to bottom */
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+.royal-footer-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ivory);
+  font-family: "Metamorphous", serif;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px var(--shadow-dark);
+}
+
+/* 🏰 ROYAL WAITING ROOM STYLES */
+
+.noble-name {
+  color: var(--royal-gold);
+  text-shadow: 0 0 10px var(--royal-gold);
+}
+
+.royal-section-title {
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+  font-size: 1.3rem;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 2px 2px 4px var(--shadow-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.guest-counter {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--gold-accent);
+  background: linear-gradient(
+    45deg,
+    rgba(212, 175, 55, 0.2) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--royal-gold);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.guest-counter.over-capacity {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 107, 0.2) 0%,
+    rgba(139, 0, 0, 0.3) 100%
+  );
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.royal-guest-section {
+  margin-bottom: 2rem;
+}
+
+.royal-guest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.royal-guest-card {
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  border: 2px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow-royal);
+  transition: all 0.3s ease;
+  animation: royalEntrance 0.6s ease-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guest-position-number {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--royal-gold);
+  color: var(--deep-crimson);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  font-family: "Metamorphous", serif;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  border: 2px solid var(--deep-crimson);
+}
+
+@keyframes royalEntrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.royal-guest-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px var(--shadow-dark);
+  border-color: var(--gold-accent);
+}
+
+.guest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.guest-nickname {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+  text-shadow: 1px 1px 2px var(--shadow-dark);
+}
+
+.guest-realname {
+  font-size: 0.9rem;
+  color: var(--ivory);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.guest-status {
+  font-size: 0.8rem;
+  color: var(--parchment);
+  margin-top: 0.5rem;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.kick-player-button {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: linear-gradient(45deg, #ff6b6b, #ff5252);
+  border: 1px solid #d32f2f;
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  font-family: "Metamorphous", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kick-player-button:hover {
+  background: linear-gradient(45deg, #f44336, #ff1744);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
+}
+
+.kick-player-button:active {
+  transform: translateY(0);
+}
+
+/* Validation Error Styling */
+.validation-errors {
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+  color: #ffd700;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  border-radius: 8px;
+  border: 1px solid #ffd700;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: errorFadeIn 0.3s ease-out;
+}
+
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kicked-message {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 107, 0.2) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  border: 1px solid #ff6b6b;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(3px);
+  animation: fadeInOut 5s ease-in-out;
+}
+
+.kicked-message p {
+  margin: 0.5rem 0;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10%,
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.waiting-notice {
+  background: linear-gradient(
+    45deg,
+    rgba(184, 134, 11, 0.1) 0%,
+    rgba(139, 0, 0, 0.1) 100%
+  );
+  border: 1px solid var(--royal-gold);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  backdrop-filter: blur(3px);
+}
+
+.waiting-notice p {
+  margin: 0.5rem 0;
+  color: var(--ivory);
+}
+
+.over-capacity-notice {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 107, 0.2) 0%,
+    rgba(139, 0, 0, 0.2) 100%
+  );
+  border: 1px solid #ff6b6b;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  backdrop-filter: blur(3px);
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+.over-capacity-notice p {
+  margin: 0.5rem 0;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.royal-start-button {
+  width: 100%;
+  font-size: 1.3rem !important;
+  padding: 1.2rem 2rem !important;
+  margin-top: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.royal-start-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px var(--shadow-dark);
+}
+
+.non-host-message {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(
+    45deg,
+    rgba(139, 0, 0, 0.1) 0%,
+    rgba(30, 58, 95, 0.1) 100%
+  );
+  border: 1px solid var(--royal-blue);
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(3px);
+}
+
+.non-host-message p {
+  margin: 0;
+  color: var(--ivory);
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.royal-portrait-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.portrait-placeholder {
+  width: 300px;
+  height: 400px;
+  background: linear-gradient(
+    145deg,
+    rgba(212, 175, 55, 0.1) 0%,
+    rgba(139, 0, 0, 0.1) 100%
+  );
+  border: 3px solid var(--royal-gold);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow-royal);
+  text-align: center;
+  color: var(--royal-gold);
+  font-family: "Metamorphous", serif;
+}
+
+.portrait-placeholder p {
+  margin: 0.5rem 0;
+  opacity: 0.7;
+}
+
+.portrait-placeholder p:first-child {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.portrait-placeholder p:nth-child(2) {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.portrait-placeholder p:last-child {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.waiting-room-artwork {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 15px;
+  border: 3px solid var(--royal-gold);
+  box-shadow: var(--shadow-royal);
+  transition: all 0.3s ease;
+  object-fit: cover;
+}
+
+.waiting-room-artwork:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px var(--shadow-dark);
+  border-color: var(--gold-accent);
+}
