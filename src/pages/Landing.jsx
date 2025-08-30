@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ref, get } from "firebase/database";
+import { db } from "../utils/firebase";
 import { generateNickname } from "../utils/names";
 import princessImage from "../img/princess-square.jpeg";
 import loveLetterImage from "../img/love-letter.png";
@@ -10,12 +12,127 @@ export default function Landing() {
   const [realName, setRealName] = useState("");
   const [preferredGender, setPreferredGender] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [kickedMessage, setKickedMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [isValidating, setIsValidating] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleJoin = () => {
-    if (nickname && realName && roomCode) {
-      navigate(`/room/${roomCode}`, {
-        state: { nickname, realName },
+  // Check for kicked message
+  useEffect(() => {
+    if (location.state?.kickedMessage) {
+      setKickedMessage(location.state.kickedMessage);
+      // Clear the message after 5 seconds
+      setTimeout(() => setKickedMessage(""), 5000);
+    }
+  }, [location.state]);
+
+  const validateForm = async () => {
+    const errors = [];
+
+    // Basic empty field validation
+    if (!nickname.trim()) {
+      errors.push("⚔️ A noble nickname is required to enter the court!");
+    }
+    if (!realName.trim()) {
+      errors.push("👑 Thy true name must be revealed to join!");
+    }
+    if (!roomCode.trim()) {
+      errors.push("🏰 A sacred room code is required for entry!");
+    }
+
+    // Length validations
+    if (realName.trim() && realName.trim().length < 3) {
+      errors.push("📜 Thy true name must be at least 3 characters long!");
+    }
+    if (realName.trim() && realName.trim().length > 30) {
+      errors.push("📜 Thy true name must be less than 30 characters!");
+    }
+    if (nickname.trim() && nickname.trim().length < 3) {
+      errors.push("⚔️ Thy noble nickname must be at least 3 characters long!");
+    }
+    if (nickname.trim() && nickname.trim().length > 30) {
+      errors.push("⚔️ Thy noble nickname must be less than 30 characters!");
+    }
+
+    // If basic validations fail, don't proceed to Firebase checks
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return false;
+    }
+
+    // Firebase validations
+    try {
+      setIsValidating(true);
+
+      // Check if room exists
+      const roomRef = ref(db, `rooms/${roomCode.trim()}`);
+      const roomSnapshot = await get(roomRef);
+
+      if (!roomSnapshot.exists()) {
+        errors.push("🚫 This mystical chamber does not exist in our realm!");
+        setValidationErrors(errors);
+        return false;
+      }
+
+      // Check if nickname or real name is already taken in this room
+      const playersRef = ref(db, `rooms/${roomCode.trim()}/players`);
+      const playersSnapshot = await get(playersRef);
+
+      if (playersSnapshot.exists()) {
+        const players = playersSnapshot.val();
+        const playerList = Object.values(players);
+
+        // Check for duplicate nickname
+        const nicknameExists = playerList.some(
+          (player) =>
+            player.name.toLowerCase() === nickname.trim().toLowerCase()
+        );
+        if (nicknameExists) {
+          errors.push(
+            "👥 This noble nickname is already taken in this chamber!"
+          );
+        }
+
+        // Check for duplicate real name
+        const realNameExists = playerList.some(
+          (player) =>
+            player.realName.toLowerCase() === realName.trim().toLowerCase()
+        );
+        if (realNameExists) {
+          errors.push("👥 This true name is already known in this chamber!");
+        }
+      }
+
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Validation error:", error);
+      errors.push("⚡ A mystical error occurred while checking the chamber!");
+      setValidationErrors(errors);
+      return false;
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  // Clear validation errors when user types
+  const handleInputChange = (setter, value) => {
+    setter(value);
+    if (validationErrors.length > 0) {
+      setValidationErrors([]); // Clear errors when user starts typing
+    }
+  };
+
+  const handleJoin = async () => {
+    const isValid = await validateForm();
+    if (isValid) {
+      navigate(`/room/${roomCode.trim()}`, {
+        state: { nickname: nickname.trim(), realName: realName.trim() },
       });
     }
   };
@@ -56,12 +173,21 @@ export default function Landing() {
       <div className="royal-main-content">
         {/* 📜 Left Panel - The Royal Court Entry Form */}
         <div className="royal-form-panel">
+          {kickedMessage && (
+            <div className="kicked-message">
+              <p>⚔️ {kickedMessage} ⚔️</p>
+              <p style={{ fontSize: "0.8rem", opacity: 0.8 }}>
+                Fear not, noble soul! You may join another royal court below.
+              </p>
+            </div>
+          )}
+
           <div className="royal-form-group">
             <label className="royal-label">Thy True Name:</label>
             <input
               className="royal-input"
               value={realName}
-              onChange={(e) => setRealName(e.target.value)}
+              onChange={(e) => handleInputChange(setRealName, e.target.value)}
               placeholder="By what name art thou known in the realm?"
             />
           </div>
@@ -75,7 +201,9 @@ export default function Landing() {
                 <input
                   className="royal-input"
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(setNickname, e.target.value)
+                  }
                   placeholder="Enter thy courtly nickname"
                 />
               </div>
@@ -126,24 +254,56 @@ export default function Landing() {
             <input
               className="royal-input"
               value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value)}
+              onChange={(e) => handleInputChange(setRoomCode, e.target.value)}
               placeholder="Enter the mystical chamber code..."
             />
           </div>
 
+          {/* Error Messages Display */}
+          {validationErrors.length > 0 && (
+            <div className="validation-errors">
+              {validationErrors.map((error, index) => (
+                <div key={index} className="error-message">
+                  {error}
+                </div>
+              ))}
+            </div>
+          )}
+
           <button
             onClick={handleJoin}
             className="royal-button"
-            disabled={!nickname || !realName || !roomCode}
+            disabled={
+              !nickname?.trim() ||
+              !realName?.trim() ||
+              !roomCode?.trim() ||
+              validationErrors.length > 0 ||
+              isValidating
+            }
             style={{
               width: "100%",
               fontSize: "1.2rem",
-              opacity: !nickname || !realName || !roomCode ? 0.6 : 1,
+              opacity:
+                !nickname?.trim() ||
+                !realName?.trim() ||
+                !roomCode?.trim() ||
+                validationErrors.length > 0 ||
+                isValidating
+                  ? 0.6
+                  : 1,
               cursor:
-                !nickname || !realName || !roomCode ? "not-allowed" : "pointer",
+                !nickname?.trim() ||
+                !realName?.trim() ||
+                !roomCode?.trim() ||
+                validationErrors.length > 0 ||
+                isValidating
+                  ? "not-allowed"
+                  : "pointer",
             }}
           >
-            🏰 Enter the Royal Court 🏰
+            {isValidating
+              ? "⏳ Verifying Royal Credentials..."
+              : "🏰 Enter the Royal Court 🏰"}
           </button>
         </div>
 

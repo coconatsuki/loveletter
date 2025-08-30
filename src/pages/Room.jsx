@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../utils/firebase";
-import { ref, onValue, update } from "firebase/database";
+import { ref, onValue, update, remove } from "firebase/database";
 import { generateNickname } from "../utils/names";
 import { buildDeck } from "../utils/deckBuilder";
 import "./LandingPage.css"; // Import royal styles
@@ -57,10 +57,52 @@ export default function Room() {
     }
   }, [gameStarted, navigate, roomCode, nickname]);
 
+  // Check if current player was kicked (player no longer exists in the room)
+  useEffect(() => {
+    if (nickname && players.length > 0) {
+      const playerExists = players.some((player) => player.name === nickname);
+      if (!playerExists) {
+        console.log(`Player ${nickname} was kicked from the room`);
+        navigate("/", {
+          state: {
+            kickedMessage:
+              "You were removed from the royal court by the Game Master.",
+          },
+        });
+      }
+    }
+  }, [players, nickname, navigate]);
+
   const isHost = nickname === host;
   const playerCount = players.length;
   const canStartGame = playerCount >= 2 && playerCount <= 11;
   const isOverCapacity = playerCount > 11;
+
+  const kickPlayer = async (playerToKick) => {
+    if (!isHost || playerToKick === host) {
+      console.warn("Cannot kick: either not host or trying to kick host");
+      return;
+    }
+
+    // Royal confirmation popup
+    const confirmed = window.confirm(
+      `⚔️ Art thou certain thou wishest to banish ${playerToKick} from the royal court? This action cannot be undone! 👑`
+    );
+
+    if (!confirmed) {
+      return; // User cancelled, do nothing
+    }
+
+    try {
+      const playerRef = ref(db, `rooms/${roomCode}/players/${playerToKick}`);
+      await remove(playerRef);
+      console.log(
+        `Player ${playerToKick} has been banished from the royal court`
+      );
+    } catch (error) {
+      console.error("Failed to kick player:", error);
+    }
+  };
 
   const startGame = () => {
     // Double-check validation before starting
@@ -162,6 +204,19 @@ export default function Room() {
                       ? "Host & Game Master"
                       : "Noble Guest"}
                   </div>
+
+                  {/* Kick button - only show for host, not for the host themselves, and when useful */}
+                  {isHost &&
+                    player.name !== host &&
+                    (isOverCapacity || playerCount > 2) && (
+                      <button
+                        onClick={() => kickPlayer(player.name)}
+                        className="kick-player-button"
+                        title={`Banish ${player.name} from the royal court`}
+                      >
+                        🚫 Banish
+                      </button>
+                    )}
                 </div>
               ))}
             </div>
@@ -186,7 +241,9 @@ export default function Room() {
                   allowed.
                 </p>
                 <p style={{ fontSize: "0.8rem", opacity: 0.7 }}>
-                  Some guests must depart before the tournament can begin...
+                  {isHost
+                    ? "Use the 'Banish' buttons to remove guests before starting the tournament..."
+                    : "The Game Master must remove some guests before the tournament can begin..."}
                 </p>
               </div>
             )}
