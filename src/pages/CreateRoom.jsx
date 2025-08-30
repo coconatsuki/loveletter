@@ -231,6 +231,7 @@ export default function CreateRoom() {
             src={princessImage}
             alt="Princess of the Royal Court"
             className="princess-artwork"
+            style={{ margin: "4rem" }}
           />
         </div>
       </div>
