@@ -8,6 +8,7 @@ import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RoundEndModal from "../components/RoundEndModal";
+import ActionModal from "../components/ActionModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -70,6 +71,7 @@ export default function Play() {
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
+  const [showActionModal, setShowActionModal] = useState(false);
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -288,6 +290,15 @@ export default function Play() {
   const currentPlayer = round?.currentPlayer;
   const isMyTurn = nickname === currentPlayer;
 
+  // Auto-show ActionModal when it's player's turn
+  useEffect(() => {
+    if (isMyTurn && !players[nickname]?.isOut) {
+      setShowActionModal(true);
+    } else {
+      setShowActionModal(false);
+    }
+  }, [isMyTurn, nickname, players]);
+
   const drawCard = () => {
     // Prevent drawing card if round has ended
     if (roomData?.gameState === "roundScoring") {
@@ -358,6 +369,9 @@ export default function Play() {
         [`players/${nickname}/hand`]: newHand,
       });
     }
+
+    // Keep ActionModal open for card selection after drawing
+    // The modal will stay open until the player plays a card
   };
 
   // 🎭 Countess Force-Play Detection
@@ -399,6 +413,10 @@ export default function Play() {
     }
 
     const card = player.hand[index];
+
+    // Close action modal when a card is selected
+    setShowActionModal(false);
+
     if ([1, 2, 3, 6].includes(card.id)) {
       // Cards that need target selection (Guard, Priest, Baron, Phantom King)
       setSelectedCardIndex(index);
@@ -1348,36 +1366,36 @@ export default function Play() {
     setSelectedCardIndex(null);
   };
 
+  /**
+   * Handle clicking on a player section to view their discard pile
+   */
+  const handlePlayerSectionClick = (playerName, playerData) => {
+    console.log("🎯 Player section clicked:", playerName, playerData);
+    // TODO: Open player discard modal
+    // For now, just log the click
+  };
+
   if (!roomData || !player || !round || !players) {
     return <div className="play-loading">⏳ Loading game state...</div>;
   } else {
     const roundNumber = roomData?.gameStats?.roundNumber || 1;
     return (
-      <div className="play-container">
-        {/* ROUND COUNTER - Top Right */}
-        <div className="round-counter-container">
-          <div className="round-counter">
-            <span role="img" aria-label="Round">
-              🔢
-            </span>
-            <span>
-              Round <span className="round-counter-number">{roundNumber}</span>
-            </span>
-          </div>
-        </div>
-        {/* MAIN GAME BOARD */}
-        <div>
-          <h2 className="game-header">Current Player: {currentPlayer}</h2>
-          <div className="hand-display">
-            <h3>Your Hand:</h3>
-            <ul className="hand-list">
-              {player?.hand?.map((card, idx) => (
-                <li key={idx} className="hand-card-item">
-                  <strong>{card.name}</strong> (Strength {card.strength})<br />
-                  <em>{card.effect}</em>
-                </li>
-              ))}
-            </ul>
+      <div className="royal-play-container">
+        {/* MAIN GAME AREA */}
+        <div className="royal-game-area">
+          {/* CURRENT PLAYER BANNER */}
+          <div
+            className={`current-player-banner ${
+              currentPlayer === nickname ? "is-my-turn" : ""
+            }`}
+          >
+            {currentPlayer === nickname ? (
+              <span>👑 YOUR ROYAL TURN 👑</span>
+            ) : (
+              <span>
+                🎭 AWAITING {currentPlayer?.toUpperCase()}'S ROYAL DECREE 🎭
+              </span>
+            )}
           </div>
 
           {players[nickname]?.isOut && (
@@ -1389,30 +1407,86 @@ export default function Play() {
             </div>
           )}
 
-          <div className="players-section">
-            <h3>Players:</h3>
-            <ul className="players-list">
-              {Object.entries(players).map(([name, p]) => {
-                const isProtected = roomData?.protectedPlayers?.includes(name);
-                const playerClasses = `player-item ${
-                  isProtected ? "protected" : ""
-                }`;
+          {/* PLAYERS GRID */}
+          <div className="players-game-grid">
+            {Object.entries(players).map(([name, p]) => {
+              const isProtected = roomData?.protectedPlayers?.includes(name);
+              const isCurrentPlayer = name === currentPlayer;
+              const isEliminated = p.isOut;
+              const isYou = name === nickname;
 
-                return (
-                  <li key={name} className={playerClasses}>
-                    <strong>{p.name}</strong> ({p.realName})<br />
-                    Tokens: {p.tokens} | Discard:{" "}
-                    {(p.discard || []).map((card) => card.name).join(", ") ||
-                      "—"}
-                    {name === currentPlayer && " 👑 (current turn)"}
-                    {name === nickname && " ← you"}
-                    {isProtected && " 🫖✨ (protected by Handmaid)"}
-                  </li>
-                );
-              })}
-            </ul>
+              return (
+                <div
+                  key={name}
+                  className={`royal-player-section ${
+                    isCurrentPlayer ? "is-current-player" : ""
+                  } ${isEliminated ? "is-eliminated" : ""} ${
+                    isProtected ? "is-protected" : ""
+                  }`}
+                  onClick={() => handlePlayerSectionClick(name, p)}
+                >
+                  {/* Player Header */}
+                  <div className="player-header">
+                    <div className={`player-name ${isYou ? "is-you" : ""}`}>
+                      {isCurrentPlayer && "👑 "}
+                      {p.name}
+                      {p.realName && (
+                        <div className="player-real-name">
+                          ({isYou ? "You" : p.realName})
+                        </div>
+                      )}
+                      {isEliminated && " 💀"}
+                    </div>
+                    <div className="player-tokens">❤️ {p.tokens || 0}</div>
+                  </div>
+
+                  {/* Player Info Grid - Simplified */}
+                  <div className="player-info-grid">
+                    {/* Show last discarded card if any */}
+                    {p.discard && p.discard.length > 0 && (
+                      <div className="player-stat">
+                        <span className="player-stat-label">Last Played</span>
+                        <span className="player-stat-value">
+                          {p.discard[p.discard.length - 1].name} (Strength{" "}
+                          {p.discard[p.discard.length - 1].strength})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Special Status Indicators */}
+                  {isProtected && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        marginTop: "0.5rem",
+                        color: "#90EE90",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      🫖✨ Protected by Handmaid
+                    </div>
+                  )}
+                  {isEliminated && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        marginTop: "0.5rem",
+                        color: "#888",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      Eliminated this round
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+        </div>
 
+        {/* GAME ACTIONS SECTION - OLD */}
+        <div className="royal-actions-area" style={{ display: "none" }}>
           {isMyTurn && (
             <div className="turn-section">
               <h3>It’s your turn!</h3>
@@ -1835,15 +1909,53 @@ export default function Play() {
           )}
         </div>
 
-        {/* NOTIFICATION PANEL */}
-        <div className="right-sidebar">
-          <h3>📜 Game Chronicle</h3>
-          {notifications.map((n, i) => (
-            <div key={i} className="notification-item">
-              ➤ {n.message}
+        {/* RIGHT SIDEBAR: Chronicle */}
+        <div className="royal-right-sidebar">
+          {/* ROYAL CHRONICLE SIDEBAR */}
+          <div className="royal-chronicle-sidebar">
+            <div className="chronicle-header">
+              {/* ROUND */}
+              <div className="round-container">
+                <div className="round-content">
+                  <span role="img" aria-label="Round">
+                    ⚔️
+                  </span>
+                  <span>Round</span>
+                  <span className="round-number">{roundNumber}</span>
+                </div>
+              </div>
+              <h3>📜 Game Chronicle</h3>
             </div>
-          ))}
+            <div className="chronicle-content">
+              {notifications.map((n, i) => (
+                <div key={i} className="chronicle-notification">
+                  <span className="chronicle-arrow">➤</span>
+                  <span className="chronicle-message">{n.message}</span>
+                </div>
+              ))}
+              {notifications.length === 0 && (
+                <div className="chronicle-empty">
+                  <em>📜 The chronicle awaits the first royal decree...</em>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* ACTION MODAL - Replaces old action bar */}
+        <ActionModal
+          isMyTurn={isMyTurn && showActionModal}
+          player={player}
+          onDrawCard={drawCard}
+          onPlayCard={playCard}
+          isPlaying={isPlaying}
+          countessForce={
+            player?.hand?.length === 2
+              ? getCountessForcePlay(player.hand)
+              : null
+          }
+          onClose={() => setShowActionModal(false)}
+        />
 
         {/* ROUND END MODAL */}
         {roundEndModalData && (
