@@ -78,7 +78,7 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   const wasCorrect = targetCard.strength === guess;
 
   return {
-    requiresPrompt: isPremium,
+    requiresPrompt: true, // Always show prompt to maintain mystery (both normal & premium)
     target,
     attacker,
     hasAssassin,

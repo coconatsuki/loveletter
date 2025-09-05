@@ -70,7 +70,7 @@ describe("Card Effects - Round End Integration", () => {
           result: "correctGuess",
           isCorrectGuess: true,
           eliminatedPlayer: "target",
-          requiresPrompt: false,
+          requiresPrompt: true, // Always show prompt to maintain mystery
         })
       );
     });

@@ -838,3 +838,177 @@
     padding: 1rem;
   }
 }
+
+/* ==========================================
+   ROYAL ACTIONS AREA - Game Control Panel
+   ========================================== */
+
+.royal-actions-area {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
+  border: 3px solid #ffd700;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.royal-actions-area::before {
+  content: "👑";
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #8b0000;
+  padding: 5px 15px;
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  font-size: 1.2rem;
+}
+
+/* Turn section styling */
+.turn-section {
+  text-align: center;
+  color: #ffd700;
+}
+
+.turn-section h3 {
+  font-family: "Cinzel", serif;
+  font-size: 1.3rem;
+  margin: 0 0 15px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Card buttons styling */
+.card-button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 15px;
+  background: linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%);
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  color: #ffd700;
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a0000 0%, #8b0000 100%);
+  border-color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.card-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.card-button.blocked {
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+  border-color: #666;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card-button.blocked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.card-blocked-text {
+  color: #ff6b6b;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Countess warning styling */
+.countess-warning {
+  background: rgba(255, 107, 107, 0.2);
+  border: 2px solid #ff6b6b;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  color: #ffcccb;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* Waiting message styling */
+.waiting-message {
+  text-align: center;
+  color: #ccc;
+  font-style: italic;
+  font-size: 1.1rem;
+  padding: 20px;
+}
+
+/* Draw card button styling */
+.royal-actions-area button {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 25px;
+  color: #8b0000;
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.royal-actions-area button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.royal-actions-area button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.royal-actions-area button:disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .royal-actions-area {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    transform: none;
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .royal-actions-area {
+    padding: 15px;
+  }
+
+  .card-button {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}

@@ -8,7 +8,6 @@ import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RoundEndModal from "../components/RoundEndModal";
-import ActionModal from "../components/ActionModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -71,7 +70,6 @@ export default function Play() {
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
-  const [showActionModal, setShowActionModal] = useState(false);
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -290,15 +288,6 @@ export default function Play() {
   const currentPlayer = round?.currentPlayer;
   const isMyTurn = nickname === currentPlayer;
 
-  // Auto-show ActionModal when it's player's turn
-  useEffect(() => {
-    if (isMyTurn && !players[nickname]?.isOut) {
-      setShowActionModal(true);
-    } else {
-      setShowActionModal(false);
-    }
-  }, [isMyTurn, nickname, players]);
-
   const drawCard = () => {
     // Prevent drawing card if round has ended
     if (roomData?.gameState === "roundScoring") {
@@ -405,7 +394,7 @@ export default function Play() {
     return { forced: false };
   };
 
-  const playCard = (index) => {
+  const playCard = (index, actionData = null) => {
     // Prevent playing card if round has ended
     if (roomData?.gameState === "roundScoring") {
       console.log("🛑 PLAY CARD blocked - Round has ended");
@@ -414,9 +403,19 @@ export default function Play() {
 
     const card = player.hand[index];
 
-    // Close action modal when a card is selected
-    setShowActionModal(false);
+    // If actionData is provided, it means ActionModal already handled target selection
+    if (actionData) {
+      // Handle the action based on card type with target/guess data
+      if ([1, 2, 3, 6].includes(card.id)) {
+        // Cards that need target selection (Guard, Priest, Baron, Phantom King)
+        // Pass the card index directly to avoid state timing issues
+        handleTargetConfirmWithIndex(index, actionData);
+        return;
+      }
+    }
 
+    // Original logic for cards that don't need ActionModal target selection
+    // or when called from old system
     if ([1, 2, 3, 6].includes(card.id)) {
       // Cards that need target selection (Guard, Priest, Baron, Phantom King)
       setSelectedCardIndex(index);
@@ -865,6 +864,116 @@ export default function Play() {
     pushNotification(
       roomCode,
       `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+    );
+  };
+
+  // NEW: Handle target confirmation with direct card index (for ActionModal)
+  const handleTargetConfirmWithIndex = async (cardIndex, { target, guess }) => {
+    const cardPlayed = player.hand[cardIndex];
+    console.log(
+      "🎯 TARGET CONFIRM WITH INDEX: Setting isPlaying = true for card:",
+      cardPlayed?.name || cardPlayed?.id
+    );
+    setIsPlaying(true);
+
+    // Validation check: Ensure cardPlayed exists
+    if (!cardPlayed) {
+      console.error("❌ ERROR: cardPlayed is undefined. cardIndex:", cardIndex);
+      setIsPlaying(false);
+      return;
+    }
+
+    // === SKIP TURN CASE (All players protected by Handmaid) ===
+    if (target === "SKIP_TURN") {
+      setResultModalData({
+        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
+          cardNames[cardPlayed.id]
+        } cannot find a target, so your turn is skipped. The card takes no effect! ☕🛡️`,
+      });
+      return;
+    }
+
+    // === GUARD CARD LOGIC (ID: 1) ===
+    if (cardPlayed.id === 1) {
+      // Apply the Guard effect to determine the outcome
+      const result = await applyGuardEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        guess,
+      });
+
+      // Notify all players about the Guard action
+      pushNotification(
+        roomCode,
+        `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
+      );
+
+      // ALWAYS show AssassinPromptModal to target (good UX for both modes)
+      // In premium mode: target can choose to use Assassin or not
+      // In normal mode: target just acknowledges the attack
+      const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
+      await update(promptRef, {
+        ...result,
+        timestamp: Date.now(),
+        // Store card play info so we can complete the turn later
+        cardPlayInfo: {
+          playedCardIndex: cardIndex, // Use cardIndex instead of selectedCardIndex
+          playerNickname: nickname,
+        },
+      });
+      // Exit early - AssassinPromptModal will handle the rest for both modes
+      return;
+    }
+
+    // === PRIEST CARD LOGIC (ID: 2) ===
+    else if (cardPlayed.id === 2) {
+      const result = await applyPriestEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === BARON CARD LOGIC (ID: 3) ===
+    else if (cardPlayed.id === 3) {
+      const result = await applyBaronEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === PHANTOM KING CARD LOGIC (ID: 6) ===
+    else if (cardPlayed.id === 6) {
+      const result = await applyPhantomKingEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+        cardPlayed: 6, // Special flag for Phantom King
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // Fallback for unknown cards
+    setIsPlaying(false);
+    console.error(
+      "❌ Unknown card ID in handleTargetConfirmWithIndex:",
+      cardPlayed?.id
     );
   };
 
@@ -1485,8 +1594,8 @@ export default function Play() {
           </div>
         </div>
 
-        {/* GAME ACTIONS SECTION - OLD */}
-        <div className="royal-actions-area" style={{ display: "none" }}>
+        {/* GAME ACTIONS SECTION */}
+        <div className="royal-actions-area">
           {isMyTurn && (
             <div className="turn-section">
               <h3>It’s your turn!</h3>
@@ -1653,7 +1762,7 @@ export default function Play() {
             />
           )}
 
-          {/* === ASSASSIN PROMPT MODAL (Premium Mode Only) === */}
+          {/* === ASSASSIN PROMPT MODAL === */}
           {showGuardTargetPrompt &&
             guardTargetPromptData &&
             nickname === guardTargetPromptData.target && (
@@ -1941,21 +2050,6 @@ export default function Play() {
             </div>
           </div>
         </div>
-
-        {/* ACTION MODAL - Replaces old action bar */}
-        <ActionModal
-          isMyTurn={isMyTurn && showActionModal}
-          player={player}
-          onDrawCard={drawCard}
-          onPlayCard={playCard}
-          isPlaying={isPlaying}
-          countessForce={
-            player?.hand?.length === 2
-              ? getCountessForcePlay(player.hand)
-              : null
-          }
-          onClose={() => setShowActionModal(false)}
-        />
 
         {/* ROUND END MODAL */}
         {roundEndModalData && (

@@ -180,6 +180,17 @@
   justify-content: center;
   font-size: 3rem;
   border-bottom: 2px solid #b8860b;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .card-strength {
@@ -198,35 +209,193 @@
   justify-content: center;
   border: 2px solid #8b0000;
   text-shadow: none;
+  z-index: 2; /* Above the image */
 }
 
-/* Card Info Area */
+/* Card Info Section - FIXED TEXT CONTRAST */
 .card-info {
-  padding: 1rem;
-  background: rgba(139, 0, 0, 0.3);
-  text-align: center;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  border-top: 2px solid #b8860b;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .card-name {
-  font-size: 1.1rem;
-  font-weight: bold;
   color: #ffd700;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
   margin-bottom: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9); /* Strong text shadow */
 }
 
 .card-effect {
+  color: #ffffff; /* Pure white for maximum contrast */
   font-size: 0.8rem;
-  color: #e0e0e0;
+  text-align: center;
   line-height: 1.3;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9); /* Strong text shadow */
+}
+
+/* Card Action States */
+.action-card.selected {
+  border-color: #ffd700;
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+.action-card.blocked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-card.blocked:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* Target Selection Section */
+.target-selection-section {
+  padding: 2rem;
+  min-height: 300px;
+}
+
+.target-selection-section .section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  padding-bottom: 1rem;
+}
+
+.target-selection-section h3 {
+  color: #ffd700;
+  font-size: 1.4rem;
   margin-bottom: 0.5rem;
 }
 
-.card-blocked-indicator {
-  color: #ff6b6b;
-  font-size: 0.7rem;
+.card-effect-description {
+  color: #e0e0e0;
+  font-size: 0.9rem;
   font-style: italic;
-  margin-top: 0.5rem;
+  margin: 0;
+}
+
+/* No Targets Section */
+.no-targets-section {
+  text-align: center;
+  padding: 2rem;
+}
+
+.no-targets-section p {
+  color: #e0e0e0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+/* Target Inputs Section */
+.target-inputs-section {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  color: #ffd700;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.royal-select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #b8860b;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 0, 0, 0.8),
+    rgba(45, 27, 27, 0.9)
+  );
+  color: #ffd700;
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.royal-select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.royal-select option {
+  background: #2d1b1b;
+  color: #ffd700;
+  padding: 0.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.royal-button {
+  padding: 0.8rem 1.5rem;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #8b0000, #b8860b);
+  color: #ffd700;
+  font-family: "Cinzel", serif;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  min-width: 120px;
+}
+
+.royal-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #b8860b, #ffd700);
+  color: #8b0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.royal-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.confirm-button {
+  background: linear-gradient(45deg, #228b22, #32cd32);
+  border-color: #32cd32;
+}
+
+.confirm-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #32cd32, #90ee90);
+  color: #006400;
+}
+
+.cancel-button {
+  background: linear-gradient(45deg, #8b4513, #cd853f);
+  border-color: #cd853f;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #cd853f, #daa520);
+  color: #8b4513;
 }
 
 /* Responsive Design */
