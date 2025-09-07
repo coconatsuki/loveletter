@@ -1680,17 +1680,18 @@ export default function Play() {
                                           : ""
                                       }
                                     >
+                                      <div className="card-strength">
+                                        {card.strength}
+                                      </div>
                                       <div
                                         className="card-image"
                                         style={{
-                                          backgroundImage: `url('../img/${getCardImage(
+                                          backgroundImage: `url('/src/img/${getCardImage(
                                             card.name
                                           )}')`,
                                         }}
                                       ></div>
-                                      <div className="card-strength">
-                                        {card.strength}
-                                      </div>
+
                                       <div className="card-content">
                                         <div className="card-name">
                                           {card.name}
