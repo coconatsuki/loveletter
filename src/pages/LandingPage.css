@@ -269,8 +269,9 @@ Medieval-themed CSS for the most glorious card game experience
 }
 
 .name-generator-container button.generate-name-btn {
-  padding: 0.5rem;
+  padding: 0.6rem 0.8rem;
   font-size: 0.9rem;
+  width: fit-content;
 }
 
 .create-button {

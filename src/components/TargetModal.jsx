@@ -70,7 +70,11 @@ export default function TargetModal({
             remain in the shadows.
           </p>
         )}
+        <div className="dropdown-section-label">
+          Select a target for your card
+        </div>
         <select
+          className="royal-select"
           value={selectedTarget}
           onChange={(e) => setSelectedTarget(e.target.value)}
         >
@@ -95,8 +99,9 @@ export default function TargetModal({
 
         {isGuard && (
           <>
-            <h4>Guess a strength (≠ 1)</h4>
+            <div className="dropdown-section-label">Guess a strength (≠ 1)</div>
             <select
+              className="royal-select"
               value={guess}
               onChange={(e) => setGuess(Number(e.target.value))}
             >

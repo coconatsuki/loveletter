@@ -24,7 +24,7 @@
   width: 100vw;
   background: linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #2d1b1b 100%);
   display: grid;
-  grid-template-columns: 1fr 320px; /* Main game area + Right sidebar */
+  grid-template-columns: 1fr 19%; /* Main game area + Right sidebar */
   grid-template-rows: 1fr; /* Game area */
   overflow: hidden;
   font-family: "Cinzel", serif;
@@ -82,6 +82,7 @@
 
 /* Main game area - simplified since round moved to footer */
 .royal-game-area {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
@@ -539,13 +540,6 @@
   font-weight: bold;
 }
 
-/* Turn Section */
-.turn-section {
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: #ffe5b4;
-}
-
 /* Countess Warning */
 .countess-warning {
   background-color: #fff3cd;
@@ -844,20 +838,20 @@
    ========================================== */
 
 .royal-actions-area {
-  position: fixed;
-  bottom: 20px;
+  position: absolute;
+  bottom: 50%;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
   border: 3px solid #ffd700;
   border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  padding: 1%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   z-index: 1000;
   min-width: 400px;
   max-width: 600px;
+  min-width: 50%;
 }
 
 .royal-actions-area::before {
@@ -877,32 +871,172 @@
 .turn-section {
   text-align: center;
   color: #ffd700;
+  background: transparent;
+  margin-top: 2%;
+  position: relative;
+  overflow: hidden;
 }
 
 .turn-section h3 {
   font-family: "Cinzel", serif;
   font-size: 1.3rem;
-  margin: 0 0 15px 0;
+  margin: 5% 0 8% 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* Card buttons styling */
+.turn-section p {
+  font-size: 1.5rem;
+}
+
+/* Card container for portrait layout */
+.card-selection-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2%;
+}
+
+/* Card buttons styling - Portrait card design */
 .card-button {
-  display: block;
-  width: 100%;
-  margin: 10px 0;
-  padding: 15px;
-  background: linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%);
-  border: 2px solid #ffd700;
-  border-radius: 8px;
-  color: #ffd700;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  min-height: 320px;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f8f5f0 0%, #f0ead6 100%);
+  border: 4px solid #8b4513;
+  border-radius: 15px;
+  color: #2c1810;
   font-family: "Cinzel", serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-align: left;
+  text-align: center;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-button:hover:not(:disabled) {
+  transform: translateY(-8px) scale(1.03);
+  border-color: #ffd700;
+  box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.card-button:active:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Card image at the top */
+.card-image {
+  width: calc(100% - 16px);
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 10px;
+  margin: 8px 8px 12px 8px;
+  position: relative;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  border: 2px solid #d4af37;
+}
+
+/* Strength number overlay - positioned on the card, not the image */
+.card-strength {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 3px solid #8b4513;
+  border-radius: 50%;
+  color: #8b0000;
+  font-weight: bold;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+/* Card image at the top */
+.card-image {
+  width: 100%;
+  height: 140px;
+  background-image: url("../img/countess1.jpeg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+/* Strength number overlay */
+.card-strength {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 2px solid #8b4513;
+  border-radius: 50%;
+  color: #8b0000;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+/* Card content area */
+.card-content {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #faf8f5 0%, #f2ede0 100%);
+  border-radius: 0 0 11px 11px;
+  margin-top: -4px;
+}
+
+/* Card name */
+.card-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #8b0000;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Card effect text */
+.card-effect {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #3a2a1a;
+  text-align: center;
+  font-family: "Lora", serif;
+  font-style: italic;
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 .card-button:hover:not(:disabled) {
@@ -918,22 +1052,45 @@
 }
 
 .card-button.blocked {
-  background: linear-gradient(135deg, #333 0%, #555 100%);
-  border-color: #666;
-  color: #999;
+  background: linear-gradient(135deg, #e0e0e0 0%, #c8c8c8 100%);
+  border-color: #888;
+  color: #666;
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .card-button.blocked:hover {
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-button.blocked .card-strength {
+  background: linear-gradient(135deg, #aaa 0%, #888 100%);
+  color: #444;
+  border-color: #666;
+}
+
+.card-button.blocked .card-name {
+  color: #777;
+}
+
+.card-button.blocked .card-effect {
+  color: #777;
+  background: rgba(200, 200, 200, 0.3);
+  border-color: rgba(136, 136, 136, 0.3);
 }
 
 .card-blocked-text {
-  color: #ff6b6b;
+  color: #cc0000;
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  text-align: center;
+  font-weight: bold;
+  padding: 4px 8px;
+  background: rgba(204, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
 /* Countess warning styling */
@@ -990,6 +1147,10 @@
   opacity: 0.6;
 }
 
+.draw-card-button {
+  width: 90%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .royal-actions-area {
@@ -1000,6 +1161,21 @@
     min-width: auto;
     max-width: none;
   }
+
+  .card-selection-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-button {
+    width: 180px;
+    min-height: 300px;
+  }
+
+  .card-image {
+    height: 140px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1008,7 +1184,63 @@
   }
 
   .card-button {
-    padding: 12px;
-    font-size: 0.9rem;
+    width: 160px;
+    min-height: 280px;
   }
+
+  .card-image {
+    height: 120px;
+  }
+
+  .card-strength {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+    top: 10px;
+    left: 10px;
+  }
+}
+
+/* Royal Select Dropdown Styling */
+.royal-select {
+  background: linear-gradient(135deg, #f4f1e8 0%, #e8e0d0 100%);
+  border: 2px solid #8b4513;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  color: #2c1810;
+  cursor: pointer;
+  width: 100%;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.royal-select:hover {
+  border-color: #ffd700;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.royal-select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.royal-select option {
+  background: #f4f1e8;
+  color: #2c1810;
+  padding: 8px;
+}
+
+/* Dropdown section labels */
+.dropdown-section-label {
+  font-family: "Cinzel", serif;
+  font-size: 1.1rem;
+  color: #8b0000;
+  margin: 15px 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: bold;
 }
