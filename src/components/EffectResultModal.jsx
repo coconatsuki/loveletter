@@ -40,10 +40,31 @@ export default function EffectResultModal({
           ...(isHandmaidProtection ? handmaidModalStyle : {}),
         }}
       >
+        {/* Crown decoration */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-30px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: isHandmaidProtection ? "#4caf50" : "#8b0000",
+            border: `3px solid ${isHandmaidProtection ? "#8bc34a" : "#ffd700"}`,
+            borderRadius: "50%",
+            width: "50px",
+            height: "50px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "1.5rem",
+            boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
+            zIndex: 1001,
+          }}
+        >
+          {isHandmaidProtection ? "🛡️" : "📜"}
+        </div>
+
         <h3 style={headerStyle}>
-          {isHandmaidProtection
-            ? "🛡️ Protected by the Handmaid"
-            : "Effect Result"}
+          {isHandmaidProtection ? "Protected by the Handmaid" : "Effect Result"}
         </h3>
 
         <div style={messageStyle}>{formatText(resultText)}</div>
@@ -66,13 +87,13 @@ export default function EffectResultModal({
               e.target.style.background =
                 "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
               e.target.style.transform = "translateY(-2px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.3)";
+              e.target.style.boxShadow = "0 6px 25px rgba(255, 215, 0, 0.5)";
             }}
             onMouseLeave={(e) => {
               e.target.style.background =
                 "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
               e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+              e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
             }}
           >
             {isHandmaidProtection ? "🍃 Very Well" : "Continue"}
@@ -83,86 +104,96 @@ export default function EffectResultModal({
   );
 }
 
-// Enhanced styling
+// Enhanced royal styling
 const modalOverlayStyle = {
   position: "absolute",
   top: 0,
   left: 0,
   width: "100%",
   height: "100%",
-  backgroundColor: "rgba(0, 0, 0, 0.7)",
+  background: "rgba(0, 0, 0, 0.8)",
+  backdropFilter: "blur(8px) brightness(0.6)",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   zIndex: 1000,
+  animation: "effectModalFadeIn 0.3s ease-out",
 };
 
 const modalContentStyle = {
-  background: "linear-gradient(135deg, #f4f1e8 0%, #e8e0d0 100%)",
-  padding: "2rem",
-  borderRadius: "15px",
-  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
-  maxWidth: "450px",
+  background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 50%, #8b0000 100%)",
+  padding: "0",
+  borderRadius: "20px",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
+  maxWidth: "500px",
   width: "90%",
   textAlign: "center",
-  border: "3px solid #8b4513",
+  border: "4px solid #ffd700",
   position: "relative",
   fontFamily: '"Cinzel", serif',
+  animation: "effectModalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
 };
 
 const handmaidModalStyle = {
-  background: "linear-gradient(135deg, #e8f5e8 0%, #d4f0d4 100%)",
-  border: "3px solid #6B4423",
-  boxShadow: "0 12px 40px rgba(107, 68, 35, 0.4)",
+  background: "linear-gradient(135deg, #1a4d1a 0%, #2e7d32 50%, #4caf50 100%)",
+  border: "4px solid #8bc34a",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(139, 195, 74, 0.4), inset 0 1px 0 rgba(139, 195, 74, 0.3)",
 };
 
 const headerStyle = {
-  color: "#8b0000",
-  marginBottom: "1.5rem",
-  fontSize: "1.6rem",
+  background: "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
+  color: "#ffd700",
+  margin: "0",
+  padding: "35px 25px 15px",
+  fontSize: "1.5rem",
   fontWeight: "bold",
   fontFamily: '"Cinzel", serif',
   textTransform: "uppercase",
   letterSpacing: "1px",
-  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.3)",
+  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+  borderBottom: "2px solid #ffd700",
+  borderRadius: "20px 20px 0 0",
+  position: "relative",
 };
 
 const messageStyle = {
-  fontSize: "1.1rem",
+  fontSize: "1.2rem",
+  textAlign: "justify",
   lineHeight: "1.6",
-  color: "#2c1810",
-  marginBottom: "1.5rem",
-  padding: "1.2rem",
-  background: "linear-gradient(135deg, #fefcf8 0%, #f8f5f0 100%)",
-  borderRadius: "10px",
-  border: "2px solid #d4af37",
-  boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.1)",
+  color: "white",
+  margin: "0",
+  padding: "25px",
+  background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
-  fontStyle: "italic",
 };
 
 const cardDetailsStyle = {
-  marginTop: "1rem",
-  padding: "1.2rem",
-  background: "linear-gradient(135deg, #f8f5f0 0%, #f0ead6 100%)",
-  borderRadius: "10px",
+  margin: "0",
+  padding: "20px 25px",
+  background: "linear-gradient(135deg, #f0ead6 0%, #e8dcc0 100%)",
   textAlign: "left",
-  border: "2px solid #d4af37",
+  borderTop: "2px solid #d4af37",
+  borderBottom: "2px solid #d4af37",
   fontFamily: '"Lora", serif',
 };
 
 const detailRowStyle = {
   marginBottom: "0.5rem",
   color: "#2c1810",
+  fontSize: "1rem",
 };
 
 const buttonContainerStyle = {
-  marginTop: "1.5rem",
+  padding: "15px 25px 20px",
+  background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%)",
+  borderRadius: "0 0 20px 20px",
 };
 
 const buttonStyle = {
-  padding: "1rem 2rem",
-  fontSize: "1.1rem",
+  padding: "12px 24px",
+  fontSize: "1.2rem",
   background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
   color: "#8b0000",
   border: "2px solid #8b4513",
@@ -173,5 +204,7 @@ const buttonStyle = {
   textTransform: "uppercase",
   letterSpacing: "0.5px",
   transition: "all 0.3s ease",
-  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+  boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
+  minWidth: "140px",
+  width: "55%",
 };
