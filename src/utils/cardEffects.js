@@ -222,15 +222,9 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   }
   // If strengths are equal, it's a tie - no elimination
 
-  // Eliminate the loser if there is one
-  if (eliminatedPlayer) {
-    await update(ref(db, `rooms/${roomCode}/players/${eliminatedPlayer}`), {
-      isOut: true,
-    });
-
-    // Check for round end after elimination
-    logRoundEndCheck("After Baron Elimination", roomCode);
-  }
+  // NOTE: We do NOT eliminate the player here - that will be done when the modal is confirmed
+  // The Baron effect only compares cards and returns the result
+  // Elimination happens in the modal confirmation flow to maintain proper game state
 
   return {
     requiresPrompt: false,

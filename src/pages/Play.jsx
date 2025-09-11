@@ -173,17 +173,17 @@ export default function Play() {
       }
       /* TODO: re-test & re-activate this ONLY if all the rest works perfectly. 
 
-      // Auto-clear target message modals when it becomes this player's turn
-      // This ensures target modals don't block the player from seeing their turn
-      if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
-        console.log(
-          "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
-        );
-        setTargetMessageModalData(null);
-        // Also clear from Firebase to prevent other players from seeing stale data
-        set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-      }
-      */
+    // Auto-clear target message modals when it becomes this player's turn
+    // This ensures target modals don't block the player from seeing their turn
+    if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
+      console.log(
+        "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
+      );
+      setTargetMessageModalData(null);
+      // Also clear from Firebase to prevent other players from seeing stale data
+      set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+    }
+    */
     });
     return () => unsubscribe();
   }, [roomCode, nickname, resultModalData, targetMessageModalData]);
@@ -1791,7 +1791,7 @@ export default function Play() {
           </div>
 
           {/* GAME ACTIONS SECTION */}
-          {isMyTurn && !resultModalData && (
+          {isMyTurn && !resultModalData && !baronResultModalData && (
             <div className="royal-action-area-background">
               <div className="royal-action-area-overlay">
                 <div className="royal-actions-area">
@@ -1904,67 +1904,6 @@ export default function Play() {
                       />
                     )}
 
-                  {/* === BARON RESULT MODAL === */}
-                  {baronResultModalData && (
-                    <BaronResultModal
-                      isOpen={true}
-                      userRole={
-                        nickname === baronResultModalData.attackerName
-                          ? "attacker"
-                          : "target"
-                      }
-                      attackerName={baronResultModalData.attackerName}
-                      targetName={baronResultModalData.targetName}
-                      attackerCard={baronResultModalData.attackerCard}
-                      targetCard={baronResultModalData.targetCard}
-                      eliminatedPlayer={baronResultModalData.eliminatedPlayer}
-                      isTie={baronResultModalData.isTie}
-                      message={
-                        nickname === baronResultModalData.attackerName
-                          ? baronResultModalData.attackerMessage
-                          : baronResultModalData.targetMessage
-                      }
-                      onConfirm={async () => {
-                        // Only attacker can confirm to proceed with the game
-                        // Clear Baron target data in Firebase
-                        await set(
-                          ref(db, `rooms/${roomCode}/baronTarget`),
-                          null
-                        );
-                        setBaronResultModalData(null);
-
-                        // Complete the Baron turn (discard card, advance turn)
-                        if (selectedCardIndex !== null) {
-                          handleEffectResultClose();
-                        }
-                      }}
-                    />
-                  )}
-
-                  {/* === PRIEST TARGET MODAL === */}
-                  {priestTargetModalData && (
-                    <PriestTargetModal
-                      attacker={priestTargetModalData.attacker}
-                      targetCard={priestTargetModalData.targetCard}
-                    />
-                  )}
-
-                  {/* === BARON TARGET MODAL === */}
-                  {baronTargetModalData && (
-                    <BaronResultModal
-                      isOpen={true}
-                      userRole="target"
-                      attackerName={baronTargetModalData.attacker}
-                      targetName={baronTargetModalData.targetName}
-                      attackerCard={baronTargetModalData.attackerCard}
-                      targetCard={baronTargetModalData.targetCard}
-                      eliminatedPlayer={baronTargetModalData.eliminatedPlayer}
-                      isTie={baronTargetModalData.isTie}
-                      message={baronTargetModalData.targetMessage}
-                      // No onConfirm for target - they just observe
-                    />
-                  )}
-
                   {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
                   {targetMessageModalData && (
                     <EffectResultModal
@@ -2056,6 +1995,87 @@ export default function Play() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* === BARON RESULT MODAL === */}
+          {baronResultModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole={
+                nickname === baronResultModalData.attackerName
+                  ? "attacker"
+                  : "target"
+              }
+              attackerName={baronResultModalData.attackerName}
+              targetName={baronResultModalData.targetName}
+              attackerCard={baronResultModalData.attackerCard}
+              targetCard={baronResultModalData.targetCard}
+              eliminatedPlayer={baronResultModalData.eliminatedPlayer}
+              isTie={baronResultModalData.isTie}
+              message={
+                nickname === baronResultModalData.attackerName
+                  ? baronResultModalData.attackerMessage
+                  : baronResultModalData.targetMessage
+              }
+              onConfirm={async () => {
+                // Only attacker can confirm to proceed with the game
+
+                // If there was an elimination, apply it now
+                if (
+                  baronResultModalData.eliminatedPlayer &&
+                  !baronResultModalData.isTie
+                ) {
+                  await update(
+                    ref(
+                      db,
+                      `rooms/${roomCode}/players/${baronResultModalData.eliminatedPlayer}`
+                    ),
+                    {
+                      isOut: true,
+                    }
+                  );
+
+                  // Notify about the elimination
+                  pushNotification(
+                    roomCode,
+                    `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
+                  );
+                }
+
+                // Clear Baron target data in Firebase
+                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+                setBaronResultModalData(null);
+
+                // Complete the Baron turn (discard card, advance turn)
+                if (selectedCardIndex !== null) {
+                  handleEffectResultClose();
+                }
+              }}
+            />
+          )}
+
+          {/* === PRIEST TARGET MODAL === */}
+          {priestTargetModalData && (
+            <PriestTargetModal
+              attacker={priestTargetModalData.attacker}
+              targetCard={priestTargetModalData.targetCard}
+            />
+          )}
+
+          {/* === BARON TARGET MODAL === */}
+          {baronTargetModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole="target"
+              attackerName={baronTargetModalData.attacker}
+              targetName={baronTargetModalData.targetName}
+              attackerCard={baronTargetModalData.attackerCard}
+              targetCard={baronTargetModalData.targetCard}
+              eliminatedPlayer={baronTargetModalData.eliminatedPlayer}
+              isTie={baronTargetModalData.isTie}
+              message={baronTargetModalData.targetMessage}
+              // No onConfirm for target - they just observe
+            />
           )}
 
           {/* === ASSASSIN PROMPT MODAL === */}
@@ -2260,13 +2280,13 @@ export default function Play() {
                       handleEffectResultClose();
                     }
                     /*} else {
-                      console.log(
-                        "⚔️ RESULT MODAL DEBUG: Card ID",
-                        cardId,
-                        "result modal should not advance turn"
-                      );
-                    }
-                    */
+                    console.log(
+                      "⚔️ RESULT MODAL DEBUG: Card ID",
+                      cardId,
+                      "result modal should not advance turn"
+                    );
+                  }
+                  */
                   }
                 } else {
                   console.log(
