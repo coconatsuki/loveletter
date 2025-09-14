@@ -178,7 +178,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     target,
     targetCard: enrichedTargetCard,
     // Fun medieval notification messages 🏰
-    attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret! They hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
+    attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret!\n\nThey hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
     targetMessage: `🙈⚡ A holy priest peers into your soul! Your ${
       enrichedTargetCard.name
     } has been revealed to ${data.players[attacker]?.name || attacker}!`,
@@ -454,7 +454,7 @@ export async function applyHandmaidEffect({ roomCode, player }) {
       data.players[player]?.name || player
     } calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. They are now protected until their next turn! ☕🛡️`,
     // Personal message for the protected player's modal
-    playerMessage: `🫖✨ THE PRINCESS' HANDMAID ✨🫖\n\nThe Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`,
+    playerMessage: `The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`,
   };
 }
 

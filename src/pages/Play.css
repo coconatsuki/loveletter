@@ -150,7 +150,7 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
   min-height: 120px;
   max-width: 250px;
   max-height: 150px;
@@ -190,9 +190,9 @@
 .royal-player-section.is-protected::after {
   content: "🛡️";
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  font-size: 1.2rem;
+  top: -15px;
+  left: -15px;
+  font-size: 1.5rem;
   filter: drop-shadow(0 0 5px rgba(64, 224, 208, 0.8));
 }
 
