@@ -472,7 +472,7 @@ const priestCardEffectStyle = {
 };
 
 const priestMessageContainerStyle = {
-  width: "40%",
+  width: "55%",
   height: "100%",
   display: "flex",
   flexDirection: "column",
