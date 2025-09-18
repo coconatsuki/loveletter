@@ -1716,15 +1716,6 @@ export default function Play() {
             )}
           </div>
 
-          {players[nickname]?.isOut && (
-            <div className="elimination-message">
-              <strong>💀 You’ve been eliminated!</strong>
-              <br />
-              You can no longer play this round, but may still witness the drama
-              as it unfolds...
-            </div>
-          )}
-
           {/* PLAYERS GRID */}
           <div className="players-game-grid">
             {Object.entries(players).map(([name, p]) => {
@@ -1800,6 +1791,22 @@ export default function Play() {
                 </div>
               );
             })}
+
+            {/* ELIMINATION MESSAGE - Shown inside the grid for better UX */}
+            {players[nickname]?.isOut && (
+              <div className="royal-elimination-banner">
+                <div className="elimination-icon">💀</div>
+                <div className="elimination-content">
+                  <div className="elimination-title">
+                    <strong>You've been eliminated!</strong>
+                  </div>
+                  <div className="elimination-subtitle">
+                    You can no longer play this round, but may still witness the
+                    royal drama as it unfolds...
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* GAME ACTIONS SECTION */}
