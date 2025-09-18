@@ -143,6 +143,47 @@ export default function Play() {
         setPlayer(data.players[nickname]);
       }
 
+      // CRITICAL FIX: If current player is eliminated, immediately advance turn
+      if (data?.round?.currentPlayer && data?.players) {
+        const currentPlayerData = data.players[data.round.currentPlayer];
+        if (currentPlayerData?.isOut) {
+          console.log(
+            "🚨 CRITICAL BUG FIX: Current player is eliminated, advancing turn immediately",
+            {
+              currentPlayer: data.round.currentPlayer,
+              isOut: currentPlayerData.isOut,
+            }
+          );
+
+          // Find next non-eliminated player
+          const allPlayers = Object.keys(data.players);
+          const activePlayers = allPlayers.filter(
+            (p) => !data.players[p].isOut
+          );
+
+          if (activePlayers.length > 1) {
+            const currentIndex = activePlayers.indexOf(
+              data.round.currentPlayer
+            );
+            const nextIndex = (currentIndex + 1) % activePlayers.length;
+            const nextPlayer = activePlayers[nextIndex];
+
+            console.log("🚨 ADVANCING TURN FROM ELIMINATED PLAYER:", {
+              eliminatedPlayer: data.round.currentPlayer,
+              nextPlayer: nextPlayer,
+              activePlayers: activePlayers,
+            });
+
+            // Update Firebase immediately
+            update(ref(db, `rooms/${roomCode}`), {
+              [`round/currentPlayer`]: nextPlayer,
+            });
+
+            return; // Exit early to prevent further processing
+          }
+        }
+      }
+
       // Check if round ended and show round end modal
       if (data?.gameState === "roundScoring" && data?.roundResult) {
         console.log(
