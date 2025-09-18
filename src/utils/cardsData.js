@@ -29,7 +29,7 @@ export const cards = [
     strength: 3,
     countNormal: 2,
     countPremium: 2,
-    effect: "Compare hands. Lower card is eliminated.",
+    effect: "Compare hands. Player with the lower card is eliminated.",
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ export const cards = [
     strength: 5,
     countNormal: 2,
     countPremium: 2,
-    effect: "Target discards hand and draws a new one.",
+    effect: "Target (or yourself) discards hand and draws a card.",
   },
   {
     id: 6,
@@ -53,7 +53,7 @@ export const cards = [
     strength: 6,
     countNormal: 1,
     countPremium: 1,
-    effect: "Trade hands with another player.",
+    effect: "You may trade hands with another player.",
   },
   {
     id: 7,
@@ -61,7 +61,7 @@ export const cards = [
     strength: 7,
     countNormal: 1,
     countPremium: 1,
-    effect: "Must be played if with Prince or Phantom King.",
+    effect: "Must be played if you also have a Prince or the Phantom King.",
   },
   {
     id: 8,
@@ -69,7 +69,7 @@ export const cards = [
     strength: 8,
     countNormal: 1,
     countPremium: 1,
-    effect: "If discarded, you are eliminated.",
+    effect: "If discarded (by you, or by force), you are eliminated.",
   },
   {
     id: 9,

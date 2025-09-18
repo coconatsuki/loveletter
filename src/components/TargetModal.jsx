@@ -40,9 +40,7 @@ export default function TargetModal({
     <div className="modal" style={cardOptionsContainerStyle}>
       <div className="modal-content" style={cardOptionsContentStyle}>
         {hasNoTargets && !isPrince && (
-          <p
-            style={{ color: "#888", fontStyle: "italic", marginBottom: "10px" }}
-          >
+          <p style={noTargetMessageStyle}>
             🫖 All other players are enjoying tea with the Princess' Handmaid
             and cannot be targeted.
           </p>
@@ -57,18 +55,6 @@ export default function TargetModal({
           >
             👑 All other players are protected, but as royalty, you may always
             command yourself!
-          </p>
-        )}
-        {isPhantomKing && (
-          <p
-            style={{
-              color: "#8A2BE2",
-              fontStyle: "italic",
-              marginBottom: "10px",
-            }}
-          >
-            👻 The Phantom King may choose to trade hands with someone... or
-            remain in the shadows.
           </p>
         )}
         <div className="dropdown-section-container">
@@ -158,6 +144,16 @@ export default function TargetModal({
 
 const dropdownSectionStyle = {
   color: "#ffd700",
+};
+
+const noTargetMessageStyle = {
+  color: "rgb(136, 136, 136)",
+  fontStyle: "italic",
+  marginBottom: "2%",
+  marginTop: 0,
+  fontFamily: "Lora, serif",
+  fontSize: "1.2rem",
+  lineHeight: "1.5rem",
 };
 
 const cardOptionsContainerStyle = {

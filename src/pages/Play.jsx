@@ -57,7 +57,7 @@ const getCardImage = (cardName) => {
     Baron: "baron1.jpeg",
     Handmaid: "handmaid1.jpeg",
     Prince: "prince1.jpeg",
-    "Phantom King": "countess1.jpeg", // No specific image yet
+    "Phantom King": "phantom-king1.jpeg",
     Countess: "countess1.jpeg",
     Princess: "princess-portrait1.jpeg",
     // Premium cards that don't have images yet
@@ -2014,14 +2014,6 @@ export default function Play() {
                                               </strong>
                                               .
                                               <br />
-                                              <em>
-                                                The shadows whisper as they
-                                                contemplate their response...
-                                              </em>
-                                            </div>
-                                            <div className="assassin-waiting-subtitle">
-                                              ⚔️ Steel yourself for their
-                                              decision, noble accuser.
                                             </div>
                                           </div>
                                         </div>

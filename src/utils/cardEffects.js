@@ -585,14 +585,12 @@ You chose not to trade hands with anyone.
     // Create atmospheric result messages
     const attackerResultText = `🎭 PHANTOM KING'S MYSTICAL EXCHANGE! 👑
 
-Your royal decree has bound fates together!
-
-**You surrendered:**
-${attackerCard.name} (Strength: ${attackerCard.strength})
+**You surrendered: ** ${attackerCard.name} (Strength: ${attackerCard.strength})
 *"${attackerCard.effect || "A card of mysterious power"}"*
 
-**You received in return:**
-${targetCard.name} (Strength: ${targetCard.strength})  
+**You received in return: ** ${targetCard.name} (Strength: ${
+      targetCard.strength
+    })  
 *"${targetCard.effect || "A card of mysterious power"}"*
 
 "Through shadow and mist, the cards have found new masters..."
