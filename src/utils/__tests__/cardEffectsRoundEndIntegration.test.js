@@ -77,7 +77,7 @@ describe("Card Effects - Round End Integration", () => {
   });
 
   describe("Baron Card - Round End Detection", () => {
-    it("should call logRoundEndCheck when Baron eliminates opponent", async () => {
+    it("should NOT call logRoundEndCheck (elimination happens in modal flow)", async () => {
       const roomData = {
         players: {
           attacker: { hand: [{ id: 3, strength: 3 }], isOut: false },
@@ -91,7 +91,7 @@ describe("Card Effects - Round End Integration", () => {
       };
 
       mockGet.mockResolvedValue({ val: () => roomData });
-      mockUpdate.mockResolvedValue();
+      // Baron effect no longer calls update directly
 
       await applyBaronEffect({
         roomCode: "TEST123",
@@ -99,10 +99,11 @@ describe("Card Effects - Round End Integration", () => {
         target: "target",
       });
 
-      expect(logRoundEndCheck).toHaveBeenCalledWith(
-        "After Baron Elimination",
-        "TEST123"
-      );
+      // Baron effect does NOT call logRoundEndCheck because elimination
+      // happens later in the modal confirmation flow, not immediately
+      expect(logRoundEndCheck).not.toHaveBeenCalled();
+      // Also verify no direct Firebase update for elimination
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 
