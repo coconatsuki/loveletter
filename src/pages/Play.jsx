@@ -49,6 +49,31 @@ const cardNames = {
   16: "Duke",
 };
 
+// Helper function to get the correct card image
+const getCardImage = (cardName) => {
+  const imageMap = {
+    Guard: "guard1.jpeg",
+    Priest: "priest1.jpeg",
+    Baron: "baron1.jpeg",
+    Handmaid: "handmaid1.jpeg",
+    Prince: "prince1.jpeg",
+    "Phantom King": "phantom-king1.jpeg",
+    Countess: "countess1.jpeg",
+    Princess: "princess-portrait1.jpeg",
+    // Premium cards that don't have images yet
+    Jester: "countess1.jpeg",
+    Inquisitor: "countess1.jpeg",
+    Chamberlain: "countess1.jpeg",
+    "Regent Queen": "countess1.jpeg",
+    "Court Whisperer": "countess1.jpeg",
+    "Royal Confessor": "countess1.jpeg",
+    Assassin: "countess1.jpeg",
+    Duke: "countess1.jpeg",
+  };
+
+  return imageMap[cardName] || "countess1.jpeg";
+};
+
 export default function Play() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
@@ -59,6 +84,7 @@ export default function Play() {
   const [player, setPlayer] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  const [selectedCardForUI, setSelectedCardForUI] = useState(null); // For UI positioning only
   const [showTargetModal, setShowTargetModal] = useState(false);
   const [resultModalData, setResultModalData] = useState(null);
   const [guardTargetPromptData, setGuardTargetPromptData] = useState(null);
@@ -117,6 +143,47 @@ export default function Play() {
         setPlayer(data.players[nickname]);
       }
 
+      // CRITICAL FIX: If current player is eliminated, immediately advance turn
+      if (data?.round?.currentPlayer && data?.players) {
+        const currentPlayerData = data.players[data.round.currentPlayer];
+        if (currentPlayerData?.isOut) {
+          console.log(
+            "🚨 CRITICAL BUG FIX: Current player is eliminated, advancing turn immediately",
+            {
+              currentPlayer: data.round.currentPlayer,
+              isOut: currentPlayerData.isOut,
+            }
+          );
+
+          // Find next non-eliminated player
+          const allPlayers = Object.keys(data.players);
+          const activePlayers = allPlayers.filter(
+            (p) => !data.players[p].isOut
+          );
+
+          if (activePlayers.length > 1) {
+            const currentIndex = activePlayers.indexOf(
+              data.round.currentPlayer
+            );
+            const nextIndex = (currentIndex + 1) % activePlayers.length;
+            const nextPlayer = activePlayers[nextIndex];
+
+            console.log("🚨 ADVANCING TURN FROM ELIMINATED PLAYER:", {
+              eliminatedPlayer: data.round.currentPlayer,
+              nextPlayer: nextPlayer,
+              activePlayers: activePlayers,
+            });
+
+            // Update Firebase immediately
+            update(ref(db, `rooms/${roomCode}`), {
+              [`round/currentPlayer`]: nextPlayer,
+            });
+
+            return; // Exit early to prevent further processing
+          }
+        }
+      }
+
       // Check if round ended and show round end modal
       if (data?.gameState === "roundScoring" && data?.roundResult) {
         console.log(
@@ -148,17 +215,17 @@ export default function Play() {
       }
       /* TODO: re-test & re-activate this ONLY if all the rest works perfectly. 
 
-      // Auto-clear target message modals when it becomes this player's turn
-      // This ensures target modals don't block the player from seeing their turn
-      if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
-        console.log(
-          "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
-        );
-        setTargetMessageModalData(null);
-        // Also clear from Firebase to prevent other players from seeing stale data
-        set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-      }
-      */
+    // Auto-clear target message modals when it becomes this player's turn
+    // This ensures target modals don't block the player from seeing their turn
+    if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
+      console.log(
+        "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
+      );
+      setTargetMessageModalData(null);
+      // Also clear from Firebase to prevent other players from seeing stale data
+      set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+    }
+    */
     });
     return () => unsubscribe();
   }, [roomCode, nickname, resultModalData, targetMessageModalData]);
@@ -358,6 +425,9 @@ export default function Play() {
         [`players/${nickname}/hand`]: newHand,
       });
     }
+
+    // Keep ActionModal open for card selection after drawing
+    // The modal will stay open until the player plays a card
   };
 
   // 🎭 Countess Force-Play Detection
@@ -391,7 +461,14 @@ export default function Play() {
     return { forced: false };
   };
 
-  const playCard = (index) => {
+  const handleCardBack = () => {
+    // Reset UI selection states when going back
+    setSelectedCardForUI(null);
+    setSelectedCardIndex(null);
+    setShowTargetModal(false);
+  };
+
+  const playCard = (index, actionData = null) => {
     // Prevent playing card if round has ended
     if (roomData?.gameState === "roundScoring") {
       console.log("🛑 PLAY CARD blocked - Round has ended");
@@ -399,6 +476,23 @@ export default function Play() {
     }
 
     const card = player.hand[index];
+
+    // First, always set the UI state to show which card was selected
+    setSelectedCardForUI(index);
+
+    // If actionData is provided, it means ActionModal already handled target selection
+    if (actionData) {
+      // Handle the action based on card type with target/guess data
+      if ([1, 2, 3, 6].includes(card.id)) {
+        // Cards that need target selection (Guard, Priest, Baron, Phantom King)
+        // Pass the card index directly to avoid state timing issues
+        handleTargetConfirmWithIndex(index, actionData);
+        return;
+      }
+    }
+
+    // Original logic for cards that don't need ActionModal target selection
+    // or when called from old system
     if ([1, 2, 3, 6].includes(card.id)) {
       // Cards that need target selection (Guard, Priest, Baron, Phantom King)
       setSelectedCardIndex(index);
@@ -850,6 +944,116 @@ export default function Play() {
     );
   };
 
+  // NEW: Handle target confirmation with direct card index (for ActionModal)
+  const handleTargetConfirmWithIndex = async (cardIndex, { target, guess }) => {
+    const cardPlayed = player.hand[cardIndex];
+    console.log(
+      "🎯 TARGET CONFIRM WITH INDEX: Setting isPlaying = true for card:",
+      cardPlayed?.name || cardPlayed?.id
+    );
+    setIsPlaying(true);
+
+    // Validation check: Ensure cardPlayed exists
+    if (!cardPlayed) {
+      console.error("❌ ERROR: cardPlayed is undefined. cardIndex:", cardIndex);
+      setIsPlaying(false);
+      return;
+    }
+
+    // === SKIP TURN CASE (All players protected by Handmaid) ===
+    if (target === "SKIP_TURN") {
+      setResultModalData({
+        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
+          cardNames[cardPlayed.id]
+        } cannot find a target, so your turn is skipped. The card takes no effect! ☕🛡️`,
+      });
+      return;
+    }
+
+    // === GUARD CARD LOGIC (ID: 1) ===
+    if (cardPlayed.id === 1) {
+      // Apply the Guard effect to determine the outcome
+      const result = await applyGuardEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        guess,
+      });
+
+      // Notify all players about the Guard action
+      pushNotification(
+        roomCode,
+        `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
+      );
+
+      // ALWAYS show AssassinPromptModal to target (good UX for both modes)
+      // In premium mode: target can choose to use Assassin or not
+      // In normal mode: target just acknowledges the attack
+      const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
+      await update(promptRef, {
+        ...result,
+        timestamp: Date.now(),
+        // Store card play info so we can complete the turn later
+        cardPlayInfo: {
+          playedCardIndex: cardIndex, // Use cardIndex instead of selectedCardIndex
+          playerNickname: nickname,
+        },
+      });
+      // Exit early - AssassinPromptModal will handle the rest for both modes
+      return;
+    }
+
+    // === PRIEST CARD LOGIC (ID: 2) ===
+    else if (cardPlayed.id === 2) {
+      const result = await applyPriestEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === BARON CARD LOGIC (ID: 3) ===
+    else if (cardPlayed.id === 3) {
+      const result = await applyBaronEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === PHANTOM KING CARD LOGIC (ID: 6) ===
+    else if (cardPlayed.id === 6) {
+      const result = await applyPhantomKingEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+        cardPlayed: 6, // Special flag for Phantom King
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // Fallback for unknown cards
+    setIsPlaying(false);
+    console.error(
+      "❌ Unknown card ID in handleTargetConfirmWithIndex:",
+      cardPlayed?.id
+    );
+  };
+
   /**
    * Completes the current player's turn for non-Guard effects
    * This handles discarding the played card and advancing to the next player
@@ -866,6 +1070,20 @@ export default function Play() {
     if (resultModalData?.isCountessRoyalty) {
       console.log("🎭 COUNTESS: Using special turn completion");
       await completeCountessTurn();
+      return;
+    }
+
+    // Special handling for Handmaid - protection effect is already applied
+    if (resultModalData?.isHandmaidProtection) {
+      console.log("🛡️ HANDMAID: Using special turn completion");
+      await completeHandmaidTurn();
+      return;
+    }
+
+    // Special handling for Princess - elimination effect is already applied
+    if (resultModalData?.isPrincessElimination) {
+      console.log("👑 PRINCESS: Using special turn completion");
+      await completePrincessTurn();
       return;
     }
 
@@ -1002,6 +1220,7 @@ export default function Play() {
     );
     setIsPlaying(false);
     setSelectedCardIndex(null);
+    setSelectedCardForUI(null);
   };
 
   /**
@@ -1348,238 +1567,687 @@ export default function Play() {
     setSelectedCardIndex(null);
   };
 
+  /**
+   * Completes the Handmaid turn - protection effect has already been applied
+   * Just need to discard the card and advance the turn
+   */
+  const completeHandmaidTurn = async () => {
+    console.log(
+      "🛡️ HANDMAID TURN COMPLETION: Protection granted, completing turn"
+    );
+
+    // Validate selectedCardIndex and get the Handmaid card
+    if (
+      selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      !player.hand ||
+      selectedCardIndex >= player.hand.length
+    ) {
+      console.error(
+        "🛡️ HANDMAID ERROR: Cannot complete turn - invalid selectedCardIndex:",
+        { selectedCardIndex, handLength: player.hand?.length }
+      );
+      return;
+    }
+
+    const handmaidCard = player.hand[selectedCardIndex];
+
+    if (!handmaidCard || handmaidCard.id !== 4) {
+      console.error(
+        "🛡️ HANDMAID ERROR: Cannot complete turn - invalid Handmaid card:",
+        handmaidCard
+      );
+      return;
+    }
+
+    // Remove Handmaid from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), handmaidCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
+    // Update game state: discard Handmaid, advance turn, clear protection
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🕰️ The protective charm is cast. The crown now passes to ${nextPlayer}. 🛡️`
+    );
+
+    // Reset local state
+    console.log("🔄 HANDMAID TURN COMPLETION: Setting isPlaying = false");
+    setIsPlaying(false);
+    setSelectedCardIndex(null);
+  };
+
+  /**
+   * Completes the Princess turn - elimination effect has already been applied
+   * Just need to discard the card and advance the turn
+   */
+  const completePrincessTurn = async () => {
+    console.log("👑 PRINCESS TURN COMPLETION: The royal tragedy concludes");
+
+    // Validate selectedCardIndex and get the Princess card
+    if (
+      selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      !player.hand ||
+      selectedCardIndex >= player.hand.length
+    ) {
+      console.error(
+        "👑 PRINCESS ERROR: Cannot complete turn - invalid selectedCardIndex:",
+        { selectedCardIndex, handLength: player.hand?.length }
+      );
+      return;
+    }
+
+    const princessCard = player.hand[selectedCardIndex];
+
+    if (!princessCard || princessCard.id !== 8) {
+      console.error(
+        "👑 PRINCESS ERROR: Cannot complete turn - invalid Princess card:",
+        princessCard
+      );
+      return;
+    }
+
+    // Remove Princess from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), princessCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
+    // Update game state: discard Princess, advance turn, clear protection
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`round/currentPlayer`]: nextPlayer,
+      protectedPlayers: updatedProtected,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🕰️ The royal bloodline mourns. The crown now passes to ${nextPlayer}. 💀`
+    );
+
+    // Reset local state
+    console.log("🔄 PRINCESS TURN COMPLETION: Setting isPlaying = false");
+    setIsPlaying(false);
+    setSelectedCardIndex(null);
+  };
+
+  /**
+   * Handle clicking on a player section to view their discard pile
+   */
+  const handlePlayerSectionClick = (playerName, playerData) => {
+    console.log("🎯 Player section clicked:", playerName, playerData);
+    // TODO: Open player discard modal
+    // For now, just log the click
+  };
+
   if (!roomData || !player || !round || !players) {
     return <div className="play-loading">⏳ Loading game state...</div>;
   } else {
     const roundNumber = roomData?.gameStats?.roundNumber || 1;
     return (
-      <div className="play-container">
-        {/* ROUND COUNTER - Top Right */}
-        <div className="round-counter-container">
-          <div className="round-counter">
-            <span role="img" aria-label="Round">
-              🔢
-            </span>
-            <span>
-              Round <span className="round-counter-number">{roundNumber}</span>
-            </span>
-          </div>
-        </div>
-        {/* MAIN GAME BOARD */}
-        <div>
-          <h2 className="game-header">Current Player: {currentPlayer}</h2>
-          <div className="hand-display">
-            <h3>Your Hand:</h3>
-            <ul className="hand-list">
-              {player?.hand?.map((card, idx) => (
-                <li key={idx} className="hand-card-item">
-                  <strong>{card.name}</strong> (Strength {card.strength})<br />
-                  <em>{card.effect}</em>
-                </li>
-              ))}
-            </ul>
+      <div className="royal-play-container">
+        {/* MAIN GAME AREA */}
+        <div className="royal-game-area">
+          {/* CURRENT PLAYER BANNER */}
+          <div
+            className={`current-player-banner ${
+              currentPlayer === nickname ? "is-my-turn" : ""
+            }`}
+          >
+            {currentPlayer === nickname ? (
+              <span>👑 YOUR ROYAL TURN 👑</span>
+            ) : (
+              <span>
+                🎭 AWAITING {currentPlayer?.toUpperCase()}'S ROYAL DECREE 🎭
+              </span>
+            )}
           </div>
 
-          {players[nickname]?.isOut && (
-            <div className="elimination-message">
-              <strong>💀 You’ve been eliminated!</strong>
-              <br />
-              You can no longer play this round, but may still witness the drama
-              as it unfolds...
-            </div>
-          )}
+          {/* PLAYERS GRID */}
+          <div className="players-game-grid">
+            {Object.entries(players).map(([name, p]) => {
+              const isProtected = roomData?.protectedPlayers?.includes(name);
+              const isCurrentPlayer = name === currentPlayer;
+              const isEliminated = p.isOut;
+              const isYou = name === nickname;
 
-          <div className="players-section">
-            <h3>Players:</h3>
-            <ul className="players-list">
-              {Object.entries(players).map(([name, p]) => {
-                const isProtected = roomData?.protectedPlayers?.includes(name);
-                const playerClasses = `player-item ${
-                  isProtected ? "protected" : ""
-                }`;
+              return (
+                <div
+                  key={name}
+                  className={`royal-player-section ${
+                    isCurrentPlayer ? "is-current-player" : ""
+                  } ${isEliminated ? "is-eliminated" : ""} ${
+                    isProtected ? "is-protected" : ""
+                  }`}
+                  onClick={() => handlePlayerSectionClick(name, p)}
+                >
+                  {/* Player Header */}
+                  <div className="player-header">
+                    <div className={`player-name ${isYou ? "is-you" : ""}`}>
+                      {isCurrentPlayer && "👑 "}
+                      {p.name}
+                      {p.realName && (
+                        <div className="player-real-name">
+                          ({isYou ? "You" : p.realName})
+                        </div>
+                      )}
+                      {isEliminated && " 💀"}
+                    </div>
+                    <div className="player-tokens">❤️ {p.tokens || 0}</div>
+                  </div>
 
-                return (
-                  <li key={name} className={playerClasses}>
-                    <strong>{p.name}</strong> ({p.realName})<br />
-                    Tokens: {p.tokens} | Discard:{" "}
-                    {(p.discard || []).map((card) => card.name).join(", ") ||
-                      "—"}
-                    {name === currentPlayer && " 👑 (current turn)"}
-                    {name === nickname && " ← you"}
-                    {isProtected && " 🫖✨ (protected by Handmaid)"}
-                  </li>
-                );
-              })}
-            </ul>
+                  {/* Player Info Grid - Simplified */}
+                  <div className="player-info-grid">
+                    {/* Show last discarded card if any */}
+                    {p.discard && p.discard.length > 0 && (
+                      <div className="player-stat">
+                        <span className="player-stat-label">Last Played</span>
+                        <span className="player-stat-value">
+                          {p.discard[p.discard.length - 1].name} (Strength{" "}
+                          {p.discard[p.discard.length - 1].strength})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Special Status Indicators */}
+                  {isProtected && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        marginTop: "0.5rem",
+                        color: "#90EE90",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      🫖✨ Protected by Handmaid
+                    </div>
+                  )}
+                  {isEliminated && (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        marginTop: "0.5rem",
+                        color: "#888",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      Eliminated this round
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* ELIMINATION MESSAGE - Shown inside the grid for better UX */}
+            {players[nickname]?.isOut && (
+              <div className="royal-elimination-banner">
+                <div className="elimination-icon">💀</div>
+                <div className="elimination-content">
+                  <div className="elimination-title">
+                    <strong>You've been eliminated!</strong>
+                  </div>
+                  <div className="elimination-subtitle">
+                    You can no longer play this round, but may still witness the
+                    royal drama as it unfolds...
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {isMyTurn && (
-            <div className="turn-section">
-              <h3>It’s your turn!</h3>
-              {player.hand?.length === 1 && (
-                <button onClick={drawCard}>Draw Card</button>
-              )}
-              {player.hand?.length === 2 && (
-                <div>
-                  {(() => {
-                    const countessForce = getCountessForcePlay(player.hand);
-                    console.log("🎭 COUNTESS DEBUG: Force play check result:", {
-                      hand: player.hand,
-                      countessForce,
-                      handLength: player.hand?.length,
-                    });
+          {/* GAME ACTIONS SECTION */}
+          {isMyTurn &&
+            !resultModalData &&
+            !baronResultModalData &&
+            (!isPlaying ||
+              (roomData?.guardPrompt &&
+                roomData.guardPrompt.attacker === nickname)) && (
+              <div className="royal-action-area-background">
+                <div className="royal-action-area-overlay">
+                  <div className="royal-actions-area">
+                    {isMyTurn && (
+                      <div className="turn-section">
+                        {player.hand?.length === 1 && <h3>It’s your turn!</h3>}
+                        {player.hand?.length === 1 && (
+                          <button
+                            className="draw-card-button"
+                            onClick={drawCard}
+                          >
+                            Draw Card
+                          </button>
+                        )}
+                        {player.hand?.length === 2 && (
+                          <div>
+                            {(() => {
+                              const countessForce = getCountessForcePlay(
+                                player.hand
+                              );
+                              console.log(
+                                "🎭 COUNTESS DEBUG: Force play check result:",
+                                {
+                                  hand: player.hand,
+                                  countessForce,
+                                  handLength: player.hand?.length,
+                                }
+                              );
 
-                    return (
-                      <>
-                        <p>Choose a card to play:</p>
-                        {countessForce.forced && (
-                          <div className="countess-warning">
-                            <strong>🎭 Royal Protocol Alert:</strong>
-                            <br />
-                            {countessForce.reason}
+                              return (
+                                <>
+                                  <p>Choose a card to play:</p>
+                                  {countessForce.forced && (
+                                    <div className="countess-warning">
+                                      <strong>🎭 Royal Protocol Alert:</strong>
+                                      <br />
+                                      {countessForce.reason}
+                                    </div>
+                                  )}
+
+                                  <div
+                                    className={`card-selection-container ${
+                                      selectedCardForUI !== null
+                                        ? "card-selected"
+                                        : ""
+                                    }`}
+                                  >
+                                    {/* Show selected card on left when a card is selected */}
+                                    {selectedCardForUI !== null ? (
+                                      <div className="selected-card-display">
+                                        {(() => {
+                                          const card =
+                                            player.hand[selectedCardForUI];
+                                          const isBlocked =
+                                            countessForce.forced &&
+                                            ((card.id === 5 &&
+                                              countessForce.blockedCard ===
+                                                "Prince") ||
+                                              (card.id === 6 &&
+                                                countessForce.blockedCard ===
+                                                  "Phantom King"));
+
+                                          return (
+                                            <button
+                                              className={`card-button ${
+                                                isBlocked ? "blocked" : ""
+                                              } selected`}
+                                              disabled={true}
+                                            >
+                                              <div className="card-strength">
+                                                {card.strength}
+                                              </div>
+                                              <div
+                                                className="card-image"
+                                                style={{
+                                                  backgroundImage: `url('/src/img/${getCardImage(
+                                                    card.name
+                                                  )}')`,
+                                                }}
+                                              ></div>
+
+                                              <div className="card-content">
+                                                <div className="card-name">
+                                                  {card.name}
+                                                </div>
+                                                <div className="card-effect">
+                                                  {card.effect}
+                                                </div>
+                                                {isBlocked && (
+                                                  <div className="card-blocked-text">
+                                                    🎭 Blocked by Countess
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </button>
+                                          );
+                                        })()}
+                                      </div>
+                                    ) : (
+                                      /* Show all cards when no card is selected */
+                                      player.hand.map((card, index) => {
+                                        const isBlocked =
+                                          countessForce.forced &&
+                                          ((card.id === 5 &&
+                                            countessForce.blockedCard ===
+                                              "Prince") ||
+                                            (card.id === 6 &&
+                                              countessForce.blockedCard ===
+                                                "Phantom King"));
+
+                                        return (
+                                          <button
+                                            key={index}
+                                            onClick={() => playCard(index)}
+                                            className={`card-button ${
+                                              isBlocked ? "blocked" : ""
+                                            }`}
+                                            disabled={isPlaying || isBlocked}
+                                            title={
+                                              isBlocked
+                                                ? `Cannot play ${card.name} - Countess demands precedence!`
+                                                : ""
+                                            }
+                                          >
+                                            <div className="card-strength">
+                                              {card.strength}
+                                            </div>
+                                            <div
+                                              className="card-image"
+                                              style={{
+                                                backgroundImage: `url('/src/img/${getCardImage(
+                                                  card.name
+                                                )}')`,
+                                              }}
+                                            ></div>
+
+                                            <div className="card-content">
+                                              <div className="card-name">
+                                                {card.name}
+                                              </div>
+                                              <div className="card-effect">
+                                                {card.effect}
+                                              </div>
+                                              {isBlocked && (
+                                                <div className="card-blocked-text">
+                                                  🎭 Blocked by Countess
+                                                </div>
+                                              )}
+                                            </div>
+                                          </button>
+                                        );
+                                      })
+                                    )}
+
+                                    {/* Show TargetModal on the right when a card is selected and modal should be shown */}
+                                    {selectedCardForUI !== null &&
+                                      showTargetModal &&
+                                      selectedCardIndex !== null &&
+                                      player.hand?.[selectedCardIndex] && (
+                                        <div className="target-modal-display">
+                                          <TargetModal
+                                            players={players}
+                                            currentPlayer={nickname}
+                                            cardPlayed={
+                                              player.hand[selectedCardIndex].id
+                                            }
+                                            protectedPlayers={
+                                              roomData?.protectedPlayers || []
+                                            }
+                                            onConfirm={handleTargetConfirm}
+                                            onCancel={handleCardBack}
+                                          />
+                                        </div>
+                                      )}
+
+                                    {/* Show waiting message when AssassinPromptModal is active and current player is the attacker */}
+                                    {selectedCardForUI !== null &&
+                                      roomData?.guardPrompt &&
+                                      roomData.guardPrompt.attacker ===
+                                        nickname &&
+                                      player.hand?.[selectedCardForUI]?.id ===
+                                        1 && (
+                                        <div className="assassin-waiting-display">
+                                          <div className="assassin-waiting-content">
+                                            <div className="assassin-waiting-icon">
+                                              ⏳
+                                            </div>
+                                            <div className="assassin-waiting-title">
+                                              Awaiting Fate's Response...
+                                            </div>
+                                            <div className="assassin-waiting-message">
+                                              🗡️ Your accusation has been
+                                              delivered to{" "}
+                                              <strong>
+                                                {roomData.guardPrompt.target}
+                                              </strong>
+                                              .
+                                              <br />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                  </div>
+                                </>
+                              );
+                            })()}
                           </div>
                         )}
+                      </div>
+                    )}
 
-                        {player.hand.map((card, index) => {
-                          const isBlocked =
-                            countessForce.forced &&
-                            ((card.id === 5 &&
-                              countessForce.blockedCard === "Prince") ||
-                              (card.id === 6 &&
-                                countessForce.blockedCard === "Phantom King"));
-
-                          return (
-                            <button
-                              key={index}
-                              onClick={() => playCard(index)}
-                              className={`card-button ${
-                                isBlocked ? "blocked" : ""
-                              }`}
-                              disabled={isPlaying || isBlocked}
-                              title={
-                                isBlocked
-                                  ? `Cannot play ${card.name} - Countess demands precedence!`
-                                  : ""
-                              }
-                            >
-                              <strong>{card.name}</strong> (Strength{" "}
-                              {card.strength})
-                              <br />
-                              <small>{card.effect}</small>
-                              {isBlocked && (
-                                <>
-                                  <br />
-                                  <em className="card-blocked-text">
-                                    🎭 Blocked by Countess
-                                  </em>
-                                </>
-                              )}
-                            </button>
+                    {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
+                    {targetMessageModalData && (
+                      <EffectResultModal
+                        resultText={targetMessageModalData.message}
+                        onClose={async () => {
+                          console.log(
+                            "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
+                            {
+                              targetMessageModalData,
+                              shouldAdvanceTurn:
+                                targetMessageModalData.shouldAdvanceTurn,
+                              selectedCardIndex:
+                                targetMessageModalData.selectedCardIndex,
+                              currentPlayer: player,
+                              currentHand: player?.hand,
+                              handLength: player?.hand?.length,
+                            }
                           );
-                        })}
-                      </>
-                    );
-                  })()}
+
+                          // Clear the target message when confirmed
+                          await set(
+                            ref(db, `rooms/${roomCode}/targetMessage`),
+                            null
+                          );
+                          setTargetMessageModalData(null);
+
+                          // If this target message should advance turn, do it now using stored card index
+                          if (
+                            targetMessageModalData.shouldAdvanceTurn &&
+                            targetMessageModalData.selectedCardIndex !== null
+                          ) {
+                            console.log(
+                              "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
+                              targetMessageModalData.selectedCardIndex
+                            );
+
+                            // Use the new turn advancement system to determine if target modal should advance turn
+                            const cardId =
+                              targetMessageModalData.cardName === "Prince"
+                                ? 5
+                                : targetMessageModalData.cardName ===
+                                  "Phantom King"
+                                ? 6
+                                : null;
+
+                            if (shouldAdvanceTurnOnModal(cardId, false)) {
+                              // isAttacker = false
+                              // For Prince cards, we need special turn completion logic since the effect has already been applied
+                              if (
+                                targetMessageModalData.cardName === "Prince"
+                              ) {
+                                console.log(
+                                  "🎯 TARGET MODAL DEBUG: Prince - completing turn"
+                                );
+                                await completePrinceTurn(
+                                  targetMessageModalData.selectedCardIndex,
+                                  targetMessageModalData.from,
+                                  targetMessageModalData.originalAttackerHand
+                                );
+                              } else {
+                                console.log(
+                                  "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
+                                  targetMessageModalData.cardName
+                                );
+                                // Complete the turn directly using the stored card index
+                                await completeTurnWithCardIndex(
+                                  targetMessageModalData.selectedCardIndex
+                                );
+                              }
+                            } else {
+                              console.log(
+                                "🎯 TARGET MODAL DEBUG: Target modal for",
+                                targetMessageModalData.cardName,
+                                "should not advance turn"
+                              );
+                            }
+                          } else {
+                            console.log(
+                              "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
+                              {
+                                shouldAdvanceTurn:
+                                  targetMessageModalData.shouldAdvanceTurn,
+                                selectedCardIndex:
+                                  targetMessageModalData.selectedCardIndex,
+                              }
+                            );
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {!isMyTurn && (
-            <div className="waiting-message">
-              <em>Waiting for {currentPlayer} to play...</em>
-            </div>
-          )}
+          {/* === BARON RESULT MODAL === */}
+          {baronResultModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole={
+                nickname === baronResultModalData.attackerName
+                  ? "attacker"
+                  : "target"
+              }
+              attackerName={baronResultModalData.attackerName}
+              targetName={baronResultModalData.targetName}
+              attackerCard={baronResultModalData.attackerCard}
+              targetCard={baronResultModalData.targetCard}
+              eliminatedPlayer={baronResultModalData.eliminatedPlayer}
+              isTie={baronResultModalData.isTie}
+              message={
+                nickname === baronResultModalData.attackerName
+                  ? baronResultModalData.attackerMessage
+                  : baronResultModalData.targetMessage
+              }
+              onConfirm={async () => {
+                // Only attacker can confirm to proceed with the game
 
-          {showTargetModal && (
-            <TargetModal
-              players={players}
-              currentPlayer={nickname}
-              cardPlayed={player.hand[selectedCardIndex].id}
-              protectedPlayers={roomData?.protectedPlayers || []}
-              onConfirm={handleTargetConfirm}
-              onCancel={() => setShowTargetModal(false)}
-            />
-          )}
+                // If there was an elimination, apply it now
+                if (
+                  baronResultModalData.eliminatedPlayer &&
+                  !baronResultModalData.isTie
+                ) {
+                  await update(
+                    ref(
+                      db,
+                      `rooms/${roomCode}/players/${baronResultModalData.eliminatedPlayer}`
+                    ),
+                    {
+                      isOut: true,
+                    }
+                  );
 
-          {resultModalData && (
-            <EffectResultModal
-              resultText={resultModalData.resultText || resultModalData}
-              cardDetails={resultModalData.cardDetails || null}
-              onClose={async () => {
-                console.log(
-                  "⚔️ RESULT MODAL DEBUG: Result modal closing with data:",
-                  {
-                    resultModalData,
-                    isInfoOnly: resultModalData.isInfoOnly,
-                    selectedCardIndex,
-                    nickname,
-                  }
-                );
+                  // Notify about the elimination
+                  pushNotification(
+                    roomCode,
+                    `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
+                  );
 
-                await set(ref(db, `rooms/${roomCode}/actionResult`), null);
-                // Clear priest target modal if it exists
-                await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
-                // Clear baron target modal if it exists
+                  // Check for round end after Baron elimination
+                  logRoundEndCheck("After Baron Elimination", roomCode);
+                }
+
+                // Clear Baron target data in Firebase
                 await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
-                setResultModalData(null);
+                setBaronResultModalData(null);
 
-                // Only advance turn if this is NOT an info-only modal (like Prince attacker modal)
-                if (!resultModalData.isInfoOnly) {
-                  console.log(
-                    "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
-                  );
-                  // Only call handleEffectResultClose if selectedCardIndex is valid
-                  // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
-                  if (selectedCardIndex !== null) {
-                    // Use the new turn advancement system to determine if attacker modal should advance turn
-                    const lastPlayedCard =
-                      player?.discard?.[player.discard.length - 1];
-                    const cardId = lastPlayedCard?.id;
-
-                    // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
-                    //if (shouldAdvanceTurnOnModal(cardId, true)) {
-                    // isAttacker = true
-                    console.log(
-                      "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
-                      cardId
-                    );
-
-                    // Special handling for Prince self-targeting
-                    if (
-                      resultModalData.isPrinceModal &&
-                      resultModalData.originalCardId === 5
-                    ) {
-                      console.log(
-                        "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
-                      );
-                      await completePrinceTurn(
-                        selectedCardIndex,
-                        nickname,
-                        resultModalData.originalAttackerHand
-                      );
-                    } else {
-                      handleEffectResultClose();
-                    }
-                    /*} else {
-                      console.log(
-                        "⚔️ RESULT MODAL DEBUG: Card ID",
-                        cardId,
-                        "result modal should not advance turn"
-                      );
-                    }
-                    */
-                  }
-                } else {
-                  console.log(
-                    "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
-                  );
+                // Complete the Baron turn (discard card, advance turn)
+                if (selectedCardIndex !== null) {
+                  handleEffectResultClose();
                 }
               }}
             />
           )}
 
-          {/* === ASSASSIN PROMPT MODAL (Premium Mode Only) === */}
+          {/* === PRIEST TARGET MODAL === */}
+          {priestTargetModalData && (
+            <PriestTargetModal
+              attacker={priestTargetModalData.attacker}
+              targetCard={priestTargetModalData.targetCard}
+            />
+          )}
+
+          {/* === BARON TARGET MODAL === */}
+          {baronTargetModalData && (
+            <BaronResultModal
+              isOpen={true}
+              userRole="target"
+              attackerName={baronTargetModalData.attacker}
+              targetName={baronTargetModalData.targetName}
+              attackerCard={baronTargetModalData.attackerCard}
+              targetCard={baronTargetModalData.targetCard}
+              eliminatedPlayer={baronTargetModalData.eliminatedPlayer}
+              isTie={baronTargetModalData.isTie}
+              message={baronTargetModalData.targetMessage}
+              // No onConfirm for target - they just observe
+            />
+          )}
+
+          {/* === ASSASSIN PROMPT MODAL === */}
           {showGuardTargetPrompt &&
             guardTargetPromptData &&
             nickname === guardTargetPromptData.target && (
@@ -1693,141 +2361,106 @@ export default function Play() {
               />
             )}
 
-          {/* === BARON RESULT MODAL === */}
-          {baronResultModalData && (
-            <BaronResultModal
-              isOpen={true}
-              userRole={
-                nickname === baronResultModalData.attackerName
-                  ? "attacker"
-                  : "target"
-              }
-              attackerName={baronResultModalData.attackerName}
-              targetName={baronResultModalData.targetName}
-              attackerCard={baronResultModalData.attackerCard}
-              targetCard={baronResultModalData.targetCard}
-              eliminatedPlayer={baronResultModalData.eliminatedPlayer}
-              isTie={baronResultModalData.isTie}
-              message={
-                nickname === baronResultModalData.attackerName
-                  ? baronResultModalData.attackerMessage
-                  : baronResultModalData.targetMessage
-              }
-              onConfirm={async () => {
-                // Only attacker can confirm to proceed with the game
-                // Clear Baron target data in Firebase
-                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
-                setBaronResultModalData(null);
-
-                // Complete the Baron turn (discard card, advance turn)
-                if (selectedCardIndex !== null) {
-                  handleEffectResultClose();
-                }
-              }}
-            />
-          )}
-
-          {/* === PRIEST TARGET MODAL === */}
-          {priestTargetModalData && (
-            <PriestTargetModal
-              attacker={priestTargetModalData.attacker}
-              targetCard={priestTargetModalData.targetCard}
-            />
-          )}
-
-          {/* === BARON TARGET MODAL === */}
-          {baronTargetModalData && (
-            <BaronResultModal
-              isOpen={true}
-              userRole="target"
-              attackerName={baronTargetModalData.attacker}
-              targetName={baronTargetModalData.targetName}
-              attackerCard={baronTargetModalData.attackerCard}
-              targetCard={baronTargetModalData.targetCard}
-              eliminatedPlayer={baronTargetModalData.eliminatedPlayer}
-              isTie={baronTargetModalData.isTie}
-              message={baronTargetModalData.targetMessage}
-              // No onConfirm for target - they just observe
-            />
-          )}
-
-          {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
-          {targetMessageModalData && (
+          {resultModalData && (
             <EffectResultModal
-              resultText={targetMessageModalData.message}
+              resultText={resultModalData.resultText || resultModalData}
+              cardDetails={resultModalData.cardDetails || null}
               onClose={async () => {
                 console.log(
-                  "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
+                  "⚔️ RESULT MODAL DEBUG: Result modal closing with data:",
                   {
-                    targetMessageModalData,
-                    shouldAdvanceTurn: targetMessageModalData.shouldAdvanceTurn,
-                    selectedCardIndex: targetMessageModalData.selectedCardIndex,
-                    currentPlayer: player,
-                    currentHand: player?.hand,
-                    handLength: player?.hand?.length,
+                    resultModalData,
+                    isInfoOnly: resultModalData.isInfoOnly,
+                    selectedCardIndex,
+                    nickname,
                   }
                 );
 
-                // Clear the target message when confirmed
-                await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-                setTargetMessageModalData(null);
+                await set(ref(db, `rooms/${roomCode}/actionResult`), null);
+                // Clear priest target modal if it exists
+                await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
+                // Clear baron target modal if it exists
+                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+                setResultModalData(null);
+                setSelectedCardForUI(null);
 
-                // If this target message should advance turn, do it now using stored card index
-                if (
-                  targetMessageModalData.shouldAdvanceTurn &&
-                  targetMessageModalData.selectedCardIndex !== null
-                ) {
+                // Only advance turn if this is NOT an info-only modal (like Prince attacker modal)
+                if (!resultModalData.isInfoOnly) {
                   console.log(
-                    "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
-                    targetMessageModalData.selectedCardIndex
+                    "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
                   );
 
-                  // Use the new turn advancement system to determine if target modal should advance turn
-                  const cardId =
-                    targetMessageModalData.cardName === "Prince"
-                      ? 5
-                      : targetMessageModalData.cardName === "Phantom King"
-                      ? 6
-                      : null;
+                  // Special handling for Handmaid protection
+                  if (resultModalData.isHandmaidProtection) {
+                    console.log(
+                      "🛡️ HANDMAID MODAL: Using special turn completion"
+                    );
+                    handleEffectResultClose();
+                    return;
+                  }
 
-                  if (shouldAdvanceTurnOnModal(cardId, false)) {
-                    // isAttacker = false
-                    // For Prince cards, we need special turn completion logic since the effect has already been applied
-                    if (targetMessageModalData.cardName === "Prince") {
+                  // Special handling for Countess royalty
+                  if (resultModalData.isCountessRoyalty) {
+                    console.log(
+                      "🎭 COUNTESS MODAL: Using special turn completion"
+                    );
+                    handleEffectResultClose();
+                    return;
+                  }
+
+                  // Special handling for Princess elimination
+                  if (resultModalData.isPrincessElimination) {
+                    console.log(
+                      "👑 PRINCESS MODAL: Using special turn completion"
+                    );
+                    handleEffectResultClose();
+                    return;
+                  }
+
+                  // Only call handleEffectResultClose if selectedCardIndex is valid
+                  // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
+                  if (selectedCardIndex !== null) {
+                    // Use the new turn advancement system to determine if attacker modal should advance turn
+                    const lastPlayedCard =
+                      player?.discard?.[player.discard.length - 1];
+                    const cardId = lastPlayedCard?.id;
+
+                    // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
+                    //if (shouldAdvanceTurnOnModal(cardId, true)) {
+                    // isAttacker = true
+                    console.log(
+                      "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
+                      cardId
+                    );
+
+                    // Special handling for Prince self-targeting
+                    if (
+                      resultModalData.isPrinceModal &&
+                      resultModalData.originalCardId === 5
+                    ) {
                       console.log(
-                        "🎯 TARGET MODAL DEBUG: Prince - completing turn"
+                        "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
                       );
                       await completePrinceTurn(
-                        targetMessageModalData.selectedCardIndex,
-                        targetMessageModalData.from,
-                        targetMessageModalData.originalAttackerHand
+                        selectedCardIndex,
+                        nickname,
+                        resultModalData.originalAttackerHand
                       );
                     } else {
-                      console.log(
-                        "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
-                        targetMessageModalData.cardName
-                      );
-                      // Complete the turn directly using the stored card index
-                      await completeTurnWithCardIndex(
-                        targetMessageModalData.selectedCardIndex
-                      );
+                      handleEffectResultClose();
                     }
-                  } else {
+                    /*} else {
                     console.log(
-                      "🎯 TARGET MODAL DEBUG: Target modal for",
-                      targetMessageModalData.cardName,
-                      "should not advance turn"
+                      "⚔️ RESULT MODAL DEBUG: Card ID",
+                      cardId,
+                      "result modal should not advance turn"
                     );
+                  }
+                  */
                   }
                 } else {
                   console.log(
-                    "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
-                    {
-                      shouldAdvanceTurn:
-                        targetMessageModalData.shouldAdvanceTurn,
-                      selectedCardIndex:
-                        targetMessageModalData.selectedCardIndex,
-                    }
+                    "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
                   );
                 }
               }}
@@ -1835,14 +2468,37 @@ export default function Play() {
           )}
         </div>
 
-        {/* NOTIFICATION PANEL */}
-        <div className="right-sidebar">
-          <h3>📜 Game Chronicle</h3>
-          {notifications.map((n, i) => (
-            <div key={i} className="notification-item">
-              ➤ {n.message}
+        {/* RIGHT SIDEBAR: Chronicle */}
+        <div className="royal-right-sidebar">
+          {/* ROYAL CHRONICLE SIDEBAR */}
+          <div className="royal-chronicle-sidebar">
+            <div className="chronicle-header">
+              {/* ROUND */}
+              <div className="round-container">
+                <div className="round-content">
+                  <span role="img" aria-label="Round">
+                    ⚔️
+                  </span>
+                  <span>Round</span>
+                  <span className="round-number">{roundNumber}</span>
+                </div>
+              </div>
+              <h3>📜 Game Chronicle</h3>
             </div>
-          ))}
+            <div className="chronicle-content">
+              {notifications.map((n, i) => (
+                <div key={i} className="chronicle-notification">
+                  <span className="chronicle-arrow">➤</span>
+                  <span className="chronicle-message">{n.message}</span>
+                </div>
+              ))}
+              {notifications.length === 0 && (
+                <div className="chronicle-empty">
+                  <em>📜 The chronicle awaits the first royal decree...</em>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ROUND END MODAL */}

@@ -78,7 +78,7 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   const wasCorrect = targetCard.strength === guess;
 
   return {
-    requiresPrompt: isPremium,
+    requiresPrompt: true, // Always show prompt to maintain mystery (both normal & premium)
     target,
     attacker,
     hasAssassin,
@@ -178,7 +178,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     target,
     targetCard: enrichedTargetCard,
     // Fun medieval notification messages 🏰
-    attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret! They hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
+    attackerMessage: `🔍✨ The divine light reveals ${targetPlayer.name}'s secret!\n\nThey hold: ${enrichedTargetCard.name} (Strength ${enrichedTargetCard.strength})`,
     targetMessage: `🙈⚡ A holy priest peers into your soul! Your ${
       enrichedTargetCard.name
     } has been revealed to ${data.players[attacker]?.name || attacker}!`,
@@ -222,15 +222,9 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   }
   // If strengths are equal, it's a tie - no elimination
 
-  // Eliminate the loser if there is one
-  if (eliminatedPlayer) {
-    await update(ref(db, `rooms/${roomCode}/players/${eliminatedPlayer}`), {
-      isOut: true,
-    });
-
-    // Check for round end after elimination
-    logRoundEndCheck("After Baron Elimination", roomCode);
-  }
+  // NOTE: We do NOT eliminate the player here - that will be done when the modal is confirmed
+  // The Baron effect only compares cards and returns the result
+  // Elimination happens in the modal confirmation flow to maintain proper game state
 
   return {
     requiresPrompt: false,
@@ -460,7 +454,7 @@ export async function applyHandmaidEffect({ roomCode, player }) {
       data.players[player]?.name || player
     } calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. They are now protected until their next turn! ☕🛡️`,
     // Personal message for the protected player's modal
-    playerMessage: `🫖✨ THE PRINCESS' HANDMAID ✨🫖\n\nThe Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`,
+    playerMessage: `The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.\n\n☕ Protection Status: ACTIVE ☕\n⏰ Duration: Until your next turn begins\n🛡️ Effect: You cannot be targeted by any cards\n\n"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"\n- The Princess' Handmaid`,
   };
 }
 
@@ -591,14 +585,12 @@ You chose not to trade hands with anyone.
     // Create atmospheric result messages
     const attackerResultText = `🎭 PHANTOM KING'S MYSTICAL EXCHANGE! 👑
 
-Your royal decree has bound fates together!
-
-**You surrendered:**
-${attackerCard.name} (Strength: ${attackerCard.strength})
+**You surrendered: ** ${attackerCard.name} (Strength: ${attackerCard.strength})
 *"${attackerCard.effect || "A card of mysterious power"}"*
 
-**You received in return:**
-${targetCard.name} (Strength: ${targetCard.strength})  
+**You received in return: ** ${targetCard.name} (Strength: ${
+      targetCard.strength
+    })  
 *"${targetCard.effect || "A card of mysterious power"}"*
 
 "Through shadow and mist, the cards have found new masters..."

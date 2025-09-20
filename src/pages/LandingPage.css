@@ -268,6 +268,12 @@ Medieval-themed CSS for the most glorious card game experience
   left: 100%;
 }
 
+.name-generator-container button.generate-name-btn {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  width: fit-content;
+}
+
 .create-button {
   margin-top: 2rem;
 }

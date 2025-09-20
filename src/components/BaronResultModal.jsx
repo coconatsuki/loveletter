@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
-const BaronResultModal = ({ 
-  isOpen, 
-  onConfirm, 
+const BaronResultModal = ({
+  isOpen,
+  onConfirm,
   userRole, // "attacker" or "target"
   attackerName,
   targetName,
@@ -10,91 +10,139 @@ const BaronResultModal = ({
   targetCard,
   eliminatedPlayer,
   isTie,
-  message 
 }) => {
   if (!isOpen) return null;
 
   // Determine if this player was eliminated
   const currentPlayer = userRole === "attacker" ? attackerName : targetName;
   const wasEliminated = eliminatedPlayer === currentPlayer;
-  
+
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>⚔️ Baron's Duel Results ⚔️</h2>
-        
-        <div style={{ margin: '20px 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '10px 0' }}>
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <h3>🏰 {attackerName}</h3>
-              <div style={{ border: '2px solid #8B4513', borderRadius: '8px', padding: '10px', margin: '5px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{attackerCard.name}</div>
-                <div style={{ color: '#666' }}>Strength: {attackerCard.strength}</div>
-                {attackerCard.effect && (
-                  <div style={{ fontStyle: 'italic', fontSize: '12px', marginTop: '5px', color: '#555' }}>
-                    "{attackerCard.effect}"
+    <div className="baron-modal-background">
+      <div className="baron-modal-overlay">
+        <div className="baron-modal-content">
+          {/* Modal Header */}
+          <div className="baron-modal-header">
+            <h2 className="baron-modal-title">⚔️ Baron's Duel ⚔️</h2>
+          </div>
+
+          {/* Combat Arena - The Duel */}
+          <div className="baron-arena">
+            <div className="baron-combat-arena">
+              {/* Attacker Knight */}
+              <div className="baron-knight">
+                <div className="baron-knight-name">🏰 {attackerName}</div>
+                <div className="baron-duel-card">
+                  <div className="baron-card-name">{attackerCard.name}</div>
+                  <div className="baron-card-strength">
+                    Strength: {attackerCard.strength}
                   </div>
-                )}
+                  {attackerCard.effect && (
+                    <div className="baron-card-effect">
+                      "{attackerCard.effect}"
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* VS Section - Combat Clash */}
+              <div className="baron-vs-section">
+                <div className="baron-crossed-swords">⚔️</div>
+              </div>
+
+              {/* Target Knight */}
+              <div className="baron-knight">
+                <div className="baron-knight-name">🏰 {targetName}</div>
+                <div className="baron-duel-card">
+                  <div className="baron-card-name">{targetCard.name}</div>
+                  <div className="baron-card-strength">
+                    Strength: {targetCard.strength}
+                  </div>
+                  {targetCard.effect && (
+                    <div className="baron-card-effect">
+                      "{targetCard.effect}"
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div style={{ padding: '0 20px', fontSize: '20px', fontWeight: 'bold' }}>
-              ⚔️ VS ⚔️
-            </div>
-
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <h3>🏰 {targetName}</h3>
-              <div style={{ border: '2px solid #8B4513', borderRadius: '8px', padding: '10px', margin: '5px' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{targetCard.name}</div>
-                <div style={{ color: '#666' }}>Strength: {targetCard.strength}</div>
-                {targetCard.effect && (
-                  <div style={{ fontStyle: 'italic', fontSize: '12px', marginTop: '5px', color: '#555' }}>
-                    "{targetCard.effect}"
+            {/* Result Section - Victory or Defeat */}
+            <div
+              className={`baron-result-section ${
+                isTie
+                  ? "baron-result-tie"
+                  : wasEliminated
+                  ? "baron-result-defeat"
+                  : "baron-result-victory"
+              }`}
+            >
+              {isTie ? (
+                <>
+                  <span className="baron-result-icon">🤝</span>
+                  <div className="baron-result-message">
+                    <div
+                      className="baron-result-title"
+                      style={{ color: "#87ceeb" }}
+                    >
+                      Honorable Draw!
+                    </div>
+                    <div
+                      className="baron-result-subtitle"
+                      style={{ color: "#b0c4de" }}
+                    >
+                      Both knights live to fight another day
+                    </div>
                   </div>
-                )}
-              </div>
+                  <span className="baron-result-icon">🤝</span>
+                </>
+              ) : (
+                <>
+                  <span className="baron-result-icon">
+                    {wasEliminated ? "💀" : "🏆"}
+                  </span>
+                  <div className="baron-result-message">
+                    <div
+                      className="baron-result-title"
+                      style={{
+                        color: wasEliminated ? "#ff6b6b" : "#90ee90",
+                      }}
+                    >
+                      {eliminatedPlayer === attackerName
+                        ? `${targetName} Wins!`
+                        : `${attackerName} Wins!`}
+                    </div>
+                    <div
+                      className="baron-result-subtitle"
+                      style={{
+                        color: wasEliminated ? "#ffcccb" : "#b8ffb8",
+                      }}
+                    >
+                      {eliminatedPlayer} is eliminated from the round
+                    </div>
+                  </div>
+                  <span className="baron-result-icon">
+                    {wasEliminated ? "💀" : "🏆"}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', margin: '20px 0', padding: '15px', backgroundColor: isTie ? '#e6f3ff' : wasEliminated ? '#ffe6e6' : '#e6ffe6', borderRadius: '8px' }}>
-            {isTie ? (
-              <div>
-                <div style={{ fontSize: '24px', marginBottom: '5px' }}>🤝</div>
-                <div style={{ fontWeight: 'bold', fontSize: '18px' }}>Honorable Draw!</div>
-                <div style={{ fontSize: '14px', color: '#666' }}>Both knights live to fight another day</div>
-              </div>
-            ) : (
-              <div>
-                <div style={{ fontSize: '24px', marginBottom: '5px' }}>
-                  {wasEliminated ? '💀' : '🏆'}
-                </div>
-                <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
-                  {eliminatedPlayer === attackerName ? `${targetName} Wins!` : `${attackerName} Wins!`}
-                </div>
-                <div style={{ fontSize: '14px', color: '#666' }}>
-                  {eliminatedPlayer} is eliminated from the round
-                </div>
+          {/* Action Section */}
+          <div className="baron-action-section">
+            {/* Only show confirm button to attacker (to control game flow) */}
+            {userRole === "attacker" && (
+              <button onClick={onConfirm} className="baron-continue-button">
+                Continue
+              </button>
+            )}
+            {userRole === "target" && (
+              <div className="baron-waiting-text">
+                ⏳ Awaiting {attackerName}'s command to continue...
               </div>
             )}
           </div>
-
-          <div style={{ backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', fontStyle: 'italic' }}>
-            <p>{message}</p>
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          {/* Only show confirm button to attacker (to control game flow) */}
-          {userRole === "attacker" && (
-            <button onClick={onConfirm} style={{ padding: '10px 20px', fontSize: '16px' }}>
-              Continue ⚔️
-            </button>
-          )}
-          {userRole === "target" && (
-            <div style={{ fontStyle: 'italic', color: '#888' }}>
-              ⏳ Waiting for {attackerName} to continue...
-            </div>
-          )}
         </div>
       </div>
     </div>
