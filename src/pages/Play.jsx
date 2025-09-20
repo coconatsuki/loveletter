@@ -2206,6 +2206,9 @@ export default function Play() {
                     roomCode,
                     `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
                   );
+
+                  // Check for round end after Baron elimination
+                  logRoundEndCheck("After Baron Elimination", roomCode);
                 }
 
                 // Clear Baron target data in Firebase

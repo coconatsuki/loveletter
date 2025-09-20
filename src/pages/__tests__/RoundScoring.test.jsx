@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { BrowserRouter, MemoryRouter } from "react-router-dom";
 import RoundScoring from "../../pages/RoundScoring";
 import * as Firebase from "firebase/database";
@@ -102,7 +108,13 @@ describe("RoundScoring Component", () => {
         host: "testPlayer",
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+        act(() => {
+
+          firebaseCallback({ val: () => roomData });
+      });
+
+      });
 
       await waitFor(() => {
         expect(
@@ -140,7 +152,13 @@ describe("RoundScoring Component", () => {
         },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+        act(() => {
+
+          firebaseCallback({ val: () => roomData });
+      });
+
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Round 3/)).toBeInTheDocument();
@@ -176,7 +194,13 @@ describe("RoundScoring Component", () => {
         },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+        act(() => {
+
+          firebaseCallback({ val: () => roomData });
+      });
+
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Round 1/)).toBeInTheDocument();
@@ -211,7 +235,13 @@ describe("RoundScoring Component", () => {
         },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+        act(() => {
+
+          firebaseCallback({ val: () => roomData });
+      });
+
+      });
 
       await waitFor(() => {
         // Check for leaderboard content
@@ -248,7 +278,11 @@ describe("RoundScoring Component", () => {
         roundResult: { winner: "testPlayer" },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+
+
+        firebaseCallback({ val: () => roomData });
+ });
 
       await waitFor(() => {
         expect(screen.getByText("🎮 Commence New Round")).toBeInTheDocument();
@@ -278,7 +312,11 @@ describe("RoundScoring Component", () => {
         roundResult: { winner: "testPlayer" },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+
+
+        firebaseCallback({ val: () => roomData });
+ });
 
       await waitFor(() => {
         expect(screen.getByText("🏁 End Royal Tournament")).toBeInTheDocument();
@@ -308,7 +346,11 @@ describe("RoundScoring Component", () => {
         roundResult: { winner: "testPlayer" },
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+
+
+        firebaseCallback({ val: () => roomData });
+ });
 
       await waitFor(() => {
         expect(
@@ -334,7 +376,10 @@ describe("RoundScoring Component", () => {
       );
 
       // Simulate missing room data
-      firebaseCallback({ val: () => null });
+      act(() => {
+
+        firebaseCallback({ val: () => null });
+ });
 
       await waitFor(() => {
         expect(
@@ -364,7 +409,11 @@ describe("RoundScoring Component", () => {
         // Missing roundResult
       };
 
-      firebaseCallback({ val: () => roomData });
+      act(() => {
+
+
+        firebaseCallback({ val: () => roomData });
+ });
 
       await waitFor(() => {
         expect(
@@ -392,3 +441,4 @@ describe("RoundScoring Component", () => {
     });
   });
 });
+
