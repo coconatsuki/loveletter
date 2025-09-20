@@ -27,6 +27,7 @@ import {
   checkRoundEndConditions,
   triggerRoundEnd,
 } from "../utils/roundEndDetection";
+import { cards } from "../utils/cardsData";
 import "./Play.css";
 
 const cardNames = {
@@ -72,6 +73,32 @@ const getCardImage = (cardName) => {
   };
 
   return imageMap[cardName] || "countess1.jpeg";
+};
+
+// Helper function to get card count based on game mode
+const getCardCount = (cardId, gameMode) => {
+  const card = cards.find((c) => c.id === cardId);
+  if (!card) return 0;
+
+  const isPremiumMode = gameMode === "premium";
+  return isPremiumMode ? card.countPremium : card.countNormal;
+};
+
+// Component to render star icons for card count
+const CardCountStars = ({ cardId, gameMode }) => {
+  const count = getCardCount(cardId, gameMode);
+
+  if (count === 0) return null; // Don't show anything if count is 0
+
+  return (
+    <div className="card-count-stars">
+      {Array.from({ length: count }, (_, index) => (
+        <span key={index} className="card-count-star">
+          ★
+        </span>
+      ))}
+    </div>
+  );
 };
 
 export default function Play() {
@@ -1950,6 +1977,10 @@ export default function Play() {
                                                     🎭 Blocked by Countess
                                                   </div>
                                                 )}
+                                                <CardCountStars
+                                                  cardId={card.id}
+                                                  gameMode={roomData?.mode}
+                                                />
                                               </div>
                                             </button>
                                           );
@@ -2005,6 +2036,10 @@ export default function Play() {
                                                   🎭 Blocked by Countess
                                                 </div>
                                               )}
+                                              <CardCountStars
+                                                cardId={card.id}
+                                                gameMode={roomData?.mode}
+                                              />
                                             </div>
                                           </button>
                                         );
