@@ -101,6 +101,42 @@ const CardCountStars = ({ cardId, gameMode }) => {
   );
 };
 
+// Component to display a player's discard pile in a popover
+const DiscardPilePopover = ({ player, gameMode, isVisible }) => {
+  if (!isVisible || !player) {
+    return null;
+  }
+
+  const hasDiscardedCards = player.discard && player.discard.length > 0;
+
+  return (
+    <div className="discard-pile-popover">
+      <div className="discard-pile-title">{player.name} discard pile</div>
+      <div className="discard-pile-content">
+        {hasDiscardedCards ? (
+          player.discard.map((card, index) => {
+            const cardData = cards.find((c) => c.id === card.id);
+            const count = getCardCount(card.id, gameMode);
+
+            return (
+              <div key={index} className="discard-pile-item">
+                <span className="discard-card-name">
+                  {cardData?.name || "Unknown"}
+                </span>
+                <span className="discard-card-details">
+                  (Strength: {card.strength}, Count: {count})
+                </span>
+              </div>
+            );
+          })
+        ) : (
+          <div className="discard-pile-empty">(empty)</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function Play() {
   const { id: roomCode } = useParams();
   const { state } = useLocation();
@@ -123,6 +159,7 @@ export default function Play() {
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
+  const [hoveredPlayer, setHoveredPlayer] = useState(null); // For discard pile popover
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -1792,6 +1829,15 @@ export default function Play() {
               const isEliminated = p.isOut;
               const isYou = name === nickname;
 
+              // Check if essential game actions are needed that would block the popover
+              const shouldBlockPopover =
+                isMyTurn &&
+                !resultModalData &&
+                !baronResultModalData &&
+                (!isPlaying ||
+                  (roomData?.guardPrompt &&
+                    roomData.guardPrompt.attacker === nickname));
+
               return (
                 <div
                   key={name}
@@ -1801,6 +1847,8 @@ export default function Play() {
                     isProtected ? "is-protected" : ""
                   }`}
                   onClick={() => handlePlayerSectionClick(name, p)}
+                  onMouseEnter={() => setHoveredPlayer(name)}
+                  onMouseLeave={() => setHoveredPlayer(null)}
                 >
                   {/* Player Header */}
                   <div className="player-header">
@@ -1856,6 +1904,13 @@ export default function Play() {
                       Eliminated this round
                     </div>
                   )}
+
+                  {/* Discard Pile Popover */}
+                  <DiscardPilePopover
+                    player={p}
+                    gameMode={roomData?.mode || "normal"}
+                    isVisible={hoveredPlayer === name && !shouldBlockPopover}
+                  />
                 </div>
               );
             })}
