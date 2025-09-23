@@ -61,11 +61,6 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                   <p className="winner-hand">
                     Holding:{" "}
                     <strong>{winnerCard?.name || "Unknown Card"}</strong>
-                    {/*
-                    <span className="card-strength">
-                      (Strength: {winnerCard?.strength || "?"})
-                    </span>
-                    */}
                   </p>
                 </div>
               </div>

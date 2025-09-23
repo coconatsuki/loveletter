@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update } from "firebase/database";
-import { cards } from "../utils/cardsData";
+import { cards, getCardImage } from "../utils/cardsData";
 import { buildDeck } from "../utils/deckBuilder";
 import "./RoundScoring.css";
 
@@ -408,7 +408,16 @@ export default function RoundScoring() {
                   <h3 className="hidden-card-title">
                     🃏 The Hidden Card Revealed 🃏
                   </h3>
+
                   <div className="hidden-card-details">
+                    <div
+                      className="hidden-card-image"
+                      style={{
+                        backgroundImage: `url('/src/img/${getCardImage(
+                          hiddenCard.name
+                        )}')`,
+                      }}
+                    ></div>
                     <div className="hidden-card-name">{hiddenCard.name}</div>
                     <div className="hidden-card-info">
                       Strength: {hiddenCard.strength} |{" "}

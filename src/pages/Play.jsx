@@ -27,7 +27,7 @@ import {
   checkRoundEndConditions,
   triggerRoundEnd,
 } from "../utils/roundEndDetection";
-import { cards } from "../utils/cardsData";
+import { cards, getCardImage } from "../utils/cardsData";
 import "./Play.css";
 
 const cardNames = {
@@ -48,31 +48,6 @@ const cardNames = {
   14: "Assassin",
   15: "Baroness",
   16: "Duke",
-};
-
-// Helper function to get the correct card image
-const getCardImage = (cardName) => {
-  const imageMap = {
-    Guard: "guard1.jpeg",
-    Priest: "priest1.jpeg",
-    Baron: "baron1.jpeg",
-    Handmaid: "handmaid1.jpeg",
-    Prince: "prince1.jpeg",
-    "Phantom King": "phantom-king1.jpeg",
-    Countess: "countess1.jpeg",
-    Princess: "princess-portrait1.jpeg",
-    // Premium cards that don't have images yet
-    Jester: "countess1.jpeg",
-    Inquisitor: "countess1.jpeg",
-    Chamberlain: "countess1.jpeg",
-    "Regent Queen": "countess1.jpeg",
-    "Court Whisperer": "countess1.jpeg",
-    "Royal Confessor": "countess1.jpeg",
-    Assassin: "countess1.jpeg",
-    Duke: "countess1.jpeg",
-  };
-
-  return imageMap[cardName] || "countess1.jpeg";
 };
 
 // Helper function to get card count based on game mode
@@ -1833,6 +1808,8 @@ export default function Play() {
               const shouldBlockPopover =
                 isMyTurn &&
                 !resultModalData &&
+                !priestTargetModalData &&
+                !targetMessageModalData &&
                 !baronResultModalData &&
                 (!isPlaying ||
                   (roomData?.guardPrompt &&
@@ -1935,6 +1912,8 @@ export default function Play() {
           {/* GAME ACTIONS SECTION */}
           {isMyTurn &&
             !resultModalData &&
+            !priestTargetModalData &&
+            !targetMessageModalData &&
             !baronResultModalData &&
             (!isPlaying ||
               (roomData?.guardPrompt &&
