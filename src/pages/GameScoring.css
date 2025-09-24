@@ -58,24 +58,6 @@
 /* Main container */
 .game-scoring-container {
   min-height: 100vh;
-  background: radial-gradient(
-      circle at 20% 20%,
-      rgba(139, 0, 0, 0.8) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(184, 134, 11, 0.6) 0%,
-      transparent 50%
-    ),
-    linear-gradient(
-      135deg,
-      #8b0000 0%,
-      #b22222 25%,
-      #dc143c 50%,
-      #b8860b 75%,
-      #ffd700 100%
-    );
   font-family: "Cinzel", serif;
   position: relative;
   overflow-x: hidden;
@@ -130,15 +112,19 @@
 
 /* Main layout */
 .game-scoring-main {
-  background: linear-gradient(
-    145deg,
-    rgba(44, 24, 16, 0.95) 0%,
-    rgba(26, 15, 8, 0.95) 100%
-  );
+  background: radial-gradient(circle at 20% 20%, #3d0b0b 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgb(72 12 12 / 60%) 0%, transparent 50%),
+    linear-gradient(
+      135deg,
+      #230101 0%,
+      #642020 25%,
+      #6e1124 50%,
+      #742c2c 75%,
+      #935353cf 100%
+    );
   border: 4px solid #ffd700;
   border-radius: 25px;
   padding: 1rem;
-  margin: 0.5rem;
   box-shadow: 0 0 40px rgba(255, 215, 0, 0.5),
     inset 0 0 30px rgba(255, 215, 0, 0.1), 0 0 80px rgba(139, 0, 0, 0.3);
   color: #f4e4bc;
@@ -179,14 +165,22 @@
 }
 
 /* Content layout */
-.content-layout {
+.game-scoring-content-layout {
   display: flex;
   flex-direction: column;
 }
 
-.columns-container {
+.game-scoring-columns-container {
   display: flex;
   flex-direction: row;
+  margin-top: 2rem;
+  justify-content: space-between;
+}
+
+.game-scoring-main-column {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
 }
 
 /* Epic Header */
@@ -222,7 +216,7 @@
 /* Winner Announcement */
 .winner-announcement {
   background: inherit;
-  padding: 0 2rem;
+  padding: 0 1rem;
   text-align: center;
   position: relative;
   border: none;
@@ -243,7 +237,7 @@
 .winner-text {
   font-size: 2rem;
   color: #f4e4bc;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   font-weight: 600;
 }
 
@@ -278,8 +272,8 @@
 }
 
 .token-display {
-  margin: 2rem 0;
-  font-size: 1.8rem;
+  margin: 0;
+  font-size: 1.6em;
   color: #f4e4bc;
 }
 
@@ -294,7 +288,7 @@
   background: rgba(139, 0, 0, 0.3);
   border: 1px solid rgba(220, 20, 60, 0.5);
   border-radius: 15px;
-  padding: 1rem;
+  padding: 1rem 0.7rem;
   margin-top: 2rem;
   font-family: "Cormorant Garamond", serif;
   font-size: 1.4rem;
@@ -302,15 +296,6 @@
   color: #deb887;
   line-height: 1.6;
   text-align: center;
-}
-
-/* Tournament Summary */
-.tournament-summary {
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 15px;
-  padding: 2rem;
-  margin-bottom: 3rem;
 }
 
 .summary-title {
@@ -351,10 +336,9 @@
 /* Final Leaderboard */
 .final-leaderboard {
   padding: 1rem;
-  margin-bottom: 3rem;
 }
 
-.leaderboard-title {
+.game-scoring-leaderboard-title {
   color: #ffd700;
   font-size: 2.5rem;
   text-align: center;
@@ -363,7 +347,7 @@
   font-weight: 700;
 }
 
-.leaderboard-list {
+.game-scoring-leaderboard-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -450,13 +434,13 @@
 }
 
 .final-tokens {
-  color: #dc143c;
+  color: #f196ce;
   font-weight: bold;
   font-size: 1.3rem;
   background: rgba(220, 20, 60, 0.1);
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  border: 2px solid rgba(220, 20, 60, 0.3);
+  border: 1px solid rgba(220, 20, 60, 0.3);
 }
 
 .winner-badge {
@@ -479,13 +463,14 @@
   border: 2px solid #b8860b;
   border-radius: 15px;
   padding: 1.5rem;
-  margin-top: 1.5rem;
+  margin-top: 3rem;
 }
 
 .summary-title {
   color: #ffd700;
   text-align: center;
   margin-bottom: 1.5rem;
+  margin-top: 0;
   font-size: 1.4rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
@@ -583,19 +568,13 @@
   transition: all 0.3s ease;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   box-shadow: 0 4px 20px rgba(139, 0, 0, 0.4);
+  margin-bottom: 2rem;
 }
 
 .return-to-court-button:hover {
   background: linear-gradient(135deg, #dc143c, #ff6347);
   transform: translateY(-3px);
   box-shadow: 0 6px 25px rgba(139, 0, 0, 0.6);
-}
-
-.host-note {
-  color: #deb887;
-  font-style: italic;
-  margin-top: 1rem;
-  font-size: 1rem;
 }
 
 /* Non-host message */
@@ -612,18 +591,15 @@
 }
 
 /* Side Column */
-.side-column {
+.game-scoring-side-column {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  width: 35%;
 }
 
 /* Princess Wedding */
 .princess-wedding {
-  background: rgba(255, 215, 0, 0.1);
-  border: 3px solid #ffd700;
-  border-radius: 20px;
-  padding: 2rem;
+  padding: 1rem;
   text-align: center;
 }
 
@@ -633,13 +609,13 @@
 
 .princess-image {
   width: 100%;
-  min-height: 300px;
+  min-height: 380px;
   background-image: url("/src/img/princess-wedding1.jpeg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 15px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  border: 3px double rgb(255 215 0 / 68%);
 }
 
 .wedding-caption {
@@ -709,7 +685,7 @@
     margin: 1rem;
   }
 
-  .content-layout {
+  .game-scoring-content-layout {
     grid-template-columns: 1fr;
     gap: 2rem;
   }

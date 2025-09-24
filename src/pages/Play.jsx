@@ -1809,8 +1809,8 @@ export default function Play() {
                 isMyTurn &&
                 !resultModalData &&
                 !priestTargetModalData &&
-                !targetMessageModalData &&
                 !baronResultModalData &&
+                !targetMessageModalData &&
                 (!isPlaying ||
                   (roomData?.guardPrompt &&
                     roomData.guardPrompt.attacker === nickname));
@@ -1913,8 +1913,8 @@ export default function Play() {
           {isMyTurn &&
             !resultModalData &&
             !priestTargetModalData &&
-            !targetMessageModalData &&
             !baronResultModalData &&
+            !targetMessageModalData &&
             (!isPlaying ||
               (roomData?.guardPrompt &&
                 roomData.guardPrompt.attacker === nickname)) && (
@@ -2136,101 +2136,93 @@ export default function Play() {
                         )}
                       </div>
                     )}
-
-                    {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
-                    {targetMessageModalData && (
-                      <EffectResultModal
-                        resultText={targetMessageModalData.message}
-                        onClose={async () => {
-                          console.log(
-                            "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
-                            {
-                              targetMessageModalData,
-                              shouldAdvanceTurn:
-                                targetMessageModalData.shouldAdvanceTurn,
-                              selectedCardIndex:
-                                targetMessageModalData.selectedCardIndex,
-                              currentPlayer: player,
-                              currentHand: player?.hand,
-                              handLength: player?.hand?.length,
-                            }
-                          );
-
-                          // Clear the target message when confirmed
-                          await set(
-                            ref(db, `rooms/${roomCode}/targetMessage`),
-                            null
-                          );
-                          setTargetMessageModalData(null);
-
-                          // If this target message should advance turn, do it now using stored card index
-                          if (
-                            targetMessageModalData.shouldAdvanceTurn &&
-                            targetMessageModalData.selectedCardIndex !== null
-                          ) {
-                            console.log(
-                              "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
-                              targetMessageModalData.selectedCardIndex
-                            );
-
-                            // Use the new turn advancement system to determine if target modal should advance turn
-                            const cardId =
-                              targetMessageModalData.cardName === "Prince"
-                                ? 5
-                                : targetMessageModalData.cardName ===
-                                  "Phantom King"
-                                ? 6
-                                : null;
-
-                            if (shouldAdvanceTurnOnModal(cardId, false)) {
-                              // isAttacker = false
-                              // For Prince cards, we need special turn completion logic since the effect has already been applied
-                              if (
-                                targetMessageModalData.cardName === "Prince"
-                              ) {
-                                console.log(
-                                  "🎯 TARGET MODAL DEBUG: Prince - completing turn"
-                                );
-                                await completePrinceTurn(
-                                  targetMessageModalData.selectedCardIndex,
-                                  targetMessageModalData.from,
-                                  targetMessageModalData.originalAttackerHand
-                                );
-                              } else {
-                                console.log(
-                                  "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
-                                  targetMessageModalData.cardName
-                                );
-                                // Complete the turn directly using the stored card index
-                                await completeTurnWithCardIndex(
-                                  targetMessageModalData.selectedCardIndex
-                                );
-                              }
-                            } else {
-                              console.log(
-                                "🎯 TARGET MODAL DEBUG: Target modal for",
-                                targetMessageModalData.cardName,
-                                "should not advance turn"
-                              );
-                            }
-                          } else {
-                            console.log(
-                              "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
-                              {
-                                shouldAdvanceTurn:
-                                  targetMessageModalData.shouldAdvanceTurn,
-                                selectedCardIndex:
-                                  targetMessageModalData.selectedCardIndex,
-                              }
-                            );
-                          }
-                        }}
-                      />
-                    )}
                   </div>
                 </div>
               </div>
             )}
+
+          {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
+          {targetMessageModalData && (
+            <EffectResultModal
+              resultText={targetMessageModalData.message}
+              onClose={async () => {
+                console.log(
+                  "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
+                  {
+                    targetMessageModalData,
+                    shouldAdvanceTurn: targetMessageModalData.shouldAdvanceTurn,
+                    selectedCardIndex: targetMessageModalData.selectedCardIndex,
+                    currentPlayer: player,
+                    currentHand: player?.hand,
+                    handLength: player?.hand?.length,
+                  }
+                );
+
+                // Clear the target message when confirmed
+                await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+                setTargetMessageModalData(null);
+
+                // If this target message should advance turn, do it now using stored card index
+                if (
+                  targetMessageModalData.shouldAdvanceTurn &&
+                  targetMessageModalData.selectedCardIndex !== null
+                ) {
+                  console.log(
+                    "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
+                    targetMessageModalData.selectedCardIndex
+                  );
+
+                  // Use the new turn advancement system to determine if target modal should advance turn
+                  const cardId =
+                    targetMessageModalData.cardName === "Prince"
+                      ? 5
+                      : targetMessageModalData.cardName === "Phantom King"
+                      ? 6
+                      : null;
+
+                  if (shouldAdvanceTurnOnModal(cardId, false)) {
+                    // isAttacker = false
+                    // For Prince cards, we need special turn completion logic since the effect has already been applied
+                    if (targetMessageModalData.cardName === "Prince") {
+                      console.log(
+                        "🎯 TARGET MODAL DEBUG: Prince - completing turn"
+                      );
+                      await completePrinceTurn(
+                        targetMessageModalData.selectedCardIndex,
+                        targetMessageModalData.from,
+                        targetMessageModalData.originalAttackerHand
+                      );
+                    } else {
+                      console.log(
+                        "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
+                        targetMessageModalData.cardName
+                      );
+                      // Complete the turn directly using the stored card index
+                      await completeTurnWithCardIndex(
+                        targetMessageModalData.selectedCardIndex
+                      );
+                    }
+                  } else {
+                    console.log(
+                      "🎯 TARGET MODAL DEBUG: Target modal for",
+                      targetMessageModalData.cardName,
+                      "should not advance turn"
+                    );
+                  }
+                } else {
+                  console.log(
+                    "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
+                    {
+                      shouldAdvanceTurn:
+                        targetMessageModalData.shouldAdvanceTurn,
+                      selectedCardIndex:
+                        targetMessageModalData.selectedCardIndex,
+                    }
+                  );
+                }
+              }}
+            />
+          )}
 
           {/* === BARON RESULT MODAL === */}
           {baronResultModalData && (

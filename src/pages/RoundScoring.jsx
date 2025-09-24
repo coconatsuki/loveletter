@@ -272,7 +272,7 @@ export default function RoundScoring() {
         <div className="main-content">
           <h1 className="main-title">⚜️ Royal Scoring Chronicles ⚜️</h1>
 
-          <div className="content-layout">
+          <div className="round-scoring-content-layout">
             <div className="main-column">
               {/* Round Winner Display */}
               {roundResult && (
@@ -309,11 +309,11 @@ export default function RoundScoring() {
               )}
 
               {/* Love Tokens Leaderboard */}
-              <div className="leaderboard-section">
-                <h3 className="leaderboard-title">
+              <div className="round-scoring-leaderboard-section">
+                <h3 className="round-scoring-leaderboard-title">
                   💝 Love Tokens Leaderboard 💝
                 </h3>
-                <div className="leaderboard-list">
+                <div className="round-scoring-leaderboard-list">
                   {sortedPlayers.map((player, index) => {
                     const nameFormat = formatPlayerName(player);
                     const isCurrentUser = player.name === nickname;

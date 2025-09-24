@@ -181,10 +181,10 @@ export default function GameScoring() {
         <div className="royal-decoration royal-bottom-left">⚜️</div>
         <div className="royal-decoration royal-bottom-right">⚜️</div>
 
-        <div className="content-layout">
+        <div className="game-scoring-content-layout">
           <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
-          <div className="columns-container">
-            <div className="main-column">
+          <div className="game-scoring-columns-container">
+            <div className="game-scoring-main-column">
               {/* Winner Announcement */}
               {finalResult && (
                 <div className="winner-announcement">
@@ -260,10 +260,10 @@ export default function GameScoring() {
 
               {/* Final Leaderboard */}
               <div className="final-leaderboard">
-                <h3 className="leaderboard-title">
+                <h3 className="game-scoring-leaderboard-title">
                   🏆 Final Court Rankings 🏆
                 </h3>
-                <div className="leaderboard-list">
+                <div className="game-scoring-leaderboard-list">
                   {sortedPlayers.map((player, index) => {
                     const nameFormat = formatPlayerName(player);
                     const isCurrentUser = player.name === nickname;
@@ -329,9 +329,6 @@ export default function GameScoring() {
                   >
                     🏰 Return to Royal Court
                   </button>
-                  <div className="host-note">
-                    This will redirect all players back to the main court
-                  </div>
                 </div>
               )}
 
@@ -343,7 +340,7 @@ export default function GameScoring() {
               )}
             </div>
 
-            <div className="side-column">
+            <div className="game-scoring-side-column">
               {/* Princess Wedding Image */}
               <div className="princess-wedding">
                 <div className="wedding-frame">

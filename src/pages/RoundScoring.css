@@ -23,7 +23,7 @@ body {
   background: linear-gradient(145deg, #2c1810 0%, #1a0f08 100%);
   border: 3px solid #ffd700;
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 1.5rem;
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.4),
     inset 0 0 20px rgba(255, 215, 0, 0.1);
   color: #f4e4bc;
@@ -72,7 +72,7 @@ body {
   text-align: center;
   color: #ffd700;
   margin-top: 0;
-  margin-bottom: 2rem;
+  margin-bottom: 2, 5rem;
   font-size: 3rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   background: linear-gradient(45deg, #ffd700, #ffa500, #ffd700);
@@ -82,23 +82,25 @@ body {
 }
 
 /* Two-column layout for content */
-.content-layout {
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 2rem;
-  align-items: start;
+.round-scoring-content-layout {
+  display: flex;
+  flex-direction: row !important;
+  justify-content: space-between;
 }
 
 .main-column {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  width: 60%;
 }
 
 .side-column {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 3rem;
 }
 
 /* Hidden Card Section */
@@ -172,22 +174,15 @@ body {
 
 /* Round Winner Display */
 .round-winner-section {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0.2) 0%,
-    rgba(255, 165, 0, 0.1) 100%
-  );
-  border: 3px solid #ffd700;
-  border-radius: 15px;
   text-align: center;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 .round-winner-title {
   color: #ffd700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
+  margin-top: 0;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-  font-size: 2rem;
+  font-size: 2.5rem;
 }
 
 .round-winner-text {
@@ -201,11 +196,7 @@ body {
 }
 
 .victory-type {
-  background: rgba(139, 0, 0, 0.2);
-  padding: 0.8rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  border: 1px solid rgba(220, 20, 60, 0.3);
+  margin-bottom: 1rem;
 }
 
 .victory-type-label {
@@ -217,23 +208,21 @@ body {
 }
 
 /* Love Tokens Leaderboard */
-.leaderboard-section {
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid #ffd700;
-  border-radius: 15px;
+.round-scoring-leaderboard-section {
+  margin: 1.5rem 0;
   padding: 1rem;
 }
 
-.leaderboard-title {
+.round-scoring-leaderboard-title {
   color: #ffd700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem !important;
   margin-top: 0;
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 2rem !important;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-.leaderboard-list {
+.round-scoring-leaderboard-list {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -344,8 +333,9 @@ body {
 .host-actions {
   display: flex;
   gap: 1.5rem;
-  justify-content: center;
+  justify-content: space-evenly;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .action-button {
@@ -390,10 +380,9 @@ body {
   color: #deb887;
   font-size: 1.1rem;
   font-style: italic;
-  background: rgba(222, 184, 135, 0.1);
   padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(222, 184, 135, 0.3);
+  margin-bottom: 2rem;
+  margin-top: 0;
 }
 
 /* Loading states */
@@ -418,7 +407,7 @@ body {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .content-layout {
+  .round-scoring-content-layout {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
