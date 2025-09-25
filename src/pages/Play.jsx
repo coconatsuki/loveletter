@@ -144,115 +144,133 @@ export default function Play() {
   // Listen to room data changes (players, game state) and update player data
   useEffect(() => {
     const roomRef = ref(db, `rooms/${roomCode}`);
+
+    // Debounce Firebase updates to prevent race conditions during rapid updates
+    let debounceTimer = null;
+
     const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
 
-      // DIAGNOSTIC: Track when currentPlayer changes
-      const oldCurrentPlayer = roomData?.round?.currentPlayer;
-      const newCurrentPlayer = data?.round?.currentPlayer;
-      const isFinalTurn = data?.round?.isFinalTurn;
-
-      if (oldCurrentPlayer !== newCurrentPlayer) {
-        console.log("🔄 CURRENT PLAYER CHANGED:", {
-          oldCurrentPlayer,
-          newCurrentPlayer,
-          isMyTurn: newCurrentPlayer === nickname,
-          currentIsPlaying: isPlaying,
-          isFinalTurn: isFinalTurn,
-        });
-
-        // Reset isPlaying when it becomes this player's turn
-        if (newCurrentPlayer === nickname && isPlaying) {
-          console.log(
-            "🔄 TURN START: Resetting isPlaying = false for new turn"
-          );
-          setIsPlaying(false);
-        }
+      // Clear existing debounce timer
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
       }
 
-      // Log when final turn flag is detected
-      if (isFinalTurn && !roomData?.round?.isFinalTurn) {
-        console.log(
-          "🏆 FINAL TURN FLAG DETECTED: This is the last turn of the round!"
-        );
-      }
+      // Debounce the state update to handle rapid Firebase changes
+      debounceTimer = setTimeout(() => {
+        // DIAGNOSTIC: Track when currentPlayer changes
+        const oldCurrentPlayer = roomData?.round?.currentPlayer;
+        const newCurrentPlayer = data?.round?.currentPlayer;
+        const isFinalTurn = data?.round?.isFinalTurn;
 
-      setRoomData(data);
-      if (data?.players && nickname) {
-        setPlayer(data.players[nickname]);
-      }
+        // Only log if we have valid data and meaningful change
+        if (
+          oldCurrentPlayer !== newCurrentPlayer &&
+          oldCurrentPlayer &&
+          newCurrentPlayer
+        ) {
+          console.log("🔄 CURRENT PLAYER CHANGED:", {
+            oldCurrentPlayer,
+            newCurrentPlayer,
+            isMyTurn: newCurrentPlayer === nickname,
+            currentIsPlaying: isPlaying,
+            isFinalTurn: isFinalTurn,
+          });
 
-      // CRITICAL FIX: If current player is eliminated, immediately advance turn
-      if (data?.round?.currentPlayer && data?.players) {
-        const currentPlayerData = data.players[data.round.currentPlayer];
-        if (currentPlayerData?.isOut) {
-          console.log(
-            "🚨 CRITICAL BUG FIX: Current player is eliminated, advancing turn immediately",
-            {
-              currentPlayer: data.round.currentPlayer,
-              isOut: currentPlayerData.isOut,
-            }
-          );
-
-          // Find next non-eliminated player
-          const allPlayers = Object.keys(data.players);
-          const activePlayers = allPlayers.filter(
-            (p) => !data.players[p].isOut
-          );
-
-          if (activePlayers.length > 1) {
-            const currentIndex = activePlayers.indexOf(
-              data.round.currentPlayer
+          // Reset isPlaying when it becomes this player's turn AND we're currently playing
+          // This prevents the race condition where intermediate states cause wrong resets
+          if (newCurrentPlayer === nickname && isPlaying) {
+            console.log(
+              "🔄 TURN START: Resetting isPlaying = false for new turn"
             );
-            const nextIndex = (currentIndex + 1) % activePlayers.length;
-            const nextPlayer = activePlayers[nextIndex];
-
-            console.log("🚨 ADVANCING TURN FROM ELIMINATED PLAYER:", {
-              eliminatedPlayer: data.round.currentPlayer,
-              nextPlayer: nextPlayer,
-              activePlayers: activePlayers,
-            });
-
-            // Update Firebase immediately
-            update(ref(db, `rooms/${roomCode}`), {
-              [`round/currentPlayer`]: nextPlayer,
-            });
-
-            return; // Exit early to prevent further processing
+            setIsPlaying(false);
           }
         }
-      }
 
-      // Check if round ended and show round end modal
-      if (data?.gameState === "roundScoring" && data?.roundResult) {
-        console.log(
-          "🏆 ROUND ENDED - Showing round end modal",
-          data.roundResult
-        );
+        // Log when final turn flag is detected
+        if (isFinalTurn && !roomData?.round?.isFinalTurn) {
+          console.log(
+            "🏆 FINAL TURN FLAG DETECTED: This is the last turn of the round!"
+          );
+        }
 
-        // Show the round end modal with the round result data
-        setRoundEndModalData(data.roundResult);
-        return; // Exit early to prevent further processing
-      }
+        setRoomData(data);
 
-      // Redirect to Game Scoring if host ends the game
-      if (data?.gameState === "gameEnd") {
-        console.log("🏆 Game ended - Redirecting to Game Scoring");
-        navigate(`/game_scoring/${roomCode}`, {
-          state: { nickname, realName },
-        });
-        return; // Exit early to prevent further processing
-      }
+        if (data?.players && nickname) {
+          setPlayer(data.players[nickname]);
+        }
 
-      // Auto-clear info-only result modals when it's no longer this player's turn
-      // This ensures attacker modals don't stay on screen forever
-      if (
-        data?.round?.currentPlayer !== nickname &&
-        resultModalData?.isInfoOnly
-      ) {
-        setResultModalData(null);
-      }
-      /* TODO: re-test & re-activate this ONLY if all the rest works perfectly. 
+        // CRITICAL FIX: If current player is eliminated, immediately advance turn
+        if (data?.round?.currentPlayer && data?.players) {
+          const currentPlayerData = data.players[data.round.currentPlayer];
+          if (currentPlayerData?.isOut) {
+            console.log(
+              "🚨 CRITICAL BUG FIX: Current player is eliminated, advancing turn immediately",
+              {
+                currentPlayer: data.round.currentPlayer,
+                isOut: currentPlayerData.isOut,
+              }
+            );
+
+            // Find next non-eliminated player
+            const allPlayers = Object.keys(data.players);
+            const activePlayers = allPlayers.filter(
+              (p) => !data.players[p].isOut
+            );
+
+            if (activePlayers.length > 1) {
+              const currentIndex = activePlayers.indexOf(
+                data.round.currentPlayer
+              );
+              const nextIndex = (currentIndex + 1) % activePlayers.length;
+              const nextPlayer = activePlayers[nextIndex];
+
+              console.log("🚨 ADVANCING TURN FROM ELIMINATED PLAYER:", {
+                eliminatedPlayer: data.round.currentPlayer,
+                nextPlayer: nextPlayer,
+                activePlayers: activePlayers,
+              });
+
+              // Update Firebase immediately
+              update(ref(db, `rooms/${roomCode}`), {
+                [`round/currentPlayer`]: nextPlayer,
+              });
+
+              return; // Exit early to prevent further processing
+            }
+          }
+        }
+
+        // Check if round ended and show round end modal
+        if (data?.gameState === "roundScoring" && data?.roundResult) {
+          console.log(
+            "🏆 ROUND ENDED - Showing round end modal",
+            data.roundResult
+          );
+
+          // Show the round end modal with the round result data
+          setRoundEndModalData(data.roundResult);
+          return; // Exit early to prevent further processing
+        }
+
+        // Redirect to Game Scoring if host ends the game
+        if (data?.gameState === "gameEnd") {
+          console.log("🏆 Game ended - Redirecting to Game Scoring");
+          navigate(`/game_scoring/${roomCode}`, {
+            state: { nickname, realName },
+          });
+          return; // Exit early to prevent further processing
+        }
+
+        // Auto-clear info-only result modals when it's no longer this player's turn
+        // This ensures attacker modals don't stay on screen forever
+        if (
+          data?.round?.currentPlayer !== nickname &&
+          resultModalData?.isInfoOnly
+        ) {
+          setResultModalData(null);
+        }
+        /* TODO: re-test & re-activate this ONLY if all the rest works perfectly. 
 
     // Auto-clear target message modals when it becomes this player's turn
     // This ensures target modals don't block the player from seeing their turn
@@ -265,8 +283,15 @@ export default function Play() {
       set(ref(db, `rooms/${roomCode}/targetMessage`), null);
     }
     */
+      }, 100); // 100ms debounce
     });
-    return () => unsubscribe();
+
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      unsubscribe();
+    };
   }, [roomCode, nickname, resultModalData, targetMessageModalData]);
 
   // Listen for Guard prompts targeting this player (premium mode Assassin interactions)

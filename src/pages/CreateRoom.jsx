@@ -163,7 +163,7 @@ export default function CreateRoom() {
                 <div className="mode-option-content">
                   <div>🎲 Classic Court</div>
                   <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                    (2–4 Noble Suitors)
+                    (2–5 Noble Suitors)
                   </div>
                   <div
                     style={{
@@ -187,7 +187,7 @@ export default function CreateRoom() {
                 <div className="mode-option-content">
                   <div>🧙 Premium Court</div>
                   <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                    (5–8 Noble Suitors)
+                    (6–10 Noble Suitors)
                   </div>
                   <div
                     style={{

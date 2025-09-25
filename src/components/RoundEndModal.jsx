@@ -49,35 +49,36 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 </strong>{" "}
                 ⚔️
               </p>
-
-              <div className="winner-showcase">
-                <h3>👑 Last Noble Standing 👑</h3>
-                <div className="winner-card">
-                  <p className="winner-name">
-                    <strong>{winnerData?.realName || winner}</strong>
-                    <span className="nickname">
-                      ({winnerData?.name || winner})
-                    </span>
-                  </p>
-                  <p className="winner-hand">
-                    Holding:{" "}
-                    <strong>{winnerCard?.name || "Unknown Card"}</strong>
-                  </p>
-                </div>
-              </div>
-
-              {eliminatedPlayers.length > 0 && (
-                <div className="eliminated-section">
-                  <h4>⚰️ Fallen in Battle ⚰️</h4>
-                  <div className="eliminated-list">
-                    {eliminatedPlayers.map((playerKey) => (
-                      <span key={playerKey} className="eliminated-player">
-                        {players[playerKey]?.realName || playerKey}
+              <div className="round-victory-summary">
+                <div className="winner-showcase">
+                  <h3>👑 Last Noble Standing 👑</h3>
+                  <div className="winner-card">
+                    <p className="winner-name">
+                      <strong>{winnerData?.realName || winner}</strong>
+                      <span className="nickname">
+                        ({winnerData?.name || winner})
                       </span>
-                    ))}
+                    </p>
+                    <p className="winner-hand">
+                      Holding:{" "}
+                      <strong>{winnerCard?.name || "Unknown Card"}</strong>
+                    </p>
                   </div>
                 </div>
-              )}
+
+                {eliminatedPlayers.length > 0 && (
+                  <div className="eliminated-section">
+                    <h4>⚰️ Fallen in Battle ⚰️</h4>
+                    <div className="eliminated-list">
+                      {eliminatedPlayers.map((playerKey) => (
+                        <span key={playerKey} className="eliminated-player">
+                          {players[playerKey]?.realName || playerKey}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <p className="flavor-text">
                 🌹 With cunning and fortune,{" "}
