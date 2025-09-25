@@ -2510,14 +2510,6 @@ export default function Play() {
                     } else {
                       handleEffectResultClose();
                     }
-                    /*} else {
-                    console.log(
-                      "⚔️ RESULT MODAL DEBUG: Card ID",
-                      cardId,
-                      "result modal should not advance turn"
-                    );
-                  }
-                  */
                   }
                 } else {
                   console.log(

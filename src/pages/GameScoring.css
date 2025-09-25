@@ -132,38 +132,6 @@
   overflow: hidden;
 }
 
-/* Royal decorations */
-.royal-decoration {
-  position: absolute;
-  font-size: 3rem;
-  z-index: 2;
-  animation: crownPulse 3s ease-in-out infinite;
-}
-
-.royal-top-left {
-  top: 20px;
-  left: 20px;
-  transform: rotate(-15deg);
-}
-
-.royal-top-right {
-  top: 20px;
-  right: 20px;
-  transform: rotate(15deg);
-}
-
-.royal-bottom-left {
-  bottom: 20px;
-  left: 20px;
-  transform: rotate(-15deg);
-}
-
-.royal-bottom-right {
-  bottom: 20px;
-  right: 20px;
-  transform: rotate(15deg);
-}
-
 /* Content layout */
 .game-scoring-content-layout {
   display: flex;
@@ -202,6 +170,8 @@
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   margin: auto;
   letter-spacing: 2px;
+  padding-bottom: 1rem;
+  border-bottom: 4px ridge #f196ce;
 }
 
 .epic-subtitle {
@@ -285,9 +255,6 @@
 }
 
 .epic-phrase {
-  background: rgba(139, 0, 0, 0.3);
-  border: 1px solid rgba(220, 20, 60, 0.5);
-  border-radius: 15px;
   padding: 1rem 0.7rem;
   margin-top: 2rem;
   font-family: "Cormorant Garamond", serif;
@@ -296,41 +263,6 @@
   color: #deb887;
   line-height: 1.6;
   text-align: center;
-}
-
-.summary-title {
-  color: #ffd700;
-  font-size: 1.8rem;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-}
-
-.summary-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: rgba(244, 228, 188, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.stat-label {
-  color: #deb887;
-  font-weight: 500;
-}
-
-.stat-value {
-  color: #ffd700;
-  font-weight: bold;
-  font-size: 1.1rem;
 }
 
 /* Final Leaderboard */
@@ -468,6 +400,19 @@
 
 .summary-title {
   color: #ffd700;
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.summary-stats {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-title {
+  color: #ffd700;
   text-align: center;
   margin-bottom: 1.5rem;
   margin-top: 0;
@@ -479,26 +424,40 @@
   margin-bottom: 1.5rem;
 }
 
+.summary-stats-first-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
 .stat-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 1rem;
+  background: rgba(244, 228, 188, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .stat-item:last-child {
   border-bottom: none;
+
+  .stat-label {
+    margin-right: 1rem;
+  }
 }
 
 .stat-label {
   color: #deb887;
   font-weight: 500;
+  margin-right: 0.5rem;
 }
 
 .stat-value {
   color: #ffd700;
   font-weight: bold;
+  font-size: 1.1rem;
 }
 
 .chronicle-title {
@@ -560,7 +519,7 @@
   color: #ffd700;
   border: 3px solid #ffd700;
   border-radius: 15px;
-  padding: 1.5rem 3rem;
+  padding: 1rem 3rem;
   font-size: 1.5rem;
   font-weight: bold;
   font-family: "Cinzel", serif;
@@ -568,7 +527,7 @@
   transition: all 0.3s ease;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   box-shadow: 0 4px 20px rgba(139, 0, 0, 0.4);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .return-to-court-button:hover {
@@ -583,11 +542,8 @@
   color: #deb887;
   font-size: 1.3rem;
   font-style: italic;
-  background: rgba(222, 184, 135, 0.1);
   padding: 2rem;
-  border-radius: 15px;
-  border: 2px solid rgba(222, 184, 135, 0.3);
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 /* Side Column */
@@ -728,9 +684,5 @@
 
   .game-scoring-main {
     padding: 1rem;
-  }
-
-  .royal-decoration {
-    font-size: 2rem;
   }
 }

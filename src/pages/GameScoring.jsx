@@ -175,12 +175,6 @@ export default function GameScoring() {
   return (
     <div className={`game-scoring-container ${fadeIn ? "fade-in" : ""}`}>
       <div className="game-scoring-main">
-        {/* Royal decorations */}
-        <div className="royal-decoration royal-top-left">👑</div>
-        <div className="royal-decoration royal-top-right">👑</div>
-        <div className="royal-decoration royal-bottom-left">⚜️</div>
-        <div className="royal-decoration royal-bottom-right">⚜️</div>
-
         <div className="game-scoring-content-layout">
           <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
           <div className="game-scoring-columns-container">
@@ -354,20 +348,24 @@ export default function GameScoring() {
                 <div className="tournament-summary">
                   <h3 className="summary-title">⚔️ Tournament Chronicle ⚔️</h3>
                   <div className="summary-stats">
-                    <div className="stat-item">
-                      <span className="stat-label">Total Rounds Played:</span>
-                      <span className="stat-value">{totalRounds}</span>
+                    <div className="summary-stats-first-row">
+                      <div className="stat-item">
+                        <span className="stat-label">Total Rounds Played:</span>
+                        <span className="stat-value">{totalRounds}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">Noble Participants:</span>
+                        <span className="stat-value">
+                          {sortedPlayers.length}
+                        </span>
+                      </div>
                     </div>
-                    <div className="stat-item">
-                      <span className="stat-label">Noble Participants:</span>
-                      <span className="stat-value">{sortedPlayers.length}</span>
-                    </div>
-                    <div className="stat-item">
+                    <div className="stat-item stat-item-second-row">
                       <span className="stat-label">Game Mode:</span>
                       <span className="stat-value">
                         {roomData.mode === "premium"
                           ? "👑 Premium Court"
-                          : "🏰 Royal Court"}
+                          : "🏰 Classic Court"}
                       </span>
                     </div>
                   </div>

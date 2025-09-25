@@ -97,7 +97,7 @@ body {
 .side-column {
   display: flex;
   flex-direction: column;
-  width: 35%;
+  width: 30%;
   display: flex;
   flex-direction: column;
   margin-bottom: 3rem;
@@ -108,7 +108,7 @@ body {
   background: rgba(139, 0, 0, 0.3);
   border: 2px solid #dc143c;
   border-radius: 15px;
-  padding: 1rem;
+  padding: 1rem 0;
   text-align: center;
   position: relative;
 }
