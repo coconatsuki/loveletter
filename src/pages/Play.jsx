@@ -135,6 +135,28 @@ export default function Play() {
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
   const [hoveredPlayer, setHoveredPlayer] = useState(null); // For discard pile popover
+  const [isModalTransitioning, setIsModalTransitioning] = useState(false); // Prevents flash during modal transitions
+
+  // Helper function to check if any modal is currently active
+  const hasActiveModal = () => {
+    return !!(
+      resultModalData ||
+      priestTargetModalData ||
+      baronResultModalData ||
+      baronTargetModalData ||
+      targetMessageModalData ||
+      showGuardTargetPrompt ||
+      roundEndModalData ||
+      isModalTransitioning
+    );
+  };
+
+  // Helper function to handle smooth modal transitions
+  const handleModalTransition = async (closeCallback) => {
+    setIsModalTransitioning(true);
+    await closeCallback();
+    setIsModalTransitioning(false);
+  };
 
   /**
    * FIREBASE LISTENERS - Real-time data synchronization
@@ -182,6 +204,15 @@ export default function Play() {
           if (newCurrentPlayer === nickname && isPlaying) {
             console.log(
               "🔄 TURN START: Resetting isPlaying = false for new turn"
+            );
+            setIsPlaying(false);
+          }
+          
+          // CRITICAL: Reset isPlaying when it's no longer this player's turn
+          // This prevents the flash of Game Actions Section during turn transitions
+          if (newCurrentPlayer !== nickname && isPlaying) {
+            console.log(
+              "🔄 TURN END: Resetting isPlaying = false - no longer my turn"
             );
             setIsPlaying(false);
           }
@@ -1280,9 +1311,9 @@ export default function Play() {
 
     // Reset local state only if round didn't end
     console.log(
-      "🔄 TURN COMPLETION: Setting isPlaying = false in completeTurnWithCardIndex"
+      "🔄 TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
     );
-    setIsPlaying(false);
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
     setSelectedCardForUI(null);
   };
@@ -1511,9 +1542,9 @@ export default function Play() {
     // Reset local state (only if we're the attacker)
     if (nickname === attackerNickname) {
       console.log(
-        "🔄 GUARD TURN COMPLETION: Setting isPlaying = false for attacker"
+        "🔄 GUARD TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
       );
-      setIsPlaying(false);
+      // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
       setSelectedCardIndex(null);
     }
   };
@@ -1561,7 +1592,7 @@ export default function Play() {
     );
 
     // Reset local state
-    setIsPlaying(false);
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
   };
 
@@ -1626,8 +1657,10 @@ export default function Play() {
     );
 
     // Reset local state
-    console.log("🔄 COUNTESS TURN COMPLETION: Setting isPlaying = false");
-    setIsPlaying(false);
+    console.log(
+      "🔄 COUNTESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
   };
 
@@ -1706,8 +1739,10 @@ export default function Play() {
     );
 
     // Reset local state
-    console.log("🔄 HANDMAID TURN COMPLETION: Setting isPlaying = false");
-    setIsPlaying(false);
+    console.log(
+      "🔄 HANDMAID TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
   };
 
@@ -1784,8 +1819,8 @@ export default function Play() {
     );
 
     // Reset local state
-    console.log("🔄 PRINCESS TURN COMPLETION: Setting isPlaying = false");
-    setIsPlaying(false);
+    console.log("🔄 PRINCESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)");
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
   };
 
@@ -1936,10 +1971,7 @@ export default function Play() {
 
           {/* GAME ACTIONS SECTION */}
           {isMyTurn &&
-            !resultModalData &&
-            !priestTargetModalData &&
-            !baronResultModalData &&
-            !targetMessageModalData &&
+            !hasActiveModal() &&
             (!isPlaying ||
               (roomData?.guardPrompt &&
                 roomData.guardPrompt.attacker === nickname)) && (
@@ -2170,82 +2202,86 @@ export default function Play() {
           {targetMessageModalData && (
             <EffectResultModal
               resultText={targetMessageModalData.message}
-              onClose={async () => {
-                console.log(
-                  "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
-                  {
-                    targetMessageModalData,
-                    shouldAdvanceTurn: targetMessageModalData.shouldAdvanceTurn,
-                    selectedCardIndex: targetMessageModalData.selectedCardIndex,
-                    currentPlayer: player,
-                    currentHand: player?.hand,
-                    handLength: player?.hand?.length,
-                  }
-                );
-
-                // Clear the target message when confirmed
-                await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-                setTargetMessageModalData(null);
-
-                // If this target message should advance turn, do it now using stored card index
-                if (
-                  targetMessageModalData.shouldAdvanceTurn &&
-                  targetMessageModalData.selectedCardIndex !== null
-                ) {
+              onClose={() =>
+                handleModalTransition(async () => {
                   console.log(
-                    "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
-                    targetMessageModalData.selectedCardIndex
-                  );
-
-                  // Use the new turn advancement system to determine if target modal should advance turn
-                  const cardId =
-                    targetMessageModalData.cardName === "Prince"
-                      ? 5
-                      : targetMessageModalData.cardName === "Phantom King"
-                      ? 6
-                      : null;
-
-                  if (shouldAdvanceTurnOnModal(cardId, false)) {
-                    // isAttacker = false
-                    // For Prince cards, we need special turn completion logic since the effect has already been applied
-                    if (targetMessageModalData.cardName === "Prince") {
-                      console.log(
-                        "🎯 TARGET MODAL DEBUG: Prince - completing turn"
-                      );
-                      await completePrinceTurn(
-                        targetMessageModalData.selectedCardIndex,
-                        targetMessageModalData.from,
-                        targetMessageModalData.originalAttackerHand
-                      );
-                    } else {
-                      console.log(
-                        "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
-                        targetMessageModalData.cardName
-                      );
-                      // Complete the turn directly using the stored card index
-                      await completeTurnWithCardIndex(
-                        targetMessageModalData.selectedCardIndex
-                      );
-                    }
-                  } else {
-                    console.log(
-                      "🎯 TARGET MODAL DEBUG: Target modal for",
-                      targetMessageModalData.cardName,
-                      "should not advance turn"
-                    );
-                  }
-                } else {
-                  console.log(
-                    "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
+                    "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
                     {
+                      targetMessageModalData,
                       shouldAdvanceTurn:
                         targetMessageModalData.shouldAdvanceTurn,
                       selectedCardIndex:
                         targetMessageModalData.selectedCardIndex,
+                      currentPlayer: player,
+                      currentHand: player?.hand,
+                      handLength: player?.hand?.length,
                     }
                   );
-                }
-              }}
+
+                  // Clear the target message when confirmed
+                  await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
+                  setTargetMessageModalData(null);
+
+                  // If this target message should advance turn, do it now using stored card index
+                  if (
+                    targetMessageModalData.shouldAdvanceTurn &&
+                    targetMessageModalData.selectedCardIndex !== null
+                  ) {
+                    console.log(
+                      "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
+                      targetMessageModalData.selectedCardIndex
+                    );
+
+                    // Use the new turn advancement system to determine if target modal should advance turn
+                    const cardId =
+                      targetMessageModalData.cardName === "Prince"
+                        ? 5
+                        : targetMessageModalData.cardName === "Phantom King"
+                        ? 6
+                        : null;
+
+                    if (shouldAdvanceTurnOnModal(cardId, false)) {
+                      // isAttacker = false
+                      // For Prince cards, we need special turn completion logic since the effect has already been applied
+                      if (targetMessageModalData.cardName === "Prince") {
+                        console.log(
+                          "🎯 TARGET MODAL DEBUG: Prince - completing turn"
+                        );
+                        await completePrinceTurn(
+                          targetMessageModalData.selectedCardIndex,
+                          targetMessageModalData.from,
+                          targetMessageModalData.originalAttackerHand
+                        );
+                      } else {
+                        console.log(
+                          "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
+                          targetMessageModalData.cardName
+                        );
+                        // Complete the turn directly using the stored card index
+                        await completeTurnWithCardIndex(
+                          targetMessageModalData.selectedCardIndex
+                        );
+                      }
+                    } else {
+                      console.log(
+                        "🎯 TARGET MODAL DEBUG: Target modal for",
+                        targetMessageModalData.cardName,
+                        "should not advance turn"
+                      );
+                    }
+                  } else {
+                    console.log(
+                      "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
+                      {
+                        shouldAdvanceTurn:
+                          targetMessageModalData.shouldAdvanceTurn,
+                        selectedCardIndex:
+                          targetMessageModalData.selectedCardIndex,
+                      }
+                    );
+                  }
+                })
+              }
             />
           )}
 
@@ -2269,43 +2305,45 @@ export default function Play() {
                   ? baronResultModalData.attackerMessage
                   : baronResultModalData.targetMessage
               }
-              onConfirm={async () => {
-                // Only attacker can confirm to proceed with the game
+              onConfirm={() =>
+                handleModalTransition(async () => {
+                  // Only attacker can confirm to proceed with the game
 
-                // If there was an elimination, apply it now
-                if (
-                  baronResultModalData.eliminatedPlayer &&
-                  !baronResultModalData.isTie
-                ) {
-                  await update(
-                    ref(
-                      db,
-                      `rooms/${roomCode}/players/${baronResultModalData.eliminatedPlayer}`
-                    ),
-                    {
-                      isOut: true,
-                    }
-                  );
+                  // If there was an elimination, apply it now
+                  if (
+                    baronResultModalData.eliminatedPlayer &&
+                    !baronResultModalData.isTie
+                  ) {
+                    await update(
+                      ref(
+                        db,
+                        `rooms/${roomCode}/players/${baronResultModalData.eliminatedPlayer}`
+                      ),
+                      {
+                        isOut: true,
+                      }
+                    );
 
-                  // Notify about the elimination
-                  pushNotification(
-                    roomCode,
-                    `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
-                  );
+                    // Notify about the elimination
+                    pushNotification(
+                      roomCode,
+                      `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
+                    );
 
-                  // Check for round end after Baron elimination
-                  logRoundEndCheck("After Baron Elimination", roomCode);
-                }
+                    // Check for round end after Baron elimination
+                    logRoundEndCheck("After Baron Elimination", roomCode);
+                  }
 
-                // Clear Baron target data in Firebase
-                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
-                setBaronResultModalData(null);
+                  // Clear Baron target data in Firebase
+                  await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+                  setBaronResultModalData(null);
 
-                // Complete the Baron turn (discard card, advance turn)
-                if (selectedCardIndex !== null) {
-                  handleEffectResultClose();
-                }
-              }}
+                  // Complete the Baron turn (discard card, advance turn)
+                  if (selectedCardIndex !== null) {
+                    handleEffectResultClose();
+                  }
+                })
+              }
             />
           )}
 
@@ -2451,97 +2489,99 @@ export default function Play() {
             <EffectResultModal
               resultText={resultModalData.resultText || resultModalData}
               cardDetails={resultModalData.cardDetails || null}
-              onClose={async () => {
-                console.log(
-                  "⚔️ RESULT MODAL DEBUG: Result modal closing with data:",
-                  {
-                    resultModalData,
-                    isInfoOnly: resultModalData.isInfoOnly,
-                    selectedCardIndex,
-                    nickname,
-                  }
-                );
-
-                await set(ref(db, `rooms/${roomCode}/actionResult`), null);
-                // Clear priest target modal if it exists
-                await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
-                // Clear baron target modal if it exists
-                await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
-                setResultModalData(null);
-                setSelectedCardForUI(null);
-
-                // Only advance turn if this is NOT an info-only modal (like Prince attacker modal)
-                if (!resultModalData.isInfoOnly) {
+              onClose={() =>
+                handleModalTransition(async () => {
                   console.log(
-                    "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
-                  );
-
-                  // Special handling for Handmaid protection
-                  if (resultModalData.isHandmaidProtection) {
-                    console.log(
-                      "🛡️ HANDMAID MODAL: Using special turn completion"
-                    );
-                    handleEffectResultClose();
-                    return;
-                  }
-
-                  // Special handling for Countess royalty
-                  if (resultModalData.isCountessRoyalty) {
-                    console.log(
-                      "🎭 COUNTESS MODAL: Using special turn completion"
-                    );
-                    handleEffectResultClose();
-                    return;
-                  }
-
-                  // Special handling for Princess elimination
-                  if (resultModalData.isPrincessElimination) {
-                    console.log(
-                      "👑 PRINCESS MODAL: Using special turn completion"
-                    );
-                    handleEffectResultClose();
-                    return;
-                  }
-
-                  // Only call handleEffectResultClose if selectedCardIndex is valid
-                  // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
-                  if (selectedCardIndex !== null) {
-                    // Use the new turn advancement system to determine if attacker modal should advance turn
-                    const lastPlayedCard =
-                      player?.discard?.[player.discard.length - 1];
-                    const cardId = lastPlayedCard?.id;
-
-                    // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
-                    //if (shouldAdvanceTurnOnModal(cardId, true)) {
-                    // isAttacker = true
-                    console.log(
-                      "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
-                      cardId
-                    );
-
-                    // Special handling for Prince self-targeting
-                    if (
-                      resultModalData.isPrinceModal &&
-                      resultModalData.originalCardId === 5
-                    ) {
-                      console.log(
-                        "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
-                      );
-                      await completePrinceTurn(
-                        selectedCardIndex,
-                        nickname,
-                        resultModalData.originalAttackerHand
-                      );
-                    } else {
-                      handleEffectResultClose();
+                    "⚔️ RESULT MODAL DEBUG: Result modal closing with data:",
+                    {
+                      resultModalData,
+                      isInfoOnly: resultModalData.isInfoOnly,
+                      selectedCardIndex,
+                      nickname,
                     }
-                  }
-                } else {
-                  console.log(
-                    "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
                   );
-                }
-              }}
+
+                  await set(ref(db, `rooms/${roomCode}/actionResult`), null);
+                  // Clear priest target modal if it exists
+                  await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
+                  // Clear baron target modal if it exists
+                  await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+                  setResultModalData(null);
+                  setSelectedCardForUI(null);
+
+                  // Only advance turn if this is NOT an info-only modal (like Prince attacker modal)
+                  if (!resultModalData.isInfoOnly) {
+                    console.log(
+                      "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
+                    );
+
+                    // Special handling for Handmaid protection
+                    if (resultModalData.isHandmaidProtection) {
+                      console.log(
+                        "🛡️ HANDMAID MODAL: Using special turn completion"
+                      );
+                      handleEffectResultClose();
+                      return;
+                    }
+
+                    // Special handling for Countess royalty
+                    if (resultModalData.isCountessRoyalty) {
+                      console.log(
+                        "🎭 COUNTESS MODAL: Using special turn completion"
+                      );
+                      handleEffectResultClose();
+                      return;
+                    }
+
+                    // Special handling for Princess elimination
+                    if (resultModalData.isPrincessElimination) {
+                      console.log(
+                        "👑 PRINCESS MODAL: Using special turn completion"
+                      );
+                      handleEffectResultClose();
+                      return;
+                    }
+
+                    // Only call handleEffectResultClose if selectedCardIndex is valid
+                    // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
+                    if (selectedCardIndex !== null) {
+                      // Use the new turn advancement system to determine if attacker modal should advance turn
+                      const lastPlayedCard =
+                        player?.discard?.[player.discard.length - 1];
+                      const cardId = lastPlayedCard?.id;
+
+                      // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
+                      //if (shouldAdvanceTurnOnModal(cardId, true)) {
+                      // isAttacker = true
+                      console.log(
+                        "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
+                        cardId
+                      );
+
+                      // Special handling for Prince self-targeting
+                      if (
+                        resultModalData.isPrinceModal &&
+                        resultModalData.originalCardId === 5
+                      ) {
+                        console.log(
+                          "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
+                        );
+                        await completePrinceTurn(
+                          selectedCardIndex,
+                          nickname,
+                          resultModalData.originalAttackerHand
+                        );
+                      } else {
+                        handleEffectResultClose();
+                      }
+                    }
+                  } else {
+                    console.log(
+                      "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
+                    );
+                  }
+                })
+              }
             />
           )}
         </div>
