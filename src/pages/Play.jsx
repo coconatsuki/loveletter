@@ -8,6 +8,7 @@ import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RoundEndModal from "../components/RoundEndModal";
+import DiscardPilePopover from "../components/DiscardPilePopover";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -28,6 +29,8 @@ import {
   triggerRoundEnd,
 } from "../utils/roundEndDetection";
 import { cards, getCardImage } from "../utils/cardsData";
+import { getCardCount } from "../utils/gamehelpers";
+import { useGridLayout } from "../utils/useGridLayout";
 import "./Play.css";
 
 const cardNames = {
@@ -50,18 +53,9 @@ const cardNames = {
   16: "Duke",
 };
 
-// Helper function to get card count based on game mode
-const getCardCount = (cardId, gameMode) => {
-  const card = cards.find((c) => c.id === cardId);
-  if (!card) return 0;
-
-  const isPremiumMode = gameMode === "premium";
-  return isPremiumMode ? card.countPremium : card.countNormal;
-};
-
 // Component to render star icons for card count
 const CardCountStars = ({ cardId, gameMode }) => {
-  const count = getCardCount(cardId, gameMode);
+  const count = getCardCount(cardId, gameMode, cards);
 
   if (count === 0) return null; // Don't show anything if count is 0
 
@@ -72,42 +66,6 @@ const CardCountStars = ({ cardId, gameMode }) => {
           ★
         </span>
       ))}
-    </div>
-  );
-};
-
-// Component to display a player's discard pile in a popover
-const DiscardPilePopover = ({ player, gameMode, isVisible }) => {
-  if (!isVisible || !player) {
-    return null;
-  }
-
-  const hasDiscardedCards = player.discard && player.discard.length > 0;
-
-  return (
-    <div className="discard-pile-popover">
-      <div className="discard-pile-title">{player.name} discard pile</div>
-      <div className="discard-pile-content">
-        {hasDiscardedCards ? (
-          player.discard.map((card, index) => {
-            const cardData = cards.find((c) => c.id === card.id);
-            const count = getCardCount(card.id, gameMode);
-
-            return (
-              <div key={index} className="discard-pile-item">
-                <span className="discard-card-name">
-                  {cardData?.name || "Unknown"}
-                </span>
-                <span className="discard-card-details">
-                  (Strength: {card.strength}, Count: {count})
-                </span>
-              </div>
-            );
-          })
-        ) : (
-          <div className="discard-pile-empty">(empty)</div>
-        )}
-      </div>
     </div>
   );
 };
@@ -135,7 +93,14 @@ export default function Play() {
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
   const [hoveredPlayer, setHoveredPlayer] = useState(null); // For discard pile popover
-  const [isModalTransitioning, setIsModalTransitioning] = useState(false); // Prevents flash during modal transitions
+  const [isModalTransitioning, setIsModalTransitioning] = useState(false);
+
+  // Grid layout hook for dynamic popover positioning
+  const totalPlayers = roomData?.players
+    ? Object.keys(roomData.players).length
+    : 0;
+  const { gridRef, playersPerRow, shouldShowPopoverOnLeft } =
+    useGridLayout(totalPlayers); // Prevents flash during modal transitions
 
   // Helper function to check if any modal is currently active
   const hasActiveModal = () => {
@@ -1859,12 +1824,16 @@ export default function Play() {
           </div>
 
           {/* PLAYERS GRID */}
-          <div className="players-game-grid">
-            {Object.entries(players).map(([name, p]) => {
+          <div className="players-game-grid" ref={gridRef}>
+            {Object.entries(players).map(([name, p], index) => {
               const isProtected = roomData?.protectedPlayers?.includes(name);
               const isCurrentPlayer = name === currentPlayer;
               const isEliminated = p.isOut;
               const isYou = name === nickname;
+
+              // Use dynamic calculation for popover positioning
+              const shouldShowPopoverOnLeftSide =
+                shouldShowPopoverOnLeft(index);
 
               // Check if essential game actions are needed that would block the popover
               const shouldBlockPopover =
@@ -1951,6 +1920,7 @@ export default function Play() {
                     player={p}
                     gameMode={roomData?.mode || "normal"}
                     isVisible={hoveredPlayer === name && !shouldBlockPopover}
+                    showOnLeft={shouldShowPopoverOnLeftSide}
                   />
                 </div>
               );
