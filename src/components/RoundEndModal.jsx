@@ -4,6 +4,7 @@ import "./RoundEndModal.css";
 export default function RoundEndModal({ roundResult, players, onContinue }) {
   const [countdown, setCountdown] = useState(5);
 
+  /*
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -18,6 +19,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
 
     return () => clearInterval(timer);
   }, [onContinue]);
+  */
 
   const handleManualContinue = () => {
     onContinue();
@@ -160,10 +162,10 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                           </span>
                         </div>
                         <div className="card-info">
-                          <div className="card-name">
+                          <div className="round-end-card-name">
                             {card?.name || "Unknown"}
                           </div>
-                          <div className="card-strength">
+                          <div className="round-end-card-strength">
                             Strength: {standing.strength}
                           </div>
                         </div>
@@ -201,7 +203,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
 
           <div className="modal-footer">
             <button
-              className="btn btn-primary continue-btn"
+              className="btn btn-primary round-end-continue-btn"
               onClick={handleManualContinue}
             >
               ⚡ View Round Scoring Board ⚡

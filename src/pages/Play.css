@@ -73,7 +73,7 @@
   letter-spacing: 1px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-evenly;
 }
 
 .round-number {
@@ -125,8 +125,11 @@
 /* Players grid layout - Compact for up to 11 players */
 .players-game-grid {
   display: flex;
-  padding: 1rem;
-  padding-top: 1.5rem;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 3rem;
+  padding: 2rem 1rem 5.5rem;
   box-sizing: border-box;
   flex: 1;
 }
@@ -146,8 +149,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
   min-height: 120px;
-  min-width: 230px;
-  max-width: 250px;
+  width: 250px;
   max-height: 150px;
 }
 
@@ -231,20 +233,9 @@
   border: 1px solid #ffd700;
   display: flex;
   align-items: center;
+  justify-content: space-evenly;
   gap: 0.3rem;
   width: 20%;
-}
-
-/* Player info grid - Simplified, no card counts */
-.players-game-grid {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 3rem;
-  padding: 1rem;
-  padding-top: 2rem;
-  box-sizing: border-box;
-  flex: 1;
 }
 
 .player-stat {
@@ -285,7 +276,7 @@
   position: relative;
   background: linear-gradient(45deg, #8b0000, #b8860b);
   color: #ffd700;
-  padding: 0 0.5rem;
+  padding-left: 0.7rem;
   text-align: center;
   font-weight: bold;
   font-size: 1.1rem;
@@ -301,8 +292,8 @@
 
 .chronicle-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem;
+  padding: 0.7rem;
+  overflow-y: hidden;
 }
 
 .chronicle-notification {
@@ -332,7 +323,7 @@
   text-align: start;
   color: #999;
   font-style: italic;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .round-indicator {
@@ -957,14 +948,14 @@
   text-align: center;
   color: #ffd700;
   background: transparent;
-  margin-top: 2%;
+  margin-top: 0;
   position: relative;
 }
 
 .turn-section h3 {
   font-family: "Cinzel", serif;
   font-size: 1.3rem;
-  margin: 5% 0 8% 0;
+  margin: 1.5rem 0 2rem 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -972,6 +963,10 @@
 
 .turn-section p {
   font-size: 1.5rem;
+}
+
+.choose-card-header {
+  margin-top: 0.7rem;
 }
 
 /* Card container for portrait layout */
@@ -1264,6 +1259,12 @@
 /* Ensure royal-player-section has relative positioning for popover */
 .royal-player-section {
   position: relative;
+  z-index: 1; /* Default z-index */
+}
+
+/* Boost z-index when hovering to show popover above other player sections */
+.royal-player-section:hover {
+  z-index: 10000; /* Higher than the popover's z-index: 9999 */
 }
 
 .card-button:hover:not(:disabled) {
@@ -1326,7 +1327,7 @@
   border: 2px solid #ff6b6b;
   border-radius: 8px;
   padding: 12px;
-  margin: 10px 0;
+  margin: 1rem 0 2rem;
   color: #ffcccb;
   text-align: center;
   font-size: 0.95rem;

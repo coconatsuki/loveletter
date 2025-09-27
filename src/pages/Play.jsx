@@ -1901,7 +1901,9 @@ export default function Play() {
                       )}
                       {isEliminated && " 💀"}
                     </div>
-                    <div className="player-tokens">❤️ {p.tokens || 0}</div>
+                    <div className="player-tokens">
+                      <span>❤️</span> <span>{p.tokens || 0}</span>
+                    </div>
                   </div>
 
                   {/* Player Info Grid - Simplified */}
@@ -2004,7 +2006,9 @@ export default function Play() {
 
                             return (
                               <>
-                                <p>Choose a card to play:</p>
+                                <p className="choose-card-header">
+                                  Choose a card to play:
+                                </p>
                                 {countessForce.forced && (
                                   <div className="countess-warning">
                                     <strong>🎭 Royal Protocol Alert:</strong>
