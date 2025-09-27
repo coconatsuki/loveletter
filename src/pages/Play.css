@@ -20,13 +20,13 @@
 
 /* Main full-screen container with footer for round display */
 .royal-play-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   height: 100vh;
+  max-height: 100vh;
   width: 100vw;
   background: linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #2d1b1b 100%);
-  display: grid;
-  grid-template-columns: 1fr 19%; /* Main game area + Right sidebar */
-  grid-template-rows: 1fr; /* Game area */
-  overflow: hidden;
   font-family: "Cinzel", serif;
   position: relative;
 }
@@ -54,14 +54,16 @@
 .round-container {
   width: 50%;
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: 0px;
+  right: 0px;
 }
 
 .round-content {
   background: rgba(139, 0, 0, 0.8);
   color: #ffd700;
   border: 2px solid #ffd700;
+  border-top: none;
+  border-right: none;
   border-radius: 0 0 0 20px;
   padding: 0.4rem 1.2rem;
   font-weight: bold;
@@ -82,13 +84,10 @@
 
 /* Main game area - simplified since round moved to footer */
 .royal-game-area {
+  display: flex;
+  flex-direction: column;
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  overflow: hidden;
+  width: 80%;
 }
 
 /* Current player indicator - prominent */
@@ -97,8 +96,7 @@
   color: #ffd700;
   text-align: center;
   padding: 0.8rem;
-  border-radius: 15px;
-  border: 3px solid #ffd700;
+  border-bottom: 3px solid #ffd700;
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
   font-size: 1.3rem;
   font-weight: bold;
@@ -126,12 +124,11 @@
 
 /* Players grid layout - Compact for up to 11 players */
 .players-game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  overflow-y: auto;
+  display: flex;
   padding: 1rem;
-  max-height: calc(100vh);
+  padding-top: 1.5rem;
+  box-sizing: border-box;
+  flex: 1;
 }
 
 /* Player section cards  */
@@ -148,8 +145,8 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
-  /* overflow: hidden; */
   min-height: 120px;
+  min-width: 230px;
   max-width: 250px;
   max-height: 150px;
 }
@@ -239,12 +236,15 @@
 }
 
 /* Player info grid - Simplified, no card counts */
-.player-info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #e0e0e0;
+.players-game-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 3rem;
+  padding: 1rem;
+  padding-top: 2rem;
+  box-sizing: border-box;
+  flex: 1;
 }
 
 .player-stat {
@@ -267,24 +267,18 @@
   font-weight: bold;
 }
 
-/* Right sidebar containing round info + chronicle */
-.royal-right-sidebar {
+/* Game chronicle sidebar - Now full height */
+.royal-chronicle-sidebar {
   display: flex;
   flex-direction: column;
+  width: 20%;
+  position: relative;
   background: linear-gradient(
     180deg,
     rgba(139, 0, 0, 0.95),
     rgba(45, 27, 27, 0.95)
   );
   border-left: 3px solid #b8860b;
-}
-
-/* Game chronicle sidebar - Now full height */
-.royal-chronicle-sidebar {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
 }
 
 .chronicle-header {
@@ -885,15 +879,22 @@
    ROYAL ACTIONS MODAL SYSTEM
    ========================================== */
 
-/* Modal background - positioned relative to royal-game-area */
-.royal-action-area-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 900;
-  pointer-events: none; /* Allow interaction with the modal content */
+/* The actual modal content */
+.royal-actions-area {
+  position: relative;
+  background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
+  border: 3px solid #ffd700;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 5px 15px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 215, 0, 0.2);
+  width: 50%;
+  max-width: 600px;
+  max-height: 80vh;
+  animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: none; /* Reset any transforms */
+  bottom: auto;
+  left: auto;
 }
 
 /* Modal overlay - creates the blur effect and centers the modal */
@@ -911,24 +912,6 @@
   z-index: 1000;
   pointer-events: auto;
   animation: modalBackdropFadeIn 0.3s ease-out;
-}
-
-/* The actual modal content */
-.royal-actions-area {
-  position: relative;
-  background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
-  border: 3px solid #ffd700;
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 5px 15px rgba(255, 215, 0, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.2);
-  width: 50%;
-  max-width: 600px;
-  max-height: 80vh;
-  animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transform: none; /* Reset any transforms */
-  bottom: auto;
-  left: auto;
 }
 
 /* Crown decoration for the modal */

@@ -207,7 +207,7 @@ export default function Play() {
             );
             setIsPlaying(false);
           }
-          
+
           // CRITICAL: Reset isPlaying when it's no longer this player's turn
           // This prevents the flash of Game Actions Section during turn transitions
           if (newCurrentPlayer !== nickname && isPlaying) {
@@ -1819,7 +1819,9 @@ export default function Play() {
     );
 
     // Reset local state
-    console.log("🔄 PRINCESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)");
+    console.log(
+      "🔄 PRINCESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
   };
@@ -1975,111 +1977,55 @@ export default function Play() {
             (!isPlaying ||
               (roomData?.guardPrompt &&
                 roomData.guardPrompt.attacker === nickname)) && (
-              <div className="royal-action-area-background">
-                <div className="royal-action-area-overlay">
-                  <div className="royal-actions-area">
-                    {isMyTurn && (
-                      <div className="turn-section">
-                        {player.hand?.length === 1 && <h3>It’s your turn!</h3>}
-                        {player.hand?.length === 1 && (
-                          <button
-                            className="draw-card-button"
-                            onClick={drawCard}
-                          >
-                            Draw Card
-                          </button>
-                        )}
-                        {player.hand?.length === 2 && (
-                          <div>
-                            {(() => {
-                              const countessForce = getCountessForcePlay(
-                                player.hand
-                              );
-                              console.log(
-                                "🎭 COUNTESS DEBUG: Force play check result:",
-                                {
-                                  hand: player.hand,
-                                  countessForce,
-                                  handLength: player.hand?.length,
-                                }
-                              );
+              <div className="royal-action-area-overlay">
+                <div className="royal-actions-area">
+                  {isMyTurn && (
+                    <div className="turn-section">
+                      {player.hand?.length === 1 && <h3>It’s your turn!</h3>}
+                      {player.hand?.length === 1 && (
+                        <button className="draw-card-button" onClick={drawCard}>
+                          Draw Card
+                        </button>
+                      )}
+                      {player.hand?.length === 2 && (
+                        <div>
+                          {(() => {
+                            const countessForce = getCountessForcePlay(
+                              player.hand
+                            );
+                            console.log(
+                              "🎭 COUNTESS DEBUG: Force play check result:",
+                              {
+                                hand: player.hand,
+                                countessForce,
+                                handLength: player.hand?.length,
+                              }
+                            );
 
-                              return (
-                                <>
-                                  <p>Choose a card to play:</p>
-                                  {countessForce.forced && (
-                                    <div className="countess-warning">
-                                      <strong>🎭 Royal Protocol Alert:</strong>
-                                      <br />
-                                      {countessForce.reason}
-                                    </div>
-                                  )}
+                            return (
+                              <>
+                                <p>Choose a card to play:</p>
+                                {countessForce.forced && (
+                                  <div className="countess-warning">
+                                    <strong>🎭 Royal Protocol Alert:</strong>
+                                    <br />
+                                    {countessForce.reason}
+                                  </div>
+                                )}
 
-                                  <div
-                                    className={`card-selection-container ${
-                                      selectedCardForUI !== null
-                                        ? "card-selected"
-                                        : ""
-                                    }`}
-                                  >
-                                    {/* Show selected card on left when a card is selected */}
-                                    {selectedCardForUI !== null ? (
-                                      <div className="selected-card-display">
-                                        {(() => {
-                                          const card =
-                                            player.hand[selectedCardForUI];
-                                          const isBlocked =
-                                            countessForce.forced &&
-                                            ((card.id === 5 &&
-                                              countessForce.blockedCard ===
-                                                "Prince") ||
-                                              (card.id === 6 &&
-                                                countessForce.blockedCard ===
-                                                  "Phantom King"));
-
-                                          return (
-                                            <button
-                                              className={`card-button ${
-                                                isBlocked ? "blocked" : ""
-                                              } selected`}
-                                              disabled={true}
-                                            >
-                                              <div className="card-strength">
-                                                {card.strength}
-                                              </div>
-                                              <div
-                                                className="card-image"
-                                                style={{
-                                                  backgroundImage: `url('/src/img/${getCardImage(
-                                                    card.name
-                                                  )}')`,
-                                                }}
-                                              ></div>
-
-                                              <div className="card-content">
-                                                <div className="card-name">
-                                                  {card.name}
-                                                </div>
-                                                <div className="card-effect">
-                                                  {card.effect}
-                                                </div>
-                                                {isBlocked && (
-                                                  <div className="card-blocked-text">
-                                                    🎭 Blocked by Countess
-                                                  </div>
-                                                )}
-                                                <CardCountStars
-                                                  cardId={card.id}
-                                                  gameMode={roomData?.mode}
-                                                />
-                                              </div>
-                                            </button>
-                                          );
-                                        })()}
-                                      </div>
-                                    ) : (
-                                      /* Show all cards when no card is selected */
-                                      player.hand.map((card, index) => {
+                                <div
+                                  className={`card-selection-container ${
+                                    selectedCardForUI !== null
+                                      ? "card-selected"
+                                      : ""
+                                  }`}
+                                >
+                                  {/* Show selected card on left when a card is selected */}
+                                  {selectedCardForUI !== null ? (
+                                    <div className="selected-card-display">
+                                      {(() => {
+                                        const card =
+                                          player.hand[selectedCardForUI];
                                         const isBlocked =
                                           countessForce.forced &&
                                           ((card.id === 5 &&
@@ -2091,17 +2037,10 @@ export default function Play() {
 
                                         return (
                                           <button
-                                            key={index}
-                                            onClick={() => playCard(index)}
                                             className={`card-button ${
                                               isBlocked ? "blocked" : ""
-                                            }`}
-                                            disabled={isPlaying || isBlocked}
-                                            title={
-                                              isBlocked
-                                                ? `Cannot play ${card.name} - Countess demands precedence!`
-                                                : ""
-                                            }
+                                            } selected`}
+                                            disabled={true}
                                           >
                                             <div className="card-strength">
                                               {card.strength}
@@ -2134,66 +2073,124 @@ export default function Play() {
                                             </div>
                                           </button>
                                         );
-                                      })
+                                      })()}
+                                    </div>
+                                  ) : (
+                                    /* Show all cards when no card is selected */
+                                    player.hand.map((card, index) => {
+                                      const isBlocked =
+                                        countessForce.forced &&
+                                        ((card.id === 5 &&
+                                          countessForce.blockedCard ===
+                                            "Prince") ||
+                                          (card.id === 6 &&
+                                            countessForce.blockedCard ===
+                                              "Phantom King"));
+
+                                      return (
+                                        <button
+                                          key={index}
+                                          onClick={() => playCard(index)}
+                                          className={`card-button ${
+                                            isBlocked ? "blocked" : ""
+                                          }`}
+                                          disabled={isPlaying || isBlocked}
+                                          title={
+                                            isBlocked
+                                              ? `Cannot play ${card.name} - Countess demands precedence!`
+                                              : ""
+                                          }
+                                        >
+                                          <div className="card-strength">
+                                            {card.strength}
+                                          </div>
+                                          <div
+                                            className="card-image"
+                                            style={{
+                                              backgroundImage: `url('/src/img/${getCardImage(
+                                                card.name
+                                              )}')`,
+                                            }}
+                                          ></div>
+
+                                          <div className="card-content">
+                                            <div className="card-name">
+                                              {card.name}
+                                            </div>
+                                            <div className="card-effect">
+                                              {card.effect}
+                                            </div>
+                                            {isBlocked && (
+                                              <div className="card-blocked-text">
+                                                🎭 Blocked by Countess
+                                              </div>
+                                            )}
+                                            <CardCountStars
+                                              cardId={card.id}
+                                              gameMode={roomData?.mode}
+                                            />
+                                          </div>
+                                        </button>
+                                      );
+                                    })
+                                  )}
+
+                                  {/* Show TargetModal on the right when a card is selected and modal should be shown */}
+                                  {selectedCardForUI !== null &&
+                                    showTargetModal &&
+                                    selectedCardIndex !== null &&
+                                    player.hand?.[selectedCardIndex] && (
+                                      <div className="target-modal-display">
+                                        <TargetModal
+                                          players={players}
+                                          currentPlayer={nickname}
+                                          cardPlayed={
+                                            player.hand[selectedCardIndex].id
+                                          }
+                                          protectedPlayers={
+                                            roomData?.protectedPlayers || []
+                                          }
+                                          onConfirm={handleTargetConfirm}
+                                          onCancel={handleCardBack}
+                                        />
+                                      </div>
                                     )}
 
-                                    {/* Show TargetModal on the right when a card is selected and modal should be shown */}
-                                    {selectedCardForUI !== null &&
-                                      showTargetModal &&
-                                      selectedCardIndex !== null &&
-                                      player.hand?.[selectedCardIndex] && (
-                                        <div className="target-modal-display">
-                                          <TargetModal
-                                            players={players}
-                                            currentPlayer={nickname}
-                                            cardPlayed={
-                                              player.hand[selectedCardIndex].id
-                                            }
-                                            protectedPlayers={
-                                              roomData?.protectedPlayers || []
-                                            }
-                                            onConfirm={handleTargetConfirm}
-                                            onCancel={handleCardBack}
-                                          />
-                                        </div>
-                                      )}
-
-                                    {/* Show waiting message when AssassinPromptModal is active and current player is the attacker */}
-                                    {selectedCardForUI !== null &&
-                                      roomData?.guardPrompt &&
-                                      roomData.guardPrompt.attacker ===
-                                        nickname &&
-                                      player.hand?.[selectedCardForUI]?.id ===
-                                        1 && (
-                                        <div className="assassin-waiting-display">
-                                          <div className="assassin-waiting-content">
-                                            <div className="assassin-waiting-icon">
-                                              ⏳
-                                            </div>
-                                            <div className="assassin-waiting-title">
-                                              Awaiting Fate's Response...
-                                            </div>
-                                            <div className="assassin-waiting-message">
-                                              🗡️ Your accusation has been
-                                              delivered to{" "}
-                                              <strong>
-                                                {roomData.guardPrompt.target}
-                                              </strong>
-                                              .
-                                              <br />
-                                            </div>
+                                  {/* Show waiting message when AssassinPromptModal is active and current player is the attacker */}
+                                  {selectedCardForUI !== null &&
+                                    roomData?.guardPrompt &&
+                                    roomData.guardPrompt.attacker ===
+                                      nickname &&
+                                    player.hand?.[selectedCardForUI]?.id ===
+                                      1 && (
+                                      <div className="assassin-waiting-display">
+                                        <div className="assassin-waiting-content">
+                                          <div className="assassin-waiting-icon">
+                                            ⏳
+                                          </div>
+                                          <div className="assassin-waiting-title">
+                                            Awaiting Fate's Response...
+                                          </div>
+                                          <div className="assassin-waiting-message">
+                                            🗡️ Your accusation has been
+                                            delivered to{" "}
+                                            <strong>
+                                              {roomData.guardPrompt.target}
+                                            </strong>
+                                            .
+                                            <br />
                                           </div>
                                         </div>
-                                      )}
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                                      </div>
+                                    )}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2586,36 +2583,33 @@ export default function Play() {
           )}
         </div>
 
-        {/* RIGHT SIDEBAR: Chronicle */}
-        <div className="royal-right-sidebar">
-          {/* ROYAL CHRONICLE SIDEBAR */}
-          <div className="royal-chronicle-sidebar">
-            <div className="chronicle-header">
-              {/* ROUND */}
-              <div className="round-container">
-                <div className="round-content">
-                  <span role="img" aria-label="Round">
-                    ⚔️
-                  </span>
-                  <span>Round</span>
-                  <span className="round-number">{roundNumber}</span>
-                </div>
+        {/* ROYAL CHRONICLE SIDEBAR */}
+        <div className="royal-chronicle-sidebar">
+          <div className="chronicle-header">
+            {/* ROUND */}
+            <div className="round-container">
+              <div className="round-content">
+                <span role="img" aria-label="Round">
+                  ⚔️
+                </span>
+                <span>Round</span>
+                <span className="round-number">{roundNumber}</span>
               </div>
-              <h3>📜 Game Chronicle</h3>
             </div>
-            <div className="chronicle-content">
-              {notifications.map((n, i) => (
-                <div key={i} className="chronicle-notification">
-                  <span className="chronicle-arrow">➤</span>
-                  <span className="chronicle-message">{n.message}</span>
-                </div>
-              ))}
-              {notifications.length === 0 && (
-                <div className="chronicle-empty">
-                  <em>📜 The chronicle awaits the first royal decree...</em>
-                </div>
-              )}
-            </div>
+            <h3>📜 Game Chronicle</h3>
+          </div>
+          <div className="chronicle-content">
+            {notifications.map((n, i) => (
+              <div key={i} className="chronicle-notification">
+                <span className="chronicle-arrow">➤</span>
+                <span className="chronicle-message">{n.message}</span>
+              </div>
+            ))}
+            {notifications.length === 0 && (
+              <div className="chronicle-empty">
+                <em>📜 The chronicle awaits the first royal decree...</em>
+              </div>
+            )}
           </div>
         </div>
 
