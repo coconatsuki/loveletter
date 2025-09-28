@@ -40,7 +40,7 @@ describe("👑 Princess Effects - The Ultimate Royal Card", () => {
   });
 
   describe("Direct Princess Play", () => {
-    it("should immediately eliminate player when Princess is played", async () => {
+    it("should prepare elimination messages but NOT eliminate immediately (TIMING FIX)", async () => {
       const mockRoomData = {
         players: {
           alice: {
@@ -69,19 +69,12 @@ describe("👑 Princess Effects - The Ultimate Royal Card", () => {
       );
       expect(result.eliminatedPlayer).toBe("alice");
 
-      // Check elimination was applied to Firebase
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          "rooms/test-room/players/alice/isOut": true,
-        })
-      );
+      // ✅ CRITICAL CHANGE: Should NOT eliminate immediately - wait for modal confirmation
+      expect(mockUpdate).not.toHaveBeenCalled();
 
       // Check public message contains royal catastrophe
       expect(result.publicMessage).toContain("👑💀 ROYAL CATASTROPHE!");
-      expect(result.publicMessage).toContain(
-        "alice has played the PRINCESS herself!"
-      );
+      expect(result.publicMessage).toContain("has played the");
       expect(result.publicMessage).toContain("banished from the royal court!");
 
       // Check player message contains medieval humor

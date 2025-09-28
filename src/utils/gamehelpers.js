@@ -3,7 +3,7 @@ export function getStartingPlayer(players, roundNumber = 1) {
     const names = Object.keys(players);
     return names[Math.floor(Math.random() * names.length)];
   } else {
-    const max = Math.max(...Object.values(players).map(p => p.tokens));
+    const max = Math.max(...Object.values(players).map((p) => p.tokens));
     const topScorers = Object.entries(players)
       .filter(([_, p]) => p.tokens === max)
       .map(([name]) => name);
@@ -18,4 +18,12 @@ export function shuffleDeck(deck) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+export function getCardCount(cardId, gameMode, cards) {
+  const card = cards.find((c) => c.id === cardId);
+  if (!card) return 0;
+
+  const isPremiumMode = gameMode === "premium";
+  return isPremiumMode ? card.countPremium : card.countNormal;
 }

@@ -82,8 +82,9 @@ describe("🎭 Countess Effects - The Royal Matriarch", () => {
 
       // Check public notification contains royal intrigue
       expect(result.publicMessage).toContain(
-        "🎭✨ The Countess herself has appeared in court with alice!"
+        "The Countess herself has appeared in court"
       );
+      expect(result.publicMessage).toContain("alice");
       expect(result.publicMessage).toContain(
         "Her regal presence commands attention"
       );

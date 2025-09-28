@@ -175,211 +175,199 @@ export default function GameScoring() {
   return (
     <div className={`game-scoring-container ${fadeIn ? "fade-in" : ""}`}>
       <div className="game-scoring-main">
-        {/* Royal decorations */}
-        <div className="royal-decoration royal-top-left">👑</div>
-        <div className="royal-decoration royal-top-right">👑</div>
-        <div className="royal-decoration royal-bottom-left">⚜️</div>
-        <div className="royal-decoration royal-bottom-right">⚜️</div>
-
-        <div className="content-layout">
-          <div className="main-column">
-            {/* Epic Header */}
-            <div className="epic-header">
-              <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
-              <div className="epic-subtitle">
-                ⚔️ The Battle for the Princess's Heart Has Concluded ⚔️
-              </div>
-            </div>
-
-            {/* Winner Announcement */}
-            {finalResult && (
-              <div className="winner-announcement">
-                {finalResult.istie ? (
-                  <>
-                    <h2 className="winner-title">👑 ROYAL TIE! 👑</h2>
-                    <div className="winner-text">
-                      Multiple suitors have won the Princess's heart with{" "}
-                      <span className="token-count">
-                        {finalResult.maxTokens}
-                      </span>{" "}
-                      love tokens each:
-                    </div>
-                    <div className="winners-list">
-                      {finalResult.winners.map((winner, index) => {
-                        const nameFormat = formatPlayerName(winner);
-                        return (
-                          <div key={winner.name} className="winner-name">
-                            🎭 {nameFormat.primary}
-                            {nameFormat.secondary && (
-                              <span className="winner-real-name">
-                                {" "}
-                                ({nameFormat.secondary})
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="epic-phrase">
-                      "In matters of the heart, even the wisest Princess cannot
-                      choose between such worthy suitors! A royal wedding feast
-                      shall honor them all!"
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="winner-title">👑 BEHOLD THE CHAMPION! 👑</h2>
-                    {(() => {
-                      const champion = finalResult.winners[0];
-                      const nameFormat = formatPlayerName(champion);
-                      return (
-                        <>
-                          <div className="winner-text">
-                            The Princess's heart belongs to:{" "}
-                            <span className="champion-name">
-                              {nameFormat.primary}
-                            </span>
-                            {nameFormat.secondary && (
-                              <span className="champion-real-name">
-                                {" "}
-                                ({nameFormat.secondary})
-                              </span>
-                            )}
-                          </div>
-                          <div className="token-display">
-                            With{" "}
-                            <span className="token-count">
-                              {finalResult.maxTokens}
-                            </span>{" "}
-                            precious love tokens!
-                          </div>
-                          <div className="epic-phrase">
-                            "Through wit, charm, and noble deeds, our champion
-                            has proven worthy of the Princess's hand. Let the
-                            royal wedding bells ring throughout the kingdom!"
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Final Leaderboard */}
-            <div className="final-leaderboard">
-              <h3 className="leaderboard-title">🏆 Final Court Rankings 🏆</h3>
-              <div className="leaderboard-list">
-                {sortedPlayers.map((player, index) => {
-                  const nameFormat = formatPlayerName(player);
-                  const isCurrentUser = player.name === nickname;
-                  const isWinner =
-                    finalResult &&
-                    finalResult.winners.some((w) => w.name === player.name);
-
-                  return (
-                    <div
-                      key={player.name}
-                      className={`final-player-row ${
-                        index === 0 ? "champion" : "noble"
-                      } ${isWinner ? "winner" : ""}`}
-                    >
-                      <div className="player-rank-section">
-                        <span className="player-rank">
-                          {index === 0
-                            ? "👑"
-                            : index === 1
-                            ? "🥈"
-                            : index === 2
-                            ? "🥉"
-                            : `${index + 1}.`}
-                        </span>
-                        <div className="player-names">
-                          <div className="player-nickname">
-                            {nameFormat.primary}
-                            {isCurrentUser && (
-                              <span className="player-you-indicator">
-                                (You)
-                              </span>
-                            )}
-                          </div>
-                          {nameFormat.secondary && (
-                            <div className="player-realname">
-                              {nameFormat.secondary}
+        <div className="game-scoring-content-layout">
+          <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
+          <div className="game-scoring-columns-container">
+            <div className="game-scoring-main-column">
+              {/* Winner Announcement */}
+              {finalResult && (
+                <div className="winner-announcement">
+                  {finalResult.istie ? (
+                    <>
+                      <div className="winner-text">
+                        Multiple suitors have won the Princess's heart with{" "}
+                        <span className="token-count">
+                          {finalResult.maxTokens}
+                        </span>{" "}
+                        love tokens each:
+                      </div>
+                      <div className="winners-list">
+                        {finalResult.winners.map((winner, index) => {
+                          const nameFormat = formatPlayerName(winner);
+                          return (
+                            <div key={winner.name} className="winner-name">
+                              🎭 {nameFormat.primary}
+                              {nameFormat.secondary && (
+                                <span className="winner-real-name">
+                                  {" "}
+                                  ({nameFormat.secondary})
+                                </span>
+                              )}
                             </div>
+                          );
+                        })}
+                      </div>
+                      <div className="epic-phrase">
+                        "In matters of the heart, even the wisest Princess
+                        cannot choose between such worthy suitors! A royal
+                        wedding feast shall honor them all!"
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {(() => {
+                        const champion = finalResult.winners[0];
+                        const nameFormat = formatPlayerName(champion);
+                        return (
+                          <>
+                            <div className="winner-text">
+                              The Princess's heart belongs to:{" "}
+                              <span className="champion-name">
+                                {nameFormat.primary}
+                              </span>
+                              {nameFormat.secondary && (
+                                <span className="champion-real-name">
+                                  {" "}
+                                  ({nameFormat.secondary})
+                                </span>
+                              )}
+                            </div>
+                            <div className="token-display">
+                              With{" "}
+                              <span className="token-count">
+                                {finalResult.maxTokens}
+                              </span>{" "}
+                              precious love tokens!
+                            </div>
+                            <div className="epic-phrase">
+                              "Through wit, charm, and noble deeds, our champion
+                              has proven worthy of the Princess's hand. Let the
+                              royal wedding bells ring throughout the kingdom!"
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Final Leaderboard */}
+              <div className="final-leaderboard">
+                <h3 className="game-scoring-leaderboard-title">
+                  🏆 Final Court Rankings 🏆
+                </h3>
+                <div className="game-scoring-leaderboard-list">
+                  {sortedPlayers.map((player, index) => {
+                    const nameFormat = formatPlayerName(player);
+                    const isCurrentUser = player.name === nickname;
+                    const isWinner =
+                      finalResult &&
+                      finalResult.winners.some((w) => w.name === player.name);
+
+                    return (
+                      <div
+                        key={player.name}
+                        className={`final-player-row ${
+                          index === 0 ? "champion" : "noble"
+                        } ${isWinner ? "winner" : ""}`}
+                      >
+                        <div className="player-rank-section">
+                          <span className="player-rank">
+                            {index === 0
+                              ? "👑"
+                              : index === 1
+                              ? "🥈"
+                              : index === 2
+                              ? "🥉"
+                              : `${index + 1}.`}
+                          </span>
+                          <div className="player-names">
+                            <div className="player-nickname">
+                              {nameFormat.primary}
+                              {isCurrentUser && (
+                                <span className="player-you-indicator">
+                                  (You)
+                                </span>
+                              )}
+                            </div>
+                            {nameFormat.secondary && (
+                              <div className="player-realname">
+                                {nameFormat.secondary}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="player-score">
+                          <span className="final-tokens">
+                            {player.tokens || 0} love token
+                            {(player.tokens || 0) !== 1 ? "s" : ""}
+                          </span>
+                          {isWinner && (
+                            <span className="winner-badge">👑 Champion</span>
                           )}
                         </div>
                       </div>
-
-                      <div className="player-score">
-                        <span className="final-tokens">
-                          {player.tokens || 0} love token
-                          {(player.tokens || 0) !== 1 ? "s" : ""}
-                        </span>
-                        {isWinner && (
-                          <span className="winner-badge">👑 Champion</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Host Actions */}
+              {isHost && (
+                <div className="host-final-actions">
+                  <button
+                    onClick={returnToLanding}
+                    className="return-to-court-button"
+                  >
+                    🏰 Return to Royal Court
+                  </button>
+                </div>
+              )}
+
+              {/* Non-host message */}
+              {!isHost && (
+                <div className="awaiting-host-message">
+                  🕰️ Awaiting the host's command to return to the royal court...
+                </div>
+              )}
             </div>
 
-            {/* Host Actions */}
-            {isHost && (
-              <div className="host-final-actions">
-                <button
-                  onClick={returnToLanding}
-                  className="return-to-court-button"
-                >
-                  🏰 Return to Royal Court
-                </button>
-                <div className="host-note">
-                  This will redirect all players back to the main court
-                </div>
-              </div>
-            )}
-
-            {/* Non-host message */}
-            {!isHost && (
-              <div className="awaiting-host-message">
-                🕰️ Awaiting the host's command to return to the royal court...
-              </div>
-            )}
-          </div>
-
-          <div className="side-column">
-            {/* Princess Wedding Image */}
-            <div className="princess-wedding">
-              <div className="wedding-frame">
-                <div className="princess-image">
-                  {/* Background image will be set via CSS */}
-                </div>
-                <div className="wedding-caption">
-                  💐 The Princess awaits her champion 💐
-                </div>
-              </div>
-
-              {/* Tournament Chronicle - Moved from main column */}
-              <div className="tournament-summary">
-                <h3 className="summary-title">⚔️ Tournament Chronicle ⚔️</h3>
-                <div className="summary-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">Total Rounds Played:</span>
-                    <span className="stat-value">{totalRounds}</span>
+            <div className="game-scoring-side-column">
+              {/* Princess Wedding Image */}
+              <div className="princess-wedding">
+                <div className="wedding-frame">
+                  <div className="princess-image"></div>
+                  <div className="wedding-caption">
+                    💐 The Princess awaits her champion 💐
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Noble Participants:</span>
-                    <span className="stat-value">{sortedPlayers.length}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Game Mode:</span>
-                    <span className="stat-value">
-                      {roomData.mode === "premium"
-                        ? "👑 Premium Court"
-                        : "🏰 Royal Court"}
-                    </span>
+                </div>
+
+                {/* Tournament Chronicle - Moved from main column */}
+                <div className="tournament-summary">
+                  <h3 className="summary-title">⚔️ Tournament Chronicle ⚔️</h3>
+                  <div className="summary-stats">
+                    <div className="summary-stats-first-row">
+                      <div className="stat-item">
+                        <span className="stat-label">Total Rounds Played:</span>
+                        <span className="stat-value">{totalRounds}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">Noble Participants:</span>
+                        <span className="stat-value">
+                          {sortedPlayers.length}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="stat-item stat-item-second-row">
+                      <span className="stat-label">Game Mode:</span>
+                      <span className="stat-value">
+                        {roomData.mode === "premium"
+                          ? "👑 Premium Court"
+                          : "🏰 Classic Court"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

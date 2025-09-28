@@ -1,5 +1,63 @@
 import React from "react";
 
+// CSS styles for card effect formatting
+const effectTextStyles = `
+  .effect-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #d4af37;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    margin: 0.5em 0;
+    text-align: center;
+  }
+
+  .effect-player {
+    font-weight: bold;
+    color: #87ceeb;
+  }
+
+  .effect-card {
+    font-weight: bold;
+    color: #ffd700;
+  }
+
+  .effect-strength {
+    font-weight: bold;
+    color: #ff6b6b;
+  }
+
+  .effect-quote {
+    font-style: italic;
+    color: #daa520;
+    margin: 0.5em 0;
+    padding: 0.25em;
+    border-left: 3px solid #daa520;
+    padding-left: 1em;
+  }
+
+  .effect-signature {
+    font-style: italic;
+    text-align: right;
+    color: #c0c0c0;
+    margin-top: 0.25em;
+  }
+
+  .effect-description {
+    line-height: 1.4;
+    margin: 0.3em 0;
+  }
+
+  .effect-warning {
+    color: #ff4444;
+    font-weight: bold;
+  }
+
+  .effect-success {
+    color: #44ff44;
+    font-weight: bold;
+  }
+`;
+
 // Helper function to get the correct card image
 const getCardImage = (cardName) => {
   const imageMap = {
@@ -33,23 +91,22 @@ export default function EffectResultModal({
 }) {
   console.log("EffectResultModal has been called! / resultText: ", resultText);
 
-  // Helper function to format text with markdown-like syntax
+  // Helper function to render HTML text directly (no more markdown conversion needed)
   const formatText = (text) => {
     if (!text) return "";
 
-    return text.split("\n").map((line, index) => {
-      // Handle bold text (**text**)
-      let formattedLine = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-      // Handle italic text (*text*)
-      formattedLine = formattedLine.replace(/\*(.*?)\*/g, "<em>$1</em>");
+    // If the text contains HTML tags, render it directly
+    if (text.includes("<")) {
+      return <div dangerouslySetInnerHTML={{ __html: text }} />;
+    }
 
-      return (
-        <React.Fragment key={index}>
-          <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
-          {index < text.split("\n").length - 1 && <br />}
-        </React.Fragment>
-      );
-    });
+    // Fallback for plain text (legacy support during transition)
+    return text.split("\n").map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < text.split("\n").length - 1 && <br />}
+      </React.Fragment>
+    ));
   };
 
   // Check if this is a Handmaid protection message
@@ -84,159 +141,167 @@ export default function EffectResultModal({
   }
 
   return (
-    <div className="modal" style={modalOverlayStyle}>
-      <div
-        className="modal-content"
-        style={{
-          ...modalContentStyle,
-          ...(isHandmaidProtection ? handmaidModalStyle : {}),
-          ...(isPriestEffect ? priestModalStyle : {}),
-        }}
-      >
-        {/* Crown decoration */}
+    <>
+      <style>{effectTextStyles}</style>
+      <div className="modal" style={modalOverlayStyle}>
         <div
+          className="modal-content"
           style={{
-            position: "absolute",
-            top: "-30px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: isPriestEffect
-              ? "#6a4c93"
-              : isHandmaidProtection
-              ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
-              : "#8b0000",
-            border: `3px solid ${
-              isPriestEffect
-                ? "#9b59b6"
-                : isHandmaidProtection
-                ? "#8bc34a"
-                : "#ffd700"
-            }`,
-            borderRadius: "50%",
-            width: "50px",
-            height: "50px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.5rem",
-            boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
-            zIndex: 1001,
+            ...modalContentStyle,
+            ...(isHandmaidProtection ? handmaidModalStyle : {}),
+            ...(isPriestEffect ? priestModalStyle : {}),
           }}
         >
-          {isPriestEffect ? "🔍" : isHandmaidProtection ? "🛡️" : "📜"}
-        </div>
-
-        <h3 style={getHeaderStyle(isHandmaidProtection, isPriestEffect)}>
-          {isPriestEffect
-            ? "Priest's Divine Revelation"
-            : isHandmaidProtection
-            ? "Protected by the Handmaid"
-            : "Effect Result"}
-        </h3>
-
-        {/* Special Priest Layout with Card Display */}
-        {isPriestEffect && revealedCard ? (
-          <div style={priestLayoutStyle}>
-            {/* Left side - The revealed card */}
-            <div style={priestCardContainerStyle}>
-              <div style={priestCardStyle}>
-                <div style={priestCardStrengthStyle}>
-                  {revealedCard.strength}
-                </div>
-                <div
-                  style={{
-                    ...priestCardImageStyle,
-                    backgroundImage: `url('/src/img/${getCardImage(
-                      revealedCard.name
-                    )}')`,
-                  }}
-                ></div>
-                <div style={priestCardContentStyle}>
-                  <div style={priestCardNameStyle}>{revealedCard.name}</div>
-                  <div style={priestCardEffectStyle}>{revealedCard.effect}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right side - The spying message */}
-            <div style={priestMessageContainerStyle}>
-              <div style={priestSpyIconStyle}>👁️‍🗨️</div>
-              <div style={priestMessageStyle}>{formatText(resultText)}</div>
-            </div>
-          </div>
-        ) : (
-          /* Standard layout for non-Priest effects */
-          <>
-            <div style={messageStyle}>{formatText(resultText)}</div>
-
-            {cardDetails && !isPriestEffect && (
-              <div style={cardDetailsStyle}>
-                {Object.entries(cardDetails).map(([label, value]) => (
-                  <div key={label} style={detailRowStyle}>
-                    <strong>{label}:</strong> {value}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        <div
-          style={{
-            ...buttonContainerStyle,
-            ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
-            ...(isPriestEffect ? priestButtonContainerStyle : {}),
-          }}
-        >
-          <button
-            onClick={onClose}
+          {/* Crown decoration */}
+          <div
             style={{
-              ...buttonStyle,
-              ...(isHandmaidProtection ? handmaidButtonStyle : {}),
-              ...(isPriestEffect ? priestButtonStyle : {}),
-            }}
-            onMouseEnter={(e) => {
-              if (isHandmaidProtection) {
-                e.target.style.background =
-                  "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 25px rgba(76, 175, 80, 0.5)";
-              } else if (isPriestEffect) {
-                e.target.style.color = "#8b0000";
-                e.target.style.background =
-                  "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 25px rgba(255, 215, 0, 0.5)";
-              } else {
-                e.target.style.background =
-                  "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 6px 25px rgba(255, 215, 0, 0.5)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isHandmaidProtection) {
-                e.target.style.background =
-                  "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-              } else if (isPriestEffect) {
-                e.target.style.color = "#ffd700";
-                e.target.style.background =
-                  "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
-              } else {
-                e.target.style.background =
-                  "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-              }
+              position: "absolute",
+              top: "-30px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: isPriestEffect
+                ? "#6a4c93"
+                : isHandmaidProtection
+                ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
+                : "#8b0000",
+              border: `3px solid ${
+                isPriestEffect
+                  ? "#9b59b6"
+                  : isHandmaidProtection
+                  ? "#8bc34a"
+                  : "#ffd700"
+              }`,
+              borderRadius: "50%",
+              width: "50px",
+              height: "50px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.5rem",
+              boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
+              zIndex: 1001,
             }}
           >
-            {isHandmaidProtection ? "🍰✨ Very Well ✨🫖" : "Continue"}
-          </button>
+            {isPriestEffect ? "🔍" : isHandmaidProtection ? "🛡️" : "📜"}
+          </div>
+
+          <h3 style={getHeaderStyle(isHandmaidProtection, isPriestEffect)}>
+            {isPriestEffect
+              ? "Priest's Divine Revelation"
+              : isHandmaidProtection
+              ? "Protected by the Handmaid"
+              : "Effect Result"}
+          </h3>
+
+          {/* Special Priest Layout with Card Display */}
+          {isPriestEffect && revealedCard ? (
+            <div style={priestLayoutStyle}>
+              {/* Left side - The revealed card */}
+              <div style={priestCardContainerStyle}>
+                <div style={priestCardStyle}>
+                  <div style={priestCardStrengthStyle}>
+                    {revealedCard.strength}
+                  </div>
+                  <div
+                    style={{
+                      ...priestCardImageStyle,
+                      backgroundImage: `url('/src/img/${getCardImage(
+                        revealedCard.name
+                      )}')`,
+                    }}
+                  ></div>
+                  <div style={priestCardContentStyle}>
+                    <div style={priestCardNameStyle}>{revealedCard.name}</div>
+                    <div style={priestCardEffectStyle}>
+                      {revealedCard.effect}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - The spying message */}
+              <div style={priestMessageContainerStyle}>
+                <div style={priestSpyIconStyle}>👁️‍🗨️</div>
+                <div style={priestMessageStyle}>{formatText(resultText)}</div>
+              </div>
+            </div>
+          ) : (
+            /* Standard layout for non-Priest effects */
+            <>
+              <div style={messageStyle}>{formatText(resultText)}</div>
+
+              {cardDetails && !isPriestEffect && (
+                <div style={cardDetailsStyle}>
+                  {Object.entries(cardDetails).map(([label, value]) => (
+                    <div key={label} style={detailRowStyle}>
+                      <strong>{label}:</strong> {value}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          <div
+            style={{
+              ...buttonContainerStyle,
+              ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
+              ...(isPriestEffect ? priestButtonContainerStyle : {}),
+            }}
+          >
+            <button
+              onClick={onClose}
+              style={{
+                ...buttonStyle,
+                ...(isHandmaidProtection ? handmaidButtonStyle : {}),
+                ...(isPriestEffect ? priestButtonStyle : {}),
+              }}
+              onMouseEnter={(e) => {
+                if (isHandmaidProtection) {
+                  e.target.style.background =
+                    "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow =
+                    "0 6px 25px rgba(76, 175, 80, 0.5)";
+                } else if (isPriestEffect) {
+                  e.target.style.color = "#8b0000";
+                  e.target.style.background =
+                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow =
+                    "0 6px 25px rgba(255, 215, 0, 0.5)";
+                } else {
+                  e.target.style.background =
+                    "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow =
+                    "0 6px 25px rgba(255, 215, 0, 0.5)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isHandmaidProtection) {
+                  e.target.style.background =
+                    "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                } else if (isPriestEffect) {
+                  e.target.style.color = "#ffd700";
+                  e.target.style.background =
+                    "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                } else {
+                  e.target.style.background =
+                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                }
+              }}
+            >
+              {isHandmaidProtection ? "🍰✨ Very Well ✨🫖" : "Continue"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -262,8 +327,8 @@ const modalContentStyle = {
   borderRadius: "20px",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
-  maxWidth: "500px",
-  width: "90%",
+  maxWidth: "900px",
+  width: "75%",
   textAlign: "center",
   border: "4px solid #ffd700",
   position: "relative",

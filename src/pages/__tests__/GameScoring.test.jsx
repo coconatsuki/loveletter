@@ -124,7 +124,9 @@ describe("GameScoring Component", () => {
 
       await waitFor(() => {
         expect(screen.getByText(/ROYAL TOURNAMENT FINALE/)).toBeInTheDocument();
-        expect(screen.getByText(/Battle for the Princess/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/The Princess's heart belongs to/)
+        ).toBeInTheDocument();
       });
     });
     it("should display final winner information", async () => {
@@ -151,7 +153,9 @@ describe("GameScoring Component", () => {
       triggerCallbacks(roomData);
 
       await waitFor(() => {
-        expect(screen.getByText(/BEHOLD THE CHAMPION/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/The Princess's heart belongs to/)
+        ).toBeInTheDocument();
         // Check for champion name in the winner announcement section
         const winnerAnnouncement = screen.getByText(
           /The Princess's heart belongs to/

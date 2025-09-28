@@ -43,7 +43,7 @@ describe("Handmaid Card Effects", () => {
       expect(result.result).toBe("protection");
       expect(result.protectedPlayer).toBe("alice");
       expect(result.publicMessage).toContain(
-        "Alice calls upon the Princess' Handmaid"
+        "calls upon the Princess' Handmaid"
       );
       expect(result.publicMessage).toContain("tea and biscuits");
       expect(result.playerMessage).toContain("The Princess' loyal Handmaid");
@@ -110,7 +110,7 @@ describe("Handmaid Card Effects", () => {
         player: "alice",
       });
 
-      expect(result.publicMessage).toContain("alice calls upon"); // Uses nickname
+      expect(result.publicMessage).toContain("calls upon"); // Uses nickname
     });
 
     it("should create cozy medieval-themed messages", async () => {

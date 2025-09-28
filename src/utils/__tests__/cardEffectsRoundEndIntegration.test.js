@@ -134,10 +134,8 @@ describe("Card Effects - Round End Integration", () => {
         player: "player",
       });
 
-      expect(logRoundEndCheck).toHaveBeenCalledWith(
-        "After Princess Elimination",
-        "TEST123"
-      );
+      // logRoundEndCheck is now called in completePrincessTurn, not applyPrincessEffect
+      expect(logRoundEndCheck).not.toHaveBeenCalled();
     });
   });
 });

@@ -13,7 +13,7 @@
 }
 
 .round-end-modal {
-  max-width: 700px;
+  min-width: 65%;
   min-height: 400px;
   background: linear-gradient(135deg, #2c1810 0%, #1a0f08 100%);
   border: 3px solid #d4af37;
@@ -25,13 +25,17 @@
 }
 
 .round-end-modal::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(212, 175, 55, 0.1) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -48,11 +52,11 @@
   margin: 0;
   font-size: 1.8rem;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .round-end-modal .modal-body {
-  padding: 30px;
+  padding: 1rem 2rem;
   position: relative;
   z-index: 1;
 }
@@ -63,10 +67,16 @@
 
 .victory-text {
   font-size: 1.2rem;
-  margin-bottom: 25px;
+  margin-bottom: 0.5rem;
   font-weight: bold;
   color: #d4af37;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.round-victory-summary {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .battle-intro {
@@ -81,8 +91,9 @@
   background: rgba(212, 175, 55, 0.1);
   border: 2px solid #d4af37;
   border-radius: 10px;
-  padding: 20px;
+  padding: 1rem 0.5em;
   margin: 20px 0;
+  width: 40%;
 }
 
 .winner-showcase h3 {
@@ -92,10 +103,7 @@
 }
 
 .winner-card {
-  background: rgba(244, 228, 188, 0.1);
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 0 1rem;
 }
 
 .winner-name {
@@ -118,7 +126,7 @@
   font-size: 1.1rem;
 }
 
-.card-strength {
+.round-end-card-strength {
   color: #deb887;
   font-size: 0.9rem;
   margin-left: 8px;
@@ -130,6 +138,7 @@
   padding: 15px;
   border-radius: 8px;
   border: 1px solid rgba(139, 69, 19, 0.5);
+  width: 40%;
 }
 
 .eliminated-section h4 {
@@ -164,8 +173,10 @@
 
 .players-showcase {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .player-standing {
@@ -211,10 +222,14 @@
   text-align: right;
 }
 
-.card-name {
+.round-end-card-name {
+  font-size: 1.2rem;
   font-weight: bold;
-  color: #d4af37;
-  font-size: 1rem;
+  color: var(--royal-gold);
+  margin: 2% 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .card-strength {
@@ -231,11 +246,12 @@
 }
 
 .flavor-text {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-style: italic;
   margin: 0;
   color: #f4e4bc;
   line-height: 1.6;
+  font-family: "Lora", serif;
 }
 
 .round-end-modal .modal-footer {
@@ -245,18 +261,19 @@
   background: rgba(26, 15, 8, 0.5);
 }
 
-.continue-btn {
+.round-end-continue-btn {
   background: linear-gradient(135deg, #d4af37 0%, #f4e4bc 100%);
   color: #1a0f08;
   border: none;
-  padding: 12px 30px;
-  font-size: 1.1rem;
+  padding: 1rem 0;
+  font-size: 1.2rem;
   font-weight: bold;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-shadow: none;
   margin-bottom: 15px;
+  width: 30%;
 }
 
 .continue-btn:hover {
@@ -278,18 +295,19 @@
     max-width: 95vw;
     margin: 10px;
   }
-  
+
   .players-showcase {
     font-size: 0.9rem;
   }
-  
+
   .player-standing {
     flex-direction: column;
     text-align: center;
     gap: 10px;
   }
-  
-  .player-info, .card-info {
+
+  .player-info,
+  .card-info {
     text-align: center;
     margin: 0;
   }
