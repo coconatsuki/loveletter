@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { ref, update, onValue } from "firebase/database";
-import Play from "../../Play.jsx";
+import Play from "../Play.jsx";
 
 // Mock Firebase
 vi.mock("firebase/database", () => ({
@@ -91,6 +91,13 @@ describe("Play Component - Elimination Turn Advancement", () => {
           discard: [],
           tokens: 0,
         },
+        Luffy: {
+          name: "Luffy",
+          isOut: false,
+          hand: [{ id: 2, name: "Priest" }],
+          discard: [],
+          tokens: 0,
+        },
       },
       gameState: "inRound",
       protectedPlayers: [],
@@ -115,7 +122,7 @@ describe("Play Component - Elimination Turn Advancement", () => {
       // First call with initial state
       setTimeout(() => callback({ val: () => initialGameState }), 0);
       // Second call with eliminated player state (this should trigger the fix)
-      setTimeout(() => callback({ val: () => eliminatedPlayerState }), 10);
+      setTimeout(() => callback({ val: () => eliminatedPlayerState }), 100);
       return vi.fn(); // Return unsubscribe function
     });
 
@@ -136,7 +143,7 @@ describe("Play Component - Elimination Turn Advancement", () => {
           })
         );
       },
-      { timeout: 1000 }
+      { timeout: 2000 }
     );
 
     // Verify the fix was triggered

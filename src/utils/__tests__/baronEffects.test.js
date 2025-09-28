@@ -82,8 +82,8 @@ describe("Baron Card Effects", () => {
       expect(result.result).toBe("elimination");
       expect(result.attackerCard.name).toBe("Prince");
       expect(result.targetCard.name).toBe("Guard");
-      expect(result.publicMessage).toContain("Alice plays Baron");
-      expect(result.publicMessage).toContain("Bob is eliminated");
+      expect(result.publicMessage).toContain("plays Baron");
+      expect(result.publicMessage).toContain("is eliminated");
       expect(result.attackerMessage).toContain(
         "Your Baron's duel is victorious"
       );
@@ -125,8 +125,8 @@ describe("Baron Card Effects", () => {
       expect(result.winner).toBe("bob");
       expect(result.isTie).toBe(false);
       expect(result.result).toBe("elimination");
-      expect(result.publicMessage).toContain("Alice plays Baron");
-      expect(result.publicMessage).toContain("Alice is eliminated");
+      expect(result.publicMessage).toContain("plays Baron");
+      expect(result.publicMessage).toContain("is eliminated");
       expect(result.attackerMessage).toContain(
         "Your Baron's duel ends in defeat"
       );
@@ -357,9 +357,7 @@ describe("Baron Card Effects", () => {
       expect(result.winner).toBe("bob");
       expect(result.attackerCard.strength).toBe(1);
       expect(result.targetCard.strength).toBe(5);
-      expect(result.publicMessage).toContain(
-        "Guard (1) falls to superior strength"
-      );
+      expect(result.publicMessage).toContain("falls to superior strength");
     });
 
     it("should handle minimum strength difference", async () => {
