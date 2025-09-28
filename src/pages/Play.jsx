@@ -9,6 +9,7 @@ import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
+import DiscardHistoryModal from "../components/DiscardHistoryModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
@@ -92,7 +93,8 @@ export default function Play() {
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
-  const [hoveredPlayer, setHoveredPlayer] = useState(null); // For discard pile popover
+  const [hoveredPlayer, setHoveredPlayer] = useState(null);
+  const [showDiscardHistory, setShowDiscardHistory] = useState(false); // For discard pile popover
   const [isModalTransitioning, setIsModalTransitioning] = useState(false);
 
   // Grid layout hook for dynamic popover positioning
@@ -2007,7 +2009,35 @@ export default function Play() {
                 (roomData?.guardPrompt &&
                   roomData.guardPrompt.attacker === nickname)) && (
                 <div className="royal-action-area-overlay">
-                  <div className="royal-actions-area">
+                  <div
+                    className="royal-actions-area"
+                    style={{ position: "relative" }}
+                  >
+                    {/* Discard History Link - Top Right */}
+                    <button
+                      className="discard-history-link"
+                      onClick={() => setShowDiscardHistory(true)}
+                      onMouseEnter={(e) => {
+                        e.target.style.color = "#ffd700";
+                        e.target.style.textShadow =
+                          "0 0 8px rgba(212, 175, 55, 0.6)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color = "#d4af37";
+                        e.target.style.textShadow = "none";
+                      }}
+                    >
+                      📜 Discard History
+                    </button>
+
+                    {/* Discard History Modal */}
+                    <DiscardHistoryModal
+                      isOpen={showDiscardHistory}
+                      onClose={() => setShowDiscardHistory(false)}
+                      players={players}
+                      roomData={roomData}
+                    />
+
                     {isMyTurn && (
                       <div className="turn-section">
                         {player.hand?.length === 1 && <h3>It’s your turn!</h3>}
