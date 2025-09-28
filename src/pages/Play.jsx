@@ -2009,27 +2009,25 @@ export default function Play() {
                 (roomData?.guardPrompt &&
                   roomData.guardPrompt.attacker === nickname)) && (
                 <div className="royal-action-area-overlay">
-                  <div
-                    className="royal-actions-area"
-                    style={{ position: "relative" }}
-                  >
+                  <div className="royal-actions-area">
                     {/* Discard History Link - Top Right */}
-                    <button
-                      className="discard-history-link"
-                      onClick={() => setShowDiscardHistory(true)}
-                      onMouseEnter={(e) => {
-                        e.target.style.color = "#ffd700";
-                        e.target.style.textShadow =
-                          "0 0 8px rgba(212, 175, 55, 0.6)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.color = "#d4af37";
-                        e.target.style.textShadow = "none";
-                      }}
-                    >
-                      📜 Discard History
-                    </button>
-
+                    {player.hand?.length === 2 && (
+                      <button
+                        className="discard-history-link"
+                        onClick={() => setShowDiscardHistory(true)}
+                        onMouseEnter={(e) => {
+                          e.target.style.color = "#ffd700";
+                          e.target.style.textShadow =
+                            "0 0 8px rgba(212, 175, 55, 0.6)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.color = "#d4af37";
+                          e.target.style.textShadow = "none";
+                        }}
+                      >
+                        📜 Discard History
+                      </button>
+                    )}
                     {/* Discard History Modal */}
                     <DiscardHistoryModal
                       isOpen={showDiscardHistory}
@@ -2037,7 +2035,6 @@ export default function Play() {
                       players={players}
                       roomData={roomData}
                     />
-
                     {isMyTurn && (
                       <div className="turn-section">
                         {player.hand?.length === 1 && <h3>It’s your turn!</h3>}
