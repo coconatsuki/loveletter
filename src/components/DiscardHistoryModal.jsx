@@ -18,7 +18,7 @@ const discardHistoryModalBase = {
   top: "-6rem",
   left: "calc(100% + 1.5rem)",
   width: "300px",
-  maxHeight: "400px",
+  maxHeight: "550px",
   background: "linear-gradient(145deg, #f4f1e8 0%, #e8dcc0 50%, #d4c4a0 100%)",
   border: "3px solid #8b4513",
   borderRadius: "12px",
@@ -97,7 +97,7 @@ const discardPlayerSelect = {
 };
 
 const discardCardsList = {
-  minHeight: "60px",
+  /* minHeight: "60px", */
 };
 
 const discardCardsColumn = {
@@ -129,7 +129,7 @@ const discardCardsEmpty = {
   color: "#666",
   fontStyle: "italic",
   textAlign: "center",
-  padding: "20px",
+  padding: "0.5rem",
   fontSize: "0.9rem",
 };
 
@@ -169,11 +169,20 @@ export default function DiscardHistoryModal({
   // Set first player with discard as default, or first player if none have discard
   useEffect(() => {
     if (isOpen && playersWithDiscardInfo.length > 0) {
-      const firstWithDiscard = playersWithDiscardInfo.find((p) => p.hasDiscard);
-      const defaultPlayer = firstWithDiscard || playersWithDiscardInfo[0];
-      setSelectedPlayer(defaultPlayer.nickname);
+      // Only set default if no player is selected or if modal is opening fresh
+      if (!selectedPlayer) {
+        const firstWithDiscard = playersWithDiscardInfo.find(
+          (p) => p.hasDiscard
+        );
+        const defaultPlayer = firstWithDiscard || playersWithDiscardInfo[0];
+        setSelectedPlayer(defaultPlayer.nickname);
+      }
     }
-  }, [isOpen, playersWithDiscardInfo]);
+    // Reset when modal closes
+    if (!isOpen) {
+      setSelectedPlayer("");
+    }
+  }, [isOpen]); // Only depend on isOpen
 
   const selectedPlayerData = playersWithDiscardInfo.find(
     (p) => p.nickname === selectedPlayer
