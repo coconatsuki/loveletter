@@ -755,20 +755,16 @@ export async function applyPrincessEffect({ roomCode, player }) {
     // Player name for messages
     const playerName = playerData.name || player;
 
-    // Mark player as eliminated
-    const updates = {
-      [`rooms/${roomCode}/players/${player}/isOut`]: true,
-    };
+    // DON'T eliminate the player here - wait for modal confirmation!
+    // Elimination will happen in completePrincessTurn() after player reads the modal
 
-    await update(ref(db), updates);
-
-    // Check for round end after Princess elimination
-    logRoundEndCheck("After Princess Elimination", roomCode);
-
-    console.log("👑 PRINCESS: Player eliminated by royal decree", {
-      player,
-      eliminated: true,
-    });
+    console.log(
+      "👑 PRINCESS: Prepared tragic messages, elimination pending modal confirmation",
+      {
+        player,
+        eliminationPending: true,
+      }
+    );
 
     // Craft dramatic medieval-geek messages
     const publicMessage = `<div class="effect-title">👑💀 ROYAL CATASTROPHE! 💀👑</div>

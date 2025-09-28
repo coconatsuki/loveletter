@@ -1750,6 +1750,11 @@ export default function Play() {
     );
     const newDiscard = [...(player.discard || []), princessCard];
 
+    // NOW eliminate the player (this was moved from applyPrincessEffect)
+    console.log(
+      "👑 PRINCESS ELIMINATION: Player confirmed modal, now applying elimination"
+    );
+
     // Calculate next player in turn order (skip eliminated players)
     const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
     const currentIndex = activePlayers.indexOf(nickname);
@@ -1771,13 +1776,20 @@ export default function Play() {
       (player) => player !== nextPlayer
     );
 
-    // Update game state: discard Princess, advance turn, clear protection
+    // Update game state: discard Princess, ELIMINATE PLAYER, advance turn, clear protection
     await update(ref(db, `rooms/${roomCode}`), {
       [`players/${nickname}/hand`]: newHand,
       [`players/${nickname}/discard`]: newDiscard,
+      [`players/${nickname}/isOut`]: true, // CRITICAL: This elimination happens AFTER modal confirmation
       [`round/currentPlayer`]: nextPlayer,
       protectedPlayers: updatedProtected,
     });
+
+    // NOW check for round end after Princess elimination (moved from applyPrincessEffect)
+    console.log(
+      "👑 PRINCESS ELIMINATION: Checking for round end after elimination"
+    );
+    logRoundEndCheck("After Princess Elimination (Modal Confirmed)", roomCode);
 
     // Notify all players about the turn change
     pushNotification(

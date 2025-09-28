@@ -327,8 +327,8 @@ const modalContentStyle = {
   borderRadius: "20px",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
-  maxWidth: "500px",
-  width: "90%",
+  maxWidth: "900px",
+  width: "75%",
   textAlign: "center",
   border: "4px solid #ffd700",
   position: "relative",
