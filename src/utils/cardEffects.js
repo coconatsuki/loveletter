@@ -13,6 +13,7 @@ export const CARD_MODAL_FLOW = {
   6: { advanceOnAttacker: true, advanceOnTarget: false }, // Phantom King
   7: { advanceOnAttacker: true, advanceOnTarget: false }, // Countess
   8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
+  14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
   // Premium mode cards will be added as we implement them...
 };
 
@@ -99,24 +100,66 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
   const draw = deck.length > 0 ? deck[0] : null;
   const newDeck = deck.slice(1);
 
+  // Immediate effects: Discard Assassin (ID 14) + Draw new card for target
+  // BUT do NOT eliminate attacker yet - that happens when they click "Continue"
   const updates = {
-    [`players/${attacker}/isOut`]: true,
-    [`players/${target}/discard`]: [...(data.players[target].discard || []), 0],
+    // Discard the Assassin card (ID 14)
+    [`players/${target}/discard`]: [
+      ...(data.players[target].discard || []),
+      14,
+    ],
+    // Give target a new card from deck
     [`players/${target}/hand`]: draw ? [draw] : [],
-    round: {
-      ...data.round,
-      deck: newDeck,
-    },
+    // Update deck
+    [`round/deck`]: newDeck,
+    // Set elimination flag for attacker - they'll be eliminated when they confirm modal
+    [`round/pendingAssassinationTarget`]: attacker,
+  };
+
+  await update(ref(db, `rooms/${roomCode}`), updates);
+
+  console.log(
+    "🗡️ ASSASSIN DEFENSE: Immediate effects applied - Card discarded, new card drawn, attacker marked for elimination"
+  );
+
+  return {
+    attackerMarkedForElimination: true,
+    newCard: draw,
+    // Return card data for display
+    discardedCard: { id: 14, name: "Assassin", strength: 0 },
+  };
+}
+
+export async function executeAssassinationElimination({ roomCode }) {
+  console.log("🗡️ EXECUTION: Eliminating attacker marked by Assassin");
+
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+  const targetPlayer = data.round?.pendingAssassinationTarget;
+
+  if (!targetPlayer) {
+    console.log("🗡️ EXECUTION: No pending assassination target");
+    return { eliminated: false };
+  }
+
+  // Eliminate the marked attacker and clear the flag
+  const updates = {
+    [`players/${targetPlayer}/isOut`]: true,
+    [`round/pendingAssassinationTarget`]: null,
   };
 
   await update(ref(db, `rooms/${roomCode}`), updates);
 
   // Check for round end after elimination
-  logRoundEndCheck("After Assassin Defense", roomCode);
+  logRoundEndCheck("After Assassin Execution", roomCode);
+
+  console.log(
+    `🗡️ EXECUTION: ${targetPlayer} has been eliminated by the Assassin`
+  );
 
   return {
-    attackerEliminated: true,
-    newCard: draw,
+    eliminated: true,
+    eliminatedPlayer: targetPlayer,
   };
 }
 
@@ -575,6 +618,54 @@ export async function applyCountessEffect({ roomCode, player }) {
     return {
       result: "error",
       message: "The Countess encountered a royal mishap!",
+    };
+  }
+}
+
+export async function applyAssassinEffect({ roomCode, player }) {
+  console.log("🗡️ ASSASSIN DEBUG: A shadow moves in the court...", {
+    player,
+  });
+
+  try {
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error("The shadows have consumed the royal chambers...");
+    }
+
+    const gameData = snapshot.val();
+    const playerData = gameData.players[player];
+
+    console.log("🗡️ ASSASSIN: Shadow confirmed", {
+      player,
+      hand: playerData.hand,
+    });
+
+    return {
+      result: "assassin_played",
+      message: `A shadow passes through the court...`,
+      // Mysterious notification for everyone in the court
+      publicMessage: `<div class="effect-description">🌙🐾 A shadow glides silently through the corridors... Was it merely a cat, or something far more sinister? <span class="effect-player">${
+        playerData.name || player
+      }</span> seems to have noticed something, but speaks not a word. The court remains unaware of the deadly grace that moves among them... 🕯️✨</div>`,
+      // Personal dramatic message for the player's modal
+      playerMessage: `<div class="effect-title">🗡️🌙 THE ROYAL ASSASSIN 🌙🗡️</div>
+      <br>
+      <div class="effect-description">You have played the Assassin!</div>
+      <br>
+      <div class="effect-description">🐾 A shadow passes through the court like a whisper of silk...</div>
+      <div class="effect-description">🌙 Your lethal asset slips away unnoticed, but your opportunity for a decisive strike is now lost.</div>
+      <br>
+      <div class="effect-quote">"The darkness is patient. It waits for the perfect moment to strike."</div>
+      <div class="effect-signature">- A Voice from the Shadows</div>`,
+    };
+  } catch (error) {
+    console.error("🗡️ ASSASSIN ERROR: Shadow compromised!", error);
+    return {
+      result: "error",
+      message: "The shadows encountered an unexpected obstacle!",
     };
   }
 }

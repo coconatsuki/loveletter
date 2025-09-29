@@ -45,7 +45,7 @@ export default function AssassinPromptModal({
   } else if (hasAssassin && !isCorrectGuess) {
     message = `${attacker} guessed strength ${guessedStrength}, but you hold ${targetCard.name} (Strength ${targetCard.strength}). Reveal the Assassin anyway and smite them?`;
     buttons = (
-      <div className="assassin-modal-btn-group">
+      <div className="assassin-modal-footer">
         <button
           className="assassin-modal-btn assassin-modal-btn-strike"
           onClick={onReveal}
@@ -71,7 +71,7 @@ export default function AssassinPromptModal({
         <div className="assassin-modal-body">
           <p className="assassin-modal-message">{message}</p>
         </div>
-        <div className="assassin-modal-footer">{buttons}</div>
+        {buttons}
       </div>
     </div>
   );

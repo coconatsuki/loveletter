@@ -30,7 +30,7 @@ const effectTextStyles = `
     font-style: italic;
     color: #daa520;
     margin: 0.5em 0;
-    padding: 0.25em;
+    padding: 0.15em;
     border-left: 3px solid #daa520;
     padding-left: 1em;
   }
@@ -45,6 +45,7 @@ const effectTextStyles = `
   .effect-description {
     line-height: 1.4;
     margin: 0.3em 0;
+    font-size: 1.3rem;
   }
 
   .effect-warning {

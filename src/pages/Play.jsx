@@ -13,6 +13,7 @@ import DiscardHistoryModal from "../components/DiscardHistoryModal";
 import {
   applyGuardEffect,
   resolveAssassinDefense,
+  executeAssassinationElimination,
   applyPriestEffect,
   applyBaronEffect,
   applyHandmaidEffect,
@@ -20,6 +21,7 @@ import {
   applyKingEffect,
   applyPhantomKingEffect,
   applyCountessEffect,
+  applyAssassinEffect,
   applyPrincessEffect,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -572,6 +574,9 @@ export default function Play() {
     } else if (card.id === 8) {
       // PRINCESS CARD - No target needed, immediate elimination!
       playPrincess(index);
+    } else if (card.id === 14) {
+      // ASSASSIN CARD - No target needed, shadow moves through the court
+      playAssassin(index);
     }
   };
 
@@ -639,6 +644,29 @@ export default function Play() {
     setResultModalData({
       resultText: result.playerMessage,
       isPrincessElimination: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playAssassin = async (index) => {
+    setSelectedCardIndex(index);
+    console.log("🗡️ ASSASSIN: Setting isPlaying = true");
+    setIsPlaying(true);
+
+    // Apply Assassin effect (mysterious shadow moves)
+    const result = await applyAssassinEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification about the shadow in the court
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show mysterious shadow modal to the player
+    setResultModalData({
+      resultText: result.playerMessage,
+      isAssassinShadow: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -2506,10 +2534,21 @@ export default function Play() {
 
                     pushNotification(
                       roomCode,
-                      `☠️ ${attacker} guessed the Assassin… and paid the price. Well struck, ${target}!`
+                      `🗡️💀 A shadow strikes! ${attacker}'s guard discovered more than they bargained for... ${target}'s deadly secret has claimed a life! ⚔️🌙`
                     );
 
-                    const finalResultContent = `☠️ A fatal mistake! ${target} revealed the Assassin and struck you down. Your legacy ends here...`;
+                    const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
+                    <br>
+                    <div class="effect-description">⚔️ Your guard approached ${target}, confident in their investigation...</div>
+                    <div class="effect-description">🌙 But from the shadows emerged a blade, swift and deadly!</div>
+                    <br>
+                    <div class="effect-description">💀 ${target} revealed the Royal Assassin and struck you down!</div>
+                    <div class="effect-description">🩸 Your loyal guard lies motionless... and so do you.</div>
+                    <br>
+                    <div class="effect-quote">"Some secrets are worth killing for."</div>
+                    <div class="effect-signature">- The Royal Assassin</div>
+                    <br>
+                    <div class="effect-description">💔 You have been <span class="effect-elimination">ELIMINATED</span> from this round!</div>`;
 
                     // Clean up and send result to attacker
                     await update(ref(db, `rooms/${roomCode}`), {
@@ -2571,6 +2610,23 @@ export default function Play() {
                       }
                     );
 
+                    // Check if this player is marked for assassination and execute it
+                    const executionResult =
+                      await executeAssassinationElimination({
+                        roomCode,
+                      });
+
+                    if (
+                      executionResult.eliminated &&
+                      executionResult.eliminatedPlayer === nickname
+                    ) {
+                      console.log(
+                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin!"
+                      );
+                      // This player was just eliminated, no need to advance turn
+                      // The elimination will be handled by the round end logic
+                    }
+
                     await set(ref(db, `rooms/${roomCode}/actionResult`), null);
                     // Clear priest target modal if it exists
                     await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
@@ -2607,6 +2663,15 @@ export default function Play() {
                       if (resultModalData.isPrincessElimination) {
                         console.log(
                           "👑 PRINCESS MODAL: Using special turn completion"
+                        );
+                        handleEffectResultClose();
+                        return;
+                      }
+
+                      // Special handling for Assassin shadow effect
+                      if (resultModalData.isAssassinShadow) {
+                        console.log(
+                          "🗡️ ASSASSIN MODAL: Using special turn completion"
                         );
                         handleEffectResultClose();
                         return;
