@@ -2538,16 +2538,12 @@ export default function Play() {
                     );
 
                     const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
-                    <br>
                     <div class="effect-description">⚔️ Your guard approached ${target}, confident in their investigation...</div>
                     <div class="effect-description">🌙 But from the shadows emerged a blade, swift and deadly!</div>
-                    <br>
                     <div class="effect-description">💀 ${target} revealed the Royal Assassin and struck you down!</div>
                     <div class="effect-description">🩸 Your loyal guard lies motionless... and so do you.</div>
-                    <br>
                     <div class="effect-quote">"Some secrets are worth killing for."</div>
                     <div class="effect-signature">- The Royal Assassin</div>
-                    <br>
                     <div class="effect-description">💔 You have been <span class="effect-elimination">ELIMINATED</span> from this round!</div>`;
 
                     // Clean up and send result to attacker
