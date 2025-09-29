@@ -1460,7 +1460,7 @@
   letter-spacing: 0.5px;
   font-weight: bold;
 }
-
+/*
 .assassin-modal-overlay {
   position: absolute;
   top: 0;
@@ -1612,6 +1612,8 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
 }
+
+  */
 
 /* Modal animations */
 @keyframes assassinModalFadeIn {

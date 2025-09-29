@@ -2620,7 +2620,17 @@ export default function Play() {
                         "🗡️ ASSASSINATION: This player was just eliminated by the Assassin!"
                       );
                       // This player was just eliminated, no need to advance turn
-                      // The elimination will be handled by the round end logic
+                      // Check for round end after Assassin elimination
+                      console.log(
+                        "🗡️ ASSASSINATION: Checking for round end after elimination"
+                      );
+                      logRoundEndCheck(
+                        "After Assassin Elimination (Modal Confirmed)",
+                        roomCode
+                      );
+
+                      // Return early to prevent turn advancement
+                      return;
                     }
 
                     await set(ref(db, `rooms/${roomCode}/actionResult`), null);

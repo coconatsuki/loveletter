@@ -158,9 +158,6 @@ export async function executeAssassinationElimination({ roomCode }) {
 
   await update(ref(db, `rooms/${roomCode}`), updates);
 
-  // Check for round end after elimination
-  logRoundEndCheck("After Assassin Execution", roomCode);
-
   console.log(
     `🗡️ EXECUTION: ${targetPlayer} has been eliminated by the Assassin`
   );
