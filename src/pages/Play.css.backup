@@ -319,13 +319,6 @@
   font-size: 0.9rem;
 }
 
-/* Override effect-description font size when inside Chronicle */
-.chronicle-message .effect-description {
-  font-size: 0.9rem !important;
-  margin: 0 !important;
-  line-height: 1.4 !important;
-}
-
 .chronicle-empty {
   text-align: start;
   color: #999;
@@ -1467,7 +1460,7 @@
   letter-spacing: 0.5px;
   font-weight: bold;
 }
-/*
+
 .assassin-modal-overlay {
   position: absolute;
   top: 0;
@@ -1619,8 +1612,6 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
 }
-
-  */
 
 /* Modal animations */
 @keyframes assassinModalFadeIn {

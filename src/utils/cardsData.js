@@ -1,6 +1,7 @@
 // Helper function to get the correct card image
 export const getCardImage = (cardName) => {
   const imageMap = {
+    Jester: "jester1.jpeg",
     Guard: "guard1.jpeg",
     Priest: "priest1.jpeg",
     Baron: "baron1.jpeg",
@@ -9,15 +10,14 @@ export const getCardImage = (cardName) => {
     "Phantom King": "phantom-king1.jpeg",
     Countess: "countess1.jpeg",
     Princess: "princess-portrait1.jpeg",
-    // Premium cards that don't have images yet
-    Jester: "countess1.jpeg",
-    Inquisitor: "countess1.jpeg",
-    Chamberlain: "countess1.jpeg",
-    "Regent Queen": "countess1.jpeg",
-    "Court Whisperer": "countess1.jpeg",
-    "Royal Confessor": "countess1.jpeg",
-    Assassin: "countess1.jpeg",
-    Duke: "countess1.jpeg",
+    Inquisitor: "inquisitor1.jpeg",
+    Chamberlain: "chamberlain1.jpeg",
+    "Regent Queen": "regent-queen1.jpeg",
+    "Court Whisperer": "court-whisperer1.jpeg",
+    "Royal Confessor": "royal-confessor1.jpeg",
+    Assassin: "assassin1.jpeg",
+    Baronness: "baroness1.jpeg",
+    Duke: "duke1.jpeg",
   };
 
   return imageMap[cardName] || "countess1.jpeg";
