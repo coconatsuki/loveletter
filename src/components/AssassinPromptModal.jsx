@@ -23,15 +23,33 @@ const ASSASSIN_STYLES = {
     boxShadow:
       "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
     minWidth: "40%",
-    maxWidth: "700px",
+    maxWidth: "850px",
     animation:
       "assassinModalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
     position: "relative",
   },
+  blason: {
+    content: '"⚔️"',
+    position: "absolute",
+    top: "-30px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#8b0000",
+    border: "3px solid #ffd700",
+    borderRadius: "50%",
+    width: "50px",
+    height: "50px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "1.5rem",
+    boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
+    zIndex: 1,
+  },
   header: {
     borderRadius: "20px 20px 0 0",
     background: "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-    padding: "30px 25px 20px 25px",
+    padding: "2.5rem 1rem 1.2rem",
     textAlign: "center",
     borderBottom: "2px solid #ffd700",
   },
@@ -45,7 +63,7 @@ const ASSASSIN_STYLES = {
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
   },
   body: {
-    padding: "6% 4% 3%",
+    padding: "1.5rem",
     background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%)",
   },
   message: {
@@ -53,8 +71,12 @@ const ASSASSIN_STYLES = {
     fontSize: "1.3rem",
     lineHeight: "1.6",
     color: "#afddf6",
-    margin: 0,
+    margin: "0 0 1rem 0",
     textAlign: "justify",
+  },
+  rivalName: {
+    color: "#ff6b6b",
+    fontWeight: "bold",
   },
   footer: {
     padding: "1.5rem 1.5rem 2rem",
@@ -94,6 +116,7 @@ const ASSASSIN_STYLES = {
     background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
     color: "#8b0000",
     border: "2px solid #8b4513",
+    width: "60%",
   },
 };
 
@@ -112,36 +135,98 @@ export default function AssassinPromptModal({
   let buttons = null;
 
   if (!hasAssassin && !isCorrectGuess) {
-    message = `${attacker} played a Guard and guessed strength ${guessedStrength}, but you're holding ${targetCard.name} (Strength ${targetCard.strength}). You're safe... for now.`;
+    message = (
+      <div style={ASSASSIN_STYLES.body}>
+        <p style={ASSASSIN_STYLES.message}>
+          <span>{attacker}</span> played a Guard and guessed strength{" "}
+          <span>{guessedStrength}</span>, but you're holding{" "}
+          <span>
+            {targetCard.name} (Strength {targetCard.strength})
+          </span>
+          .
+        </p>{" "}
+        <p style={ASSASSIN_STYLES.message}>
+          You're <strong>safe</strong>... for now.
+        </p>
+      </div>
+    );
     buttons = (
-      <button
-        style={{
-          ...ASSASSIN_STYLES.button,
-          ...ASSASSIN_STYLES.acknowledgeButton,
-          width: "100%",
-        }}
-        onClick={onAcknowledge}
-      >
-        Continue
-      </button>
+      <div style={ASSASSIN_STYLES.footer}>
+        <button
+          style={{
+            ...ASSASSIN_STYLES.button,
+            ...ASSASSIN_STYLES.acknowledgeButton,
+          }}
+          onClick={onAcknowledge}
+        >
+          Continue
+        </button>
+      </div>
     );
   } else if (!hasAssassin && isCorrectGuess) {
-    message = `${attacker} played a Guard and guessed your strength (${guessedStrength}) correctly! You've been ELIMINATED.`;
+    message = (
+      <div style={ASSASSIN_STYLES.body}>
+        <p style={ASSASSIN_STYLES.message}>
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> played a
+          Guard and guessed your strength (<span>{guessedStrength}</span>)
+          correctly!
+        </p>
+        <p style={ASSASSIN_STYLES.message}>
+          You've been{" "}
+          <strong>
+            <span style={{ color: "rgb(255, 215, 0)" }}>ELIMINATED.</span>
+          </strong>
+        </p>
+      </div>
+    );
     buttons = (
-      <button
-        style={{
-          ...ASSASSIN_STYLES.button,
-          ...ASSASSIN_STYLES.acknowledgeButton,
-          width: "100%",
-        }}
-        onClick={onAcknowledge}
-      >
-        Face your fate
-      </button>
+      <div style={ASSASSIN_STYLES.footer}>
+        <button
+          style={{
+            ...ASSASSIN_STYLES.button,
+            ...ASSASSIN_STYLES.acknowledgeButton,
+          }}
+          onClick={onAcknowledge}
+        >
+          Face your fate
+        </button>
+      </div>
     );
   } else if (hasAssassin && isCorrectGuess) {
-    title = "🗡️ YOUR DEADLY SECRET DISCOVERED!";
-    message = `� ${attacker}'s guard comes too close to the truth! They suspect you hold ${guessedStrength}-strength card, and they're RIGHT! But as their eyes meet yours, a glint of steel catches the moonlight... You are no mere courtier seeking the Princess's heart. You are DEATH incarnate, hidden among the nobles. Will you let them live with this knowledge, or shall tonight be their last?`;
+    title = "🗡️ YOUR SECRET IS DISCOVERED!";
+    message = (
+      <div style={ASSASSIN_STYLES.body}>
+        <p style={ASSASSIN_STYLES.message}>
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}'s</span> guard has
+          found your{" "}
+          <span style={{ color: "#9c27b0", fontWeight: "bold" }}>
+            Royal Assassin
+          </span>{" "}
+          ally! 🔍
+        </p>
+        <p
+          style={{
+            ...ASSASSIN_STYLES.message,
+            margin: "0 0 12px 0",
+            color: "#ffd700",
+          }}
+        >
+          ⚠️ They know your{" "}
+          <span style={{ fontWeight: "bold" }}>deadly secret</span> and will
+          report back to their master...
+        </p>
+        <p
+          style={{
+            margin: "0",
+            fontSize: "17px",
+            fontWeight: "bold",
+            color: "#ff4444",
+          }}
+        >
+          Strike now, or face elimination! ⚔️
+        </p>
+      </div>
+    );
     buttons = (
       <button
         style={{
@@ -151,12 +236,59 @@ export default function AssassinPromptModal({
         }}
         onClick={onReveal}
       >
-        ⚔️ STRIKE FROM THE SHADOWS
+        ⚔️ Strike back!
       </button>
     );
   } else if (hasAssassin && !isCorrectGuess) {
-    title = "🌙 SHADOWS WHISPER OF OPPORTUNITY";
-    message = `🔍 ${attacker}'s guard searches for strength ${guessedStrength}, but finds only ${targetCard.name} (Strength ${targetCard.strength}) in your grasp. They turn to leave, satisfied with their failed investigation... but you feel the weight of the blade concealed beneath your court robes. This guard has grown too bold, too curious. Perhaps it's time to send a message to the court about what happens to those who pry too deeply into royal secrets?`;
+    title = "🌙 A RIVAL'S GUARD INVESTIGATES";
+    message = (
+      <div style={ASSASSIN_STYLES.body}>
+        <p style={ASSASSIN_STYLES.message}>
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}'s</span> guard
+          comes looking for a{" "}
+          <span style={{ color: "#ffd700", fontWeight: "bold" }}>
+            strength {guessedStrength}
+          </span>
+          , but finds a beautiful lady of the court, instead. 🔍 She seems to
+          have lost her way.
+        </p>
+        <p
+          style={{
+            ...ASSASSIN_STYLES.message,
+            margin: "0 0 12px 0",
+            color: "#90caf9",
+          }}
+        >
+          👤 He helps her out and turns to leave, unaware they've discovered
+          your{" "}
+          <span style={{ color: "#9c27b0", fontWeight: "bold" }}>
+            Royal Assassin
+          </span>{" "}
+          ally!
+        </p>
+        <p
+          style={{
+            ...ASSASSIN_STYLES.message,
+            margin: "0 0 12px 0",
+            color: "#90caf9",
+          }}
+        >
+          Killing that guard would frighten your rival{" "}
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> to death and
+          eliminate them.
+        </p>
+        <p
+          style={{
+            margin: "0",
+            fontSize: "1.3rem",
+            fontWeight: "bold",
+            color: "#ffd700",
+          }}
+        >
+          ⚔️ One word from you, and she would do the dirty work.
+        </p>
+      </div>
+    );
     buttons = (
       <div style={ASSASSIN_STYLES.footer}>
         <button
@@ -166,7 +298,7 @@ export default function AssassinPromptModal({
           }}
           onClick={onReveal}
         >
-          ⚔️ SILENCE THEM FOREVER
+          ⚔️ Strike back!
         </button>
         <button
           style={{
@@ -175,7 +307,7 @@ export default function AssassinPromptModal({
           }}
           onClick={onIgnore}
         >
-          🕊️ LET THEM WALK AWAY
+          🕊️ Let them go
         </button>
       </div>
     );
@@ -210,35 +342,11 @@ export default function AssassinPromptModal({
       </style>
       <div style={ASSASSIN_STYLES.overlay}>
         <div style={ASSASSIN_STYLES.content}>
-          <div
-            style={{
-              ...ASSASSIN_STYLES.content,
-              content: '"⚔️"',
-              position: "absolute",
-              top: "-30px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "#8b0000",
-              border: "3px solid #ffd700",
-              borderRadius: "50%",
-              width: "50px",
-              height: "50px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.5rem",
-              boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
-              zIndex: 1,
-            }}
-          >
-            ⚔️
-          </div>
+          <div style={ASSASSIN_STYLES.blason}>⚔️</div>
           <div style={ASSASSIN_STYLES.header}>
             <h3 style={ASSASSIN_STYLES.title}>{title}</h3>
           </div>
-          <div style={ASSASSIN_STYLES.body}>
-            <p style={ASSASSIN_STYLES.message}>{message}</p>
-          </div>
+          {message}
           {buttons}
         </div>
       </div>

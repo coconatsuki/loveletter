@@ -7,7 +7,7 @@ const effectTextStyles = `
     font-size: 1.1em;
     color: #d4af37;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    margin: 0.5em 0;
+    margin: 0 0 1.5em 0;
     text-align: center;
   }
 
@@ -29,7 +29,7 @@ const effectTextStyles = `
   .effect-quote {
     font-style: italic;
     color: #daa520;
-    margin: 0.5em 0;
+    margin: 1em 0 0;
     padding: 0.15em;
     border-left: 3px solid #daa520;
     padding-left: 1em;
@@ -44,7 +44,7 @@ const effectTextStyles = `
 
   .effect-description {
     line-height: 1.4;
-    margin: 0.3em 0;
+    margin: 0.5em 0;
     font-size: 1.3rem;
   }
 

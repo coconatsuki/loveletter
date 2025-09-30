@@ -319,6 +319,13 @@
   font-size: 0.9rem;
 }
 
+/* Override effect-description font size when inside Chronicle */
+.chronicle-message .effect-description {
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
 .chronicle-empty {
   text-align: start;
   color: #999;
