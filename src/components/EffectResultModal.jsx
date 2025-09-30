@@ -372,7 +372,7 @@ const getHeaderStyle = (isHandmaidProtection, isPriestEffect) => ({
 });
 
 const messageStyle = {
-  fontSize: "1.2rem",
+  fontSize: "1.3rem",
   textAlign: "justify",
   lineHeight: "1.6",
   color: "white",

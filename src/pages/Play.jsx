@@ -1845,7 +1845,7 @@ export default function Play() {
   if (!roomData || !player || !round || !players) {
     return <div className="play-loading">⏳ Loading game state...</div>;
   } else {
-    const roundNumber = roomData?.gameStats?.roundNumber || 1;
+    const roundNumber = roomData?.gameStats?.currentRound || 1;
     return (
       <>
         <style>{`

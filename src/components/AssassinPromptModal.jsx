@@ -75,8 +75,18 @@ const ASSASSIN_STYLES = {
     textAlign: "justify",
   },
   rivalName: {
-    color: "#ff6b6b",
+    color: "rgb(231 122 202)",
     fontWeight: "bold",
+  },
+  highlightedText: {
+    color: "#ffd700",
+    fontWeight: "bold",
+  },
+  finalPunchLine: {
+    margin: "2rem 0 0",
+    fontSize: "1.3rem",
+    fontWeight: "bold",
+    color: "rgb(255, 68, 68)",
   },
   footer: {
     padding: "1.5rem 1.5rem 2rem",
@@ -138,9 +148,14 @@ export default function AssassinPromptModal({
     message = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span>{attacker}</span> played a Guard and guessed strength{" "}
-          <span>{guessedStrength}</span>, but you're holding{" "}
-          <span>
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> sent a Guard
+          your way and guessed{" "}
+          <span style={ASSASSIN_STYLES.highlightedText}>
+            {" "}
+            strength {guessedStrength}
+          </span>
+          , but you're holding{" "}
+          <span style={ASSASSIN_STYLES.highlightedText}>
             {targetCard.name} (Strength {targetCard.strength})
           </span>
           .
@@ -151,7 +166,7 @@ export default function AssassinPromptModal({
       </div>
     );
     buttons = (
-      <div style={ASSASSIN_STYLES.footer}>
+      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
         <button
           style={{
             ...ASSASSIN_STYLES.button,
@@ -167,20 +182,23 @@ export default function AssassinPromptModal({
     message = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> played a
-          Guard and guessed your strength (<span>{guessedStrength}</span>)
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> sent a Guard
+          your way and guessed your{" "}
+          <span style={ASSASSIN_STYLES.highlightedText}>
+            strength ({guessedStrength})
+          </span>{" "}
           correctly!
         </p>
         <p style={ASSASSIN_STYLES.message}>
           You've been{" "}
           <strong>
-            <span style={{ color: "rgb(255, 215, 0)" }}>ELIMINATED.</span>
+            <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span>
           </strong>
         </p>
       </div>
     );
     buttons = (
-      <div style={ASSASSIN_STYLES.footer}>
+      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
         <button
           style={{
             ...ASSASSIN_STYLES.button,
@@ -204,40 +222,29 @@ export default function AssassinPromptModal({
           </span>{" "}
           ally! 🔍
         </p>
-        <p
-          style={{
-            ...ASSASSIN_STYLES.message,
-            margin: "0 0 12px 0",
-            color: "#ffd700",
-          }}
-        >
+        <p style={ASSASSIN_STYLES.message}>
           ⚠️ They know your{" "}
-          <span style={{ fontWeight: "bold" }}>deadly secret</span> and will
-          report back to their master...
+          <span style={ASSASSIN_STYLES.highlightedText}>deadly secret</span> and
+          will report back to their master...
         </p>
-        <p
-          style={{
-            margin: "0",
-            fontSize: "17px",
-            fontWeight: "bold",
-            color: "#ff4444",
-          }}
-        >
+        <p style={ASSASSIN_STYLES.finalPunchLine}>
           Strike now, or face elimination! ⚔️
         </p>
       </div>
     );
     buttons = (
-      <button
-        style={{
-          ...ASSASSIN_STYLES.button,
-          ...ASSASSIN_STYLES.strikeButton,
-          width: "100%",
-        }}
-        onClick={onReveal}
-      >
-        ⚔️ Strike back!
-      </button>
+      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
+        <button
+          style={{
+            ...ASSASSIN_STYLES.button,
+            ...ASSASSIN_STYLES.strikeButton,
+            width: "100%",
+          }}
+          onClick={onReveal}
+        >
+          ⚔️ Strike back!
+        </button>
+      </div>
     );
   } else if (hasAssassin && !isCorrectGuess) {
     title = "🌙 A RIVAL'S GUARD INVESTIGATES";
