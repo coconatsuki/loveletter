@@ -102,7 +102,8 @@ export const cards = [
     strength: 9,
     countNormal: 0,
     countPremium: 1,
-    effect: "Guess a strength. If correct, gain an affection token.",
+    effect:
+      "Guess a strength other than 1. If correct, gain an affection token.",
   },
   {
     id: 10,

@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update, set } from "firebase/database";
 import TargetModal from "../components/TargetModal";
+import InquisitorTargetModal from "../components/InquisitorTargetModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
@@ -23,6 +24,8 @@ import {
   applyCountessEffect,
   applyAssassinEffect,
   applyPrincessEffect,
+  applyInquisitorEffect,
+  awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
@@ -88,6 +91,8 @@ export default function Play() {
   const [resultModalData, setResultModalData] = useState(null);
   const [guardTargetPromptData, setGuardTargetPromptData] = useState(null);
   const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
+  const [inquisitorResultModalData, setInquisitorResultModalData] =
+    useState(null);
   const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
@@ -306,6 +311,25 @@ export default function Play() {
         // Hide the modal when guardPrompt is cleared from Firebase
         setGuardTargetPromptData(null);
         setShowGuardTargetPrompt(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
+  // Listen for Inquisitor results targeting this player
+  useEffect(() => {
+    const inquisitorRef = ref(db, `rooms/${roomCode}/inquisitorResult`);
+    const unsubscribe = onValue(inquisitorRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.originalTarget === nickname) {
+        console.log(
+          "🕵️ INQUISITOR RESULT received for target:",
+          nickname,
+          data
+        );
+        setInquisitorResultModalData(data);
+      } else if (!data) {
+        setInquisitorResultModalData(null);
       }
     });
     return () => unsubscribe();
@@ -547,8 +571,8 @@ export default function Play() {
     // If actionData is provided, it means ActionModal already handled target selection
     if (actionData) {
       // Handle the action based on card type with target/guess data
-      if ([1, 2, 3, 6].includes(card.id)) {
-        // Cards that need target selection (Guard, Priest, Baron, Phantom King)
+      if ([1, 2, 3, 6, 9].includes(card.id)) {
+        // Cards that need target selection (Guard, Priest, Baron, Phantom King, Inquisitor)
         // Pass the card index directly to avoid state timing issues
         handleTargetConfirmWithIndex(index, actionData);
         return;
@@ -557,8 +581,8 @@ export default function Play() {
 
     // Original logic for cards that don't need ActionModal target selection
     // or when called from old system
-    if ([1, 2, 3, 6].includes(card.id)) {
-      // Cards that need target selection (Guard, Priest, Baron, Phantom King)
+    if ([1, 2, 3, 6, 9].includes(card.id)) {
+      // Cards that need target selection (Guard, Priest, Baron, Phantom King, Inquisitor)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -973,65 +997,6 @@ export default function Play() {
 
       return;
     }
-
-    // === OTHER CARD LOGIC (Phantom King, etc.) ===
-    // This section is for Guard-specific turn completion
-    const { playedCardIndex, playerNickname } = cardPlayInfo;
-    const attackerPlayer = players[playerNickname];
-
-    // Validate that we have the necessary data to complete the turn
-    if (
-      !attackerPlayer ||
-      !attackerPlayer.hand ||
-      attackerPlayer.hand.length !== 2
-    ) {
-      console.error("Invalid attacker player data for completing Guard turn:", {
-        playerNickname,
-        attackerPlayer,
-        handLength: attackerPlayer?.hand?.length,
-      });
-      return;
-    }
-
-    // Determine which cards to keep vs discard
-    const playedCard = attackerPlayer.hand[playedCardIndex];
-    const remainingCard = attackerPlayer.hand[1 - playedCardIndex];
-    const newDiscard = [...(attackerPlayer.discard || []), playedCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(playerNickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
-    // Update Firebase with the turn completion
-    await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${playerNickname}/hand`]: [remainingCard],
-      [`players/${playerNickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
-    });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-    );
   };
 
   // NEW: Handle target confirmation with direct card index (for ActionModal)
@@ -1133,6 +1098,56 @@ export default function Play() {
         cardPlayed: 6, // Special flag for Phantom King
       });
       pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === INQUISITOR CARD LOGIC (ID: 9) ===
+    else if (cardPlayed.id === 9) {
+      console.log(
+        `🕵️ INQUISITOR: ${nickname} investigates ${target} for strength ${guess}`
+      );
+
+      const result = await applyInquisitorEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        guess,
+      });
+
+      // Handle skip turn case
+      if (target === "SKIP_TURN") {
+        setResultModalData({
+          resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your Inquisitor cannot find a target to investigate, so your turn is skipped. ☕🔍`,
+        });
+        return;
+      }
+
+      if (result.result === "error") {
+        console.error("🕵️ INQUISITOR ERROR:", result.error);
+        setResultModalData({
+          resultText: `🕵️ Investigation failed: ${result.error}`,
+        });
+        return;
+      }
+
+      // Notify all players about the investigation
+      pushNotification(roomCode, result.publicMessage);
+
+      // Show attacker's result modal first (info only)
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+
+      // Set up target modal in Firebase for the target player
+      await update(ref(db, `rooms/${roomCode}/inquisitorResult`), {
+        ...result.targetModalData,
+        timestamp: Date.now(),
+        cardPlayInfo: {
+          playedCardIndex: selectedCardIndex,
+          playerNickname: nickname,
+        },
+      });
+
       return;
     }
 
@@ -1344,6 +1359,28 @@ export default function Play() {
 
     // Use the existing turn completion logic
     await completeTurnWithCardIndex(playedCardIndex);
+  };
+
+  /**
+   * Completes a card play using cardPlayInfo data (for Inquisitor and similar cards)
+   */
+  const completeCardPlay = async (cardIndex, playerNickname) => {
+    console.log("🔄 CARD PLAY COMPLETION DEBUG: Starting with data:", {
+      cardIndex,
+      playerNickname,
+      currentNickname: nickname,
+    });
+
+    // Only the original player should complete their own turn
+    if (playerNickname !== nickname) {
+      console.log(
+        "🔄 CARD PLAY COMPLETION: Not the original player, skipping turn completion"
+      );
+      return;
+    }
+
+    // Use the existing turn completion logic
+    await completeTurnWithCardIndex(cardIndex);
   };
 
   /**
@@ -2236,24 +2273,38 @@ export default function Play() {
                                       })
                                     )}
 
-                                    {/* Show TargetModal on the right when a card is selected and modal should be shown */}
+                                    {/* Show TargetModal/InquisitorTargetModal on the right when a card is selected and modal should be shown */}
                                     {selectedCardForUI !== null &&
                                       showTargetModal &&
                                       selectedCardIndex !== null &&
                                       player.hand?.[selectedCardIndex] && (
                                         <div className="target-modal-display">
-                                          <TargetModal
-                                            players={players}
-                                            currentPlayer={nickname}
-                                            cardPlayed={
-                                              player.hand[selectedCardIndex].id
-                                            }
-                                            protectedPlayers={
-                                              roomData?.protectedPlayers || []
-                                            }
-                                            onConfirm={handleTargetConfirm}
-                                            onCancel={handleCardBack}
-                                          />
+                                          {player.hand[selectedCardIndex].id ===
+                                          9 ? (
+                                            <InquisitorTargetModal
+                                              players={players}
+                                              currentPlayer={nickname}
+                                              protectedPlayers={
+                                                roomData?.protectedPlayers || []
+                                              }
+                                              onConfirm={handleTargetConfirm}
+                                              onCancel={handleCardBack}
+                                            />
+                                          ) : (
+                                            <TargetModal
+                                              players={players}
+                                              currentPlayer={nickname}
+                                              cardPlayed={
+                                                player.hand[selectedCardIndex]
+                                                  .id
+                                              }
+                                              protectedPlayers={
+                                                roomData?.protectedPlayers || []
+                                              }
+                                              onConfirm={handleTargetConfirm}
+                                              onCancel={handleCardBack}
+                                            />
+                                          )}
                                         </div>
                                       )}
 
@@ -2589,6 +2640,93 @@ export default function Play() {
                   }}
                 />
               )}
+
+            {/* === INQUISITOR RESULT MODAL === */}
+            {inquisitorResultModalData && (
+              <EffectResultModal
+                resultText={inquisitorResultModalData.resultText}
+                onClose={() =>
+                  handleModalTransition(async () => {
+                    console.log(
+                      "🕵️ INQUISITOR RESULT: Target modal closing",
+                      inquisitorResultModalData
+                    );
+
+                    const {
+                      originalAttacker,
+                      originalTarget,
+                      wasCorrectGuess,
+                      foundPrincess,
+                      discardedCard,
+                      cardPlayInfo,
+                    } = inquisitorResultModalData;
+
+                    if (wasCorrectGuess) {
+                      // Award love token to attacker first
+                      await awardLoveToken({
+                        roomCode,
+                        player: originalAttacker,
+                      });
+
+                      if (foundPrincess) {
+                        // Princess found - eliminate target (no new card draw)
+                        await update(
+                          ref(
+                            db,
+                            `rooms/${roomCode}/players/${originalTarget}`
+                          ),
+                          {
+                            hand: [], // Empty hand
+                            discard: [
+                              ...(roomData.players[originalTarget].discard ||
+                                []),
+                              discardedCard,
+                            ],
+                            isOut: true, // ELIMINATE
+                          }
+                        );
+                        console.log(
+                          "🕵️ PRINCESS ELIMINATION: Target eliminated for heresy"
+                        );
+                      } else {
+                        // Normal discard and draw new card
+                        const round = roomData.round;
+                        const newCard = round.deck[0];
+                        const newDeck = round.deck.slice(1);
+
+                        await update(ref(db, `rooms/${roomCode}`), {
+                          [`players/${originalTarget}/hand`]: [newCard],
+                          [`players/${originalTarget}/discard`]: [
+                            ...(roomData.players[originalTarget].discard || []),
+                            discardedCard,
+                          ],
+                          [`round/deck`]: newDeck,
+                        });
+                        console.log(
+                          "🕵️ HAND REPLACEMENT: Target discarded and drew new card"
+                        );
+                      }
+                    }
+
+                    // Clean up Firebase
+                    await update(ref(db, `rooms/${roomCode}`), {
+                      inquisitorResult: null,
+                      actionResult: null,
+                    });
+
+                    setInquisitorResultModalData(null);
+
+                    // Complete turn if this was the target's modal
+                    if (cardPlayInfo && !inquisitorResultModalData.isInfoOnly) {
+                      await completeCardPlay(
+                        cardPlayInfo.playedCardIndex,
+                        cardPlayInfo.playerNickname
+                      );
+                    }
+                  })
+                }
+              />
+            )}
 
             {resultModalData && (
               <EffectResultModal
