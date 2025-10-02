@@ -115,6 +115,7 @@ export default function Play() {
   const hasActiveModal = () => {
     return !!(
       resultModalData ||
+      inquisitorResultModalData ||
       priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
@@ -275,19 +276,6 @@ export default function Play() {
         ) {
           setResultModalData(null);
         }
-        /* TODO: re-test & re-activate this ONLY if all the rest works perfectly. 
-
-    // Auto-clear target message modals when it becomes this player's turn
-    // This ensures target modals don't block the player from seeing their turn
-    if (data?.round?.currentPlayer === nickname && targetMessageModalData) {
-      console.log(
-        "🎯 AUTO-CLEAR: Clearing target message modal - it's now this player's turn"
-      );
-      setTargetMessageModalData(null);
-      // Also clear from Firebase to prevent other players from seeing stale data
-      set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-    }
-    */
       }, 100); // 100ms debounce
     });
 
@@ -474,6 +462,7 @@ export default function Play() {
       priestTargetModalData: !!priestTargetModalData,
       baronResultModalData: !!baronResultModalData,
       targetMessageModalData: !!targetMessageModalData,
+      inquisitorResultModalData: !!inquisitorResultModalData,
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
@@ -997,6 +986,63 @@ export default function Play() {
 
       return;
     }
+
+    // === INQUISITOR CARD LOGIC (ID: 9) ===
+    else if (cardPlayed.id === 9) {
+      console.log(
+        `🕵️ INQUISITOR: ${nickname} investigates ${target} for strength ${guess}`
+      );
+
+      const result = await applyInquisitorEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        guess,
+      });
+
+      // Handle skip turn case
+      if (target === "SKIP_TURN") {
+        setResultModalData({
+          resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your Inquisitor cannot find a target to investigate, so your turn is skipped. ☕🔍`,
+        });
+        return;
+      }
+
+      if (result.result === "error") {
+        console.error("🕵️ INQUISITOR ERROR:", result.error);
+        setResultModalData({
+          resultText: `🕵️ Investigation failed: ${result.error}`,
+        });
+        return;
+      }
+
+      // Notify all players about the investigation
+      pushNotification(roomCode, result.publicMessage);
+
+      // Show attacker's result modal first (info only) with card details
+      setResultModalData({
+        resultText: result.attackerMessage,
+        cardDetails: {
+          "Target Player": target,
+          "Guessed Strength": guess,
+          "Actual Card": `${result.targetCard.name} (Strength ${result.targetCard.strength})`,
+          Investigation: result.isCorrectGuess ? "✅ CORRECT!" : "❌ Wrong",
+          "Love Token Earned": result.isCorrectGuess ? "Yes! 💰" : "No",
+        },
+      });
+
+      // Set up target modal in Firebase for the target player
+      await update(ref(db, `rooms/${roomCode}/inquisitorResult`), {
+        ...result.targetModalData,
+        timestamp: Date.now(),
+        cardPlayInfo: {
+          playedCardIndex: selectedCardIndex,
+          playerNickname: nickname,
+        },
+      });
+
+      return;
+    }
   };
 
   // NEW: Handle target confirmation with direct card index (for ActionModal)
@@ -1098,56 +1144,6 @@ export default function Play() {
         cardPlayed: 6, // Special flag for Phantom King
       });
       pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === INQUISITOR CARD LOGIC (ID: 9) ===
-    else if (cardPlayed.id === 9) {
-      console.log(
-        `🕵️ INQUISITOR: ${nickname} investigates ${target} for strength ${guess}`
-      );
-
-      const result = await applyInquisitorEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        guess,
-      });
-
-      // Handle skip turn case
-      if (target === "SKIP_TURN") {
-        setResultModalData({
-          resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your Inquisitor cannot find a target to investigate, so your turn is skipped. ☕🔍`,
-        });
-        return;
-      }
-
-      if (result.result === "error") {
-        console.error("🕵️ INQUISITOR ERROR:", result.error);
-        setResultModalData({
-          resultText: `🕵️ Investigation failed: ${result.error}`,
-        });
-        return;
-      }
-
-      // Notify all players about the investigation
-      pushNotification(roomCode, result.publicMessage);
-
-      // Show attacker's result modal first (info only)
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-
-      // Set up target modal in Firebase for the target player
-      await update(ref(db, `rooms/${roomCode}/inquisitorResult`), {
-        ...result.targetModalData,
-        timestamp: Date.now(),
-        cardPlayInfo: {
-          playedCardIndex: selectedCardIndex,
-          playerNickname: nickname,
-        },
-      });
-
       return;
     }
 
