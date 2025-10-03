@@ -216,7 +216,7 @@ export default function EffectResultModal({
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
-          {isPriestEffect && revealedCard && (
+          {isPriestEffect && revealedCard ? (
             <div style={priestLayoutStyle}>
               {/* Left side - The revealed card */}
               <div style={priestCardContainerStyle}>
@@ -243,72 +243,91 @@ export default function EffectResultModal({
 
               {/* Right side - The spying message */}
               <div style={priestMessageContainerStyle}>
-                <div style={priestSpyIconStyle}>👁️‍🗨️</div>
-                <div style={priestMessageStyle}>{formatText(resultText)}</div>
+                <div style={priestMessageIconStyle}>
+                  <div style={priestSpyIconStyle}>👁️‍🗨️</div>
+                  <div style={priestMessageStyle}>{formatText(resultText)}</div>
+                </div>
+                <div
+                  style={{
+                    ...buttonContainerStyle,
+                    ...priestButtonContainerStyle,
+                  }}
+                >
+                  <button
+                    onClick={onClose}
+                    style={{
+                      ...buttonStyle,
+                      ...priestButtonStyle,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#8b0000";
+                      e.target.style.background =
+                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#ffd700";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             </div>
+          ) : (
+            <div style={messageStyle}>{formatText(resultText)}</div>
           )}
-          {/* Standard layout for non-Priest effects*/}
 
-          <div style={messageStyle}>{formatText(resultText)}</div>
-
-          <div
-            style={{
-              ...buttonContainerStyle,
-              ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
-              ...(isPriestEffect ? priestButtonContainerStyle : {}),
-            }}
-          >
-            <button
-              onClick={onClose}
+          {!isPriestEffect && (
+            <div
               style={{
-                ...buttonStyle,
-                ...(isHandmaidProtection ? handmaidButtonStyle : {}),
-                ...(isPriestEffect ? priestButtonStyle : {}),
-              }}
-              onMouseEnter={(e) => {
-                if (isHandmaidProtection) {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(76, 175, 80, 0.5)";
-                } else if (isPriestEffect) {
-                  e.target.style.color = "#8b0000";
-                  e.target.style.background =
-                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(255, 215, 0, 0.5)";
-                } else {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(255, 215, 0, 0.5)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isHandmaidProtection) {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                } else if (isPriestEffect) {
-                  e.target.style.color = "#ffd700";
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
-                } else {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                }
+                ...buttonContainerStyle,
+                ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
               }}
             >
-              {isHandmaidProtection ? "🍰✨ Very Well ✨🫖" : "Continue"}
-            </button>
-          </div>
+              <button
+                onClick={onClose}
+                style={{
+                  ...buttonStyle,
+                  ...(isHandmaidProtection ? handmaidButtonStyle : {}),
+                }}
+                onMouseEnter={(e) => {
+                  if (isHandmaidProtection) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(76, 175, 80, 0.5)";
+                  } else {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(255, 215, 0, 0.5)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isHandmaidProtection) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                  } else {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                  }
+                }}
+              >
+                {isHandmaidProtection ? "🍰✨ Very Well ✨🫖" : "Continue"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -474,6 +493,7 @@ const priestCardContainerStyle = {
   flexDirection: "column",
   alignItems: "center",
   width: "30%",
+  height: "100%",
 };
 
 const priestCardStyle = {
@@ -554,17 +574,21 @@ const priestCardEffectStyle = {
 
 const priestMessageContainerStyle = {
   width: "55%",
-  height: "100%",
+  height: "auto",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "space-between",
   textAlign: "center",
+};
+
+const priestMessageIconStyle = {
+  display: "flex",
+  flexDirection: "column",
 };
 
 const priestSpyIconStyle = {
   fontSize: "4rem",
-  marginBottom: "20px",
   filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))",
   animation: "priestGlow 2s ease-in-out infinite alternate",
 };
@@ -579,6 +603,8 @@ const priestMessageStyle = {
 
 const priestButtonContainerStyle = {
   background: "initial",
+  width: "100%",
+  padding: "0",
 };
 
 const priestButtonStyle = {
@@ -586,6 +612,7 @@ const priestButtonStyle = {
     "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)",
   color: "#ffd700",
   transition: "all 0.3s ease",
+  width: "70%",
 };
 
 // Add the animation CSS (this would normally be in a CSS file)
