@@ -13,6 +13,7 @@ export const CARD_MODAL_FLOW = {
   6: { advanceOnAttacker: true, advanceOnTarget: false }, // Phantom King
   7: { advanceOnAttacker: true, advanceOnTarget: false }, // Countess
   8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
+  9: { advanceOnAttacker: true, advanceOnTarget: false }, // Inquisitor (target modal controls flow)
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
   // Premium mode cards will be added as we implement them...
 };
@@ -889,6 +890,182 @@ export async function applyPrincessEffect({ roomCode, player }) {
     return {
       result: "error",
       message: `👑 The Princess encountered a royal mishap! ${error.message}`,
+    };
+  }
+}
+
+/**
+ * Awards a single love token to a player (used by Inquisitor)
+ * Does NOT trigger round end - only for mid-round rewards
+ */
+export async function awardLoveToken({ roomCode, player }) {
+  console.log(`💰 LOVE TOKEN AWARD: Awarding token to ${player}`);
+
+  try {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const data = snapshot.val();
+    const currentTokens = data.players[player]?.tokens || 0;
+
+    await update(ref(db, `rooms/${roomCode}/players/${player}`), {
+      tokens: currentTokens + 1,
+    });
+
+    console.log(
+      `💰 SUCCESS: ${player} now has ${currentTokens + 1} love tokens`
+    );
+    return { success: true, newTokenCount: currentTokens + 1 };
+  } catch (error) {
+    console.error("💰 LOVE TOKEN ERROR:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Applies the Inquisitor card effect
+ * Investigates target's hand and potentially awards love token + forces discard
+ */
+export async function applyInquisitorEffect({
+  roomCode,
+  attacker,
+  target,
+  guess,
+}) {
+  console.log(
+    `🕵️ INQUISITOR DEBUG: ${attacker} investigates ${target} for strength ${guess}`
+  );
+
+  // Inquisitor cannot guess strength 1 (same rule as Guard)
+  if (guess === 1) {
+    return {
+      result: "invalidGuess",
+      error: "Inquisitor cannot guess strength 1",
+      isCorrectGuess: false,
+      targetCard: null,
+    };
+  }
+
+  try {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const data = snapshot.val();
+    const targetPlayer = data.players[target];
+    const attackerPlayer = data.players[attacker];
+    const targetCard = targetPlayer.hand[0];
+
+    const wasCorrect = targetCard.strength === guess;
+    const isPrincessFound = targetCard.id === 8 && wasCorrect;
+
+    console.log(
+      `🕵️ INVESTIGATION: ${wasCorrect ? "CORRECT" : "WRONG"} guess - found ${
+        targetCard.name
+      } (strength ${targetCard.strength})`
+    );
+
+    // Create enriched card object for display
+    const enrichedTargetCard =
+      cards.find((c) => c.id === targetCard.id) || targetCard;
+
+    let attackerMessage, targetMessage, publicMessage;
+
+    if (!wasCorrect) {
+      // Wrong guess - no effects, just messages
+      attackerMessage = `<div class="effect-description">🔍 Your Inquisitor searched for a heretic of <span class="effect-strength">strength ${guess}</span> at <span class="effect-player">${attackerPlayer.name}</span>'s place,  but didn't find the suspect.</div>
+      <div class="effect-description">⚖️ The investigation yields nothing...</div>`;
+
+      targetMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor came looking for some heretic of strength <span class="effect-strength">${guess}</span> at your place...</div>
+      <div class="effect-description">🛡️ But they only found you in the company of <span class="effect-card">${
+        enrichedTargetCard.name
+      }</span> (Strength <span class="effect-strength">${
+        enrichedTargetCard.strength
+      }</span>).</div>
+      <div class="effect-description">✨ You are safe from their investigation!</div>`;
+
+      publicMessage = `<div class="effect-description">🔍 <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor investigated <span class="effect-player">${
+        targetPlayer.name || target
+      }</span> but found no evidence of wrongdoing.</div>`;
+    } else if (isPrincessFound) {
+      // Correct guess AND Princess found - SCANDAL!
+      attackerMessage = `<div class="effect-description">⛪💀 SCANDALOUS DISCOVERY! Your Inquisitor found <span class="effect-player">${
+        targetPlayer.name || target
+      }</span> consorting directly with the <span class="effect-card">PRINCESS</span>!</div>
+      <div class="effect-description">💰 Your cunning investigation earns you a <span class="effect-success">Love Token</span>!</div>
+      <div class="effect-description">⚖️ Such impropriety cannot be tolerated - they are <span class="effect-elimination">ELIMINATED</span>!</div>`;
+
+      targetMessage = `<div class="effect-description">⛪💀 DIVINE JUDGMENT! <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor discovered your secret meetings with the <span class="effect-card">PRINCESS</span>!</div>
+      <div class="effect-description">🔥 The Church declares this shocking impropriety absolutely intolerable!</div>
+      <div class="effect-description">💀 You are <span class="effect-elimination">ELIMINATED</span> for this scandalous breach of protocol!</div>`;
+
+      publicMessage = `<div class="effect-description">⛪💀 SCANDAL! <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor found <span class="effect-player">${
+        targetPlayer.name || target
+      }</span> consorting with the <span class="effect-card">PRINCESS</span>! <span class="effect-elimination">${
+        targetPlayer.name || target
+      } eliminated for this shocking impropriety.</span></div>`;
+    } else {
+      // Correct guess but not Princess - normal investigation success
+      attackerMessage = `<div class="effect-description">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor found the heretic they were looking for in <span class="effect-player">${
+        targetPlayer.name || target
+      }</span>'s company.</div>
+      <div class="effect-description">💰 Your cunning earns you a <span class="effect-success">Love Token</span>!</div>
+      <div class="effect-description">⚖️ They must dismiss their heretic ally and seek new counsel...</div>`;
+
+      targetMessage = `<div class="effect-description">🔍 ROYAL INVESTIGATION! <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor suspected you of plotting with some heretic of strength <span class="effect-strength">${guess}</span>...</div>
+      <div class="effect-description">💀 They were RIGHT! They discovered your <span class="effect-card">${
+        enrichedTargetCard.name
+      }</span> ally in your company!</div>
+      <div class="effect-description">⚖️ Your treacherous alliance is exposed - dismiss your accomplice immediately!</div>`;
+
+      publicMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
+        attackerPlayer.name || attacker
+      }</span>'s Inquisitor exposed <span class="effect-player">${
+        targetPlayer.name || target
+      }</span>'s <span class="effect-card">${
+        enrichedTargetCard.name
+      }</span>! Secrets revealed!</div>`;
+    }
+
+    return {
+      result: wasCorrect ? "correctGuess" : "wrongGuess",
+      isCorrectGuess: wasCorrect,
+      isPrincessFound,
+      targetCard: enrichedTargetCard,
+      guessedStrength: guess,
+      actualStrength: targetCard.strength,
+      attacker,
+      target,
+      attackerMessage,
+      targetMessage,
+      publicMessage,
+      // Modal control - target modal will handle the effects
+      attackerModalData: {
+        resultText: attackerMessage,
+        isInfoOnly: true, // Attacker modal is informational only
+      },
+      targetModalData: {
+        resultText: targetMessage,
+        isInfoOnly: false, // Target modal controls turn advancement and effects
+        isInquisitorResult: true,
+        originalAttacker: attacker,
+        originalTarget: target,
+        wasCorrectGuess: wasCorrect,
+        foundPrincess: isPrincessFound,
+        discardedCard: wasCorrect ? enrichedTargetCard : null,
+      },
+    };
+  } catch (error) {
+    console.error("🕵️ INQUISITOR ERROR:", error);
+    return {
+      result: "error",
+      error: error.message,
+      isCorrectGuess: false,
     };
   }
 }
