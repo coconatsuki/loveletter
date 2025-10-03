@@ -700,7 +700,7 @@ export default function Play() {
       setResultModalData({
         resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
           cardNames[cardPlayed.id]
-        } cannot find a target, so your turn is skipped. The card takes no effect! ☕🛡️`,
+        } cannot find a target, so your turn is skipped.`,
       });
 
       // Note: Turn will be completed when player closes the result modal
@@ -1022,13 +1022,6 @@ export default function Play() {
       // Show attacker's result modal first (info only) with card details
       setResultModalData({
         resultText: result.attackerMessage,
-        cardDetails: {
-          "Target Player": target,
-          "Guessed Strength": guess,
-          "Actual Card": `${result.targetCard.name} (Strength ${result.targetCard.strength})`,
-          Investigation: result.isCorrectGuess ? "✅ CORRECT!" : "❌ Wrong",
-          "Love Token Earned": result.isCorrectGuess ? "Yes! 💰" : "No",
-        },
       });
 
       // Set up target modal in Firebase for the target player
@@ -1066,7 +1059,7 @@ export default function Play() {
       setResultModalData({
         resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
           cardNames[cardPlayed.id]
-        } cannot find a target, so your turn is skipped. The card takes no effect! ☕🛡️`,
+        } cannot find a target, so your turn is skipped.`,
       });
       return;
     }
@@ -2078,6 +2071,7 @@ export default function Play() {
             {/* GAME ACTIONS SECTION */}
             {isMyTurn &&
               !hasActiveModal() &&
+              player.hand?.length >= 1 &&
               (!isPlaying ||
                 (roomData?.guardPrompt &&
                   roomData.guardPrompt.attacker === nickname)) && (
@@ -2712,7 +2706,32 @@ export default function Play() {
 
                     setInquisitorResultModalData(null);
 
-                    // Complete turn if this was the target's modal
+                    // Check for round end conditions after potential elimination
+                    console.log(
+                      "🔍 INQUISITOR ROUND END CHECK: After elimination"
+                    );
+                    const roundEndResult = await checkRoundEndConditions(
+                      roomCode
+                    );
+
+                    if (roundEndResult.isRoundEnd) {
+                      console.log(
+                        "🏆 ROUND END DETECTED after Inquisitor elimination:",
+                        roundEndResult
+                      );
+
+                      // Add a delay to allow players to read the elimination message
+                      setTimeout(async () => {
+                        console.log(
+                          "🏆 TRIGGERING ROUND END after Inquisitor elimination"
+                        );
+                        await triggerRoundEnd(roomCode);
+                      }, 2000);
+
+                      return; // Don't complete the turn, round is ending
+                    }
+
+                    // Complete turn if round didn't end and this was the target's modal
                     if (cardPlayInfo && !inquisitorResultModalData.isInfoOnly) {
                       await completeCardPlay(
                         cardPlayInfo.playedCardIndex,

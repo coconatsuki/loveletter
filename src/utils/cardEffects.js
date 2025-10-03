@@ -968,20 +968,13 @@ export async function applyInquisitorEffect({
 
     if (!wasCorrect) {
       // Wrong guess - no effects, just messages
-      attackerMessage = `<div class="effect-description">🔍 Your Inquisitor searched for strength ${guess} but found no evidence of heresy at <span class="effect-player">${
-        targetPlayer.name || target
-      }</span>'s side.</div>
-      <div class="effect-description">📜 They hold: <span class="effect-card">${
-        enrichedTargetCard.name
-      }</span> (Strength <span class="effect-strength">${
-        enrichedTargetCard.strength
-      }</span>)</div>
+      attackerMessage = `<div class="effect-description">🔍 Your Inquisitor searched for a heretic of <span class="effect-strength">strength ${guess}</span> at <span class="effect-player">${attackerPlayer.name}</span>'s place,  but didn't find the suspect.</div>
       <div class="effect-description">⚖️ The investigation yields nothing...</div>`;
 
       targetMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
         attackerPlayer.name || attacker
-      }</span>'s Inquisitor visited you seeking an ally of strength <span class="effect-strength">${guess}</span>...</div>
-      <div class="effect-description">🛡️ But they found only your <span class="effect-card">${
+      }</span>'s Inquisitor came looking for some heretic of strength <span class="effect-strength">${guess}</span> at your place...</div>
+      <div class="effect-description">🛡️ But they only found you in the company of <span class="effect-card">${
         enrichedTargetCard.name
       }</span> (Strength <span class="effect-strength">${
         enrichedTargetCard.strength
@@ -995,17 +988,17 @@ export async function applyInquisitorEffect({
       }</span> but found no evidence of wrongdoing.</div>`;
     } else if (isPrincessFound) {
       // Correct guess AND Princess found - SCANDAL!
-      attackerMessage = `<div class="effect-description">⛪💀 HERETICAL DISCOVERY! Your Inquisitor found <span class="effect-player">${
+      attackerMessage = `<div class="effect-description">⛪💀 SCANDALOUS DISCOVERY! Your Inquisitor found <span class="effect-player">${
         targetPlayer.name || target
       }</span> consorting directly with the <span class="effect-card">PRINCESS</span>!</div>
       <div class="effect-description">💰 Your cunning investigation earns you a <span class="effect-success">Love Token</span>!</div>
-      <div class="effect-description">⚖️ Such heresy cannot be tolerated - they are <span class="effect-elimination">ELIMINATED</span>!</div>`;
+      <div class="effect-description">⚖️ Such impropriety cannot be tolerated - they are <span class="effect-elimination">ELIMINATED</span>!</div>`;
 
       targetMessage = `<div class="effect-description">⛪💀 DIVINE JUDGMENT! <span class="effect-player">${
         attackerPlayer.name || attacker
       }</span>'s Inquisitor discovered your secret meetings with the <span class="effect-card">PRINCESS</span>!</div>
-      <div class="effect-description">🔥 The Church declares this heretical behavior intolerable!</div>
-      <div class="effect-description">💀 You are <span class="effect-elimination">ELIMINATED</span> for consorting directly with royalty!</div>`;
+      <div class="effect-description">🔥 The Church declares this shocking impropriety absolutely intolerable!</div>
+      <div class="effect-description">💀 You are <span class="effect-elimination">ELIMINATED</span> for this scandalous breach of protocol!</div>`;
 
       publicMessage = `<div class="effect-description">⛪💀 SCANDAL! <span class="effect-player">${
         attackerPlayer.name || attacker
@@ -1013,26 +1006,22 @@ export async function applyInquisitorEffect({
         targetPlayer.name || target
       }</span> consorting with the <span class="effect-card">PRINCESS</span>! <span class="effect-elimination">${
         targetPlayer.name || target
-      } eliminated for heresy!</span></div>`;
+      } eliminated for this shocking impropriety.</span></div>`;
     } else {
       // Correct guess but not Princess - normal investigation success
-      attackerMessage = `<div class="effect-description">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor discovered <span class="effect-player">${
+      attackerMessage = `<div class="effect-description">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor found the heretic they were looking for in <span class="effect-player">${
         targetPlayer.name || target
-      }</span> harbors <span class="effect-card">${
-        enrichedTargetCard.name
-      }</span> (Strength <span class="effect-strength">${
-        enrichedTargetCard.strength
-      }</span>)!</div>
+      }</span>'s company.</div>
       <div class="effect-description">💰 Your cunning earns you a <span class="effect-success">Love Token</span>!</div>
-      <div class="effect-description">⚖️ They must dismiss their ally and seek new counsel...</div>`;
+      <div class="effect-description">⚖️ They must dismiss their heretic ally and seek new counsel...</div>`;
 
       targetMessage = `<div class="effect-description">🔍 ROYAL INVESTIGATION! <span class="effect-player">${
         attackerPlayer.name || attacker
-      }</span>'s Inquisitor suspected you harbored an ally of strength <span class="effect-strength">${guess}</span>...</div>
+      }</span>'s Inquisitor suspected you of plotting with some heretic of strength <span class="effect-strength">${guess}</span>...</div>
       <div class="effect-description">💀 They were RIGHT! They discovered your <span class="effect-card">${
         enrichedTargetCard.name
-      }</span>!</div>
-      <div class="effect-description">⚖️ Your secrets are exposed - you must dismiss them and find new counsel!</div>`;
+      }</span> ally in your company!</div>
+      <div class="effect-description">⚖️ Your treacherous alliance is exposed - dismiss your accomplice immediately!</div>`;
 
       publicMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
         attackerPlayer.name || attacker

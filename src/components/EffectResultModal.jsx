@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 // CSS styles for card effect formatting
 const effectTextStyles = `
@@ -90,7 +90,13 @@ export default function EffectResultModal({
   cardDetails = null,
   onClose,
 }) {
-  console.log("EffectResultModal has been called! / resultText: ", resultText);
+  // Log only when component mounts or resultText changes
+  useEffect(() => {
+    console.log(
+      "EffectResultModal mounted/updated with resultText: ",
+      resultText
+    );
+  }, [resultText]);
 
   // Helper function to render HTML text directly (no more markdown conversion needed)
   const formatText = (text) => {
@@ -119,8 +125,11 @@ export default function EffectResultModal({
   const isPriestEffect =
     cardDetails &&
     (resultText?.includes("divine light reveals") ||
-      cardDetails["Revealed Card"] ||
-      cardDetails["Target Player"]);
+      cardDetails["Revealed Card"]) &&
+    !resultText?.includes("Inquisitor"); // Exclude Inquisitor
+
+  // Check if this is an Inquisitor effect
+  const isInquisitorEffect = resultText?.includes("Inquisitor");
 
   // Extract card information for Priest effect
   let revealedCard = null;
@@ -183,19 +192,31 @@ export default function EffectResultModal({
               zIndex: 1001,
             }}
           >
-            {isPriestEffect ? "🔍" : isHandmaidProtection ? "🛡️" : "📜"}
+            {isPriestEffect
+              ? "🔍"
+              : isInquisitorEffect
+              ? "🕵️"
+              : isHandmaidProtection
+              ? "🛡️"
+              : "📜"}
           </div>
-
-          <h3 style={getHeaderStyle(isHandmaidProtection, isPriestEffect)}>
+          <h3
+            style={getHeaderStyle(
+              isHandmaidProtection,
+              isPriestEffect,
+              isInquisitorEffect
+            )}
+          >
             {isPriestEffect
               ? "Priest's Divine Revelation"
+              : isInquisitorEffect
+              ? "Inquisitor's Investigation"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
           </h3>
-
           {/* Special Priest Layout with Card Display */}
-          {isPriestEffect && revealedCard ? (
+          {isPriestEffect && revealedCard && (
             <div style={priestLayoutStyle}>
               {/* Left side - The revealed card */}
               <div style={priestCardContainerStyle}>
@@ -226,22 +247,10 @@ export default function EffectResultModal({
                 <div style={priestMessageStyle}>{formatText(resultText)}</div>
               </div>
             </div>
-          ) : (
-            /* Standard layout for non-Priest effects */
-            <>
-              <div style={messageStyle}>{formatText(resultText)}</div>
-
-              {cardDetails && !isPriestEffect && (
-                <div style={cardDetailsStyle}>
-                  {Object.entries(cardDetails).map(([label, value]) => (
-                    <div key={label} style={detailRowStyle}>
-                      <strong>{label}:</strong> {value}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
           )}
+          {/* Standard layout for non-Priest effects*/}
+
+          <div style={messageStyle}>{formatText(resultText)}</div>
 
           <div
             style={{
@@ -345,11 +354,17 @@ const handmaidModalStyle = {
 };
 
 // Define headerStyle as a function that takes parameters
-const getHeaderStyle = (isHandmaidProtection, isPriestEffect) => ({
+const getHeaderStyle = (
+  isHandmaidProtection,
+  isPriestEffect,
+  isInquisitorEffect
+) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
     : isHandmaidProtection
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%);"
+    : isInquisitorEffect
+    ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: "#ffd700",
   margin: "0",

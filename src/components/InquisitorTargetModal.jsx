@@ -1,85 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // Inquisitor Modal Styling Constants
 const INQUISITOR_STYLES = {
-  modal: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-    animation: "inquisitorFadeIn 0.4s ease-out",
-  },
-
   content: {
-    background:
-      "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-    border: "3px solid #ffd700",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    height: "100%",
+    background: "inherit",
     borderRadius: "15px",
-    padding: "2rem",
-    minWidth: "500px",
-    maxWidth: "600px",
     color: "#e8e6e3",
     fontFamily: "Cinzel, serif",
-    boxShadow:
-      "0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3)",
-    position: "relative",
     animation: "inquisitorSlideIn 0.5s ease-out",
-  },
-
-  title: {
-    fontSize: "1.8rem",
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#ffd700",
-    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
-    marginBottom: "1.5rem",
-    borderBottom: "2px solid #ffd700",
-    paddingBottom: "0.5rem",
-  },
-
-  description: {
-    fontSize: "1.1rem",
-    lineHeight: "1.6",
-    textAlign: "center",
-    color: "#d4d4d4",
-    marginBottom: "1.5rem",
-    fontStyle: "italic",
   },
 
   noTargetMessage: {
     fontSize: "1.2rem",
-    textAlign: "center",
-    color: "#ffd700",
+    lineHeight: "2em",
+    textAlign: "left",
+    color: "rgb(228 177 182)",
     fontWeight: "bold",
-    marginBottom: "1.5rem",
-    padding: "1rem",
-    background: "rgba(255, 215, 0, 0.1)",
-    borderRadius: "8px",
-    border: "1px solid rgba(255, 215, 0, 0.3)",
+    fontSize: "1.3rem",
+  },
+
+  dropdownContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2rem",
   },
 
   dropdownSection: {
-    marginBottom: "1.5rem",
+    // marginBottom: "1.5rem",
   },
 
   dropdownLabel: {
     fontSize: "1.1rem",
     fontWeight: "bold",
     color: "#ffd700",
-    marginBottom: "0.5rem",
+    marginBottom: "0.8rem",
     display: "block",
+    textAlign: "left",
   },
 
   select: {
     width: "100%",
-    padding: "0.8rem",
-    fontSize: "1.1rem",
+    padding: "0.5rem",
+    fontSize: "1rem",
     backgroundColor: "#2a2a3e",
     color: "#e8e6e3",
     border: "2px solid #ffd700",
@@ -96,16 +62,14 @@ const INQUISITOR_STYLES = {
   },
 
   buttonsContainer: {
-    marginTop: "2rem",
     display: "flex",
     justifyContent: "space-between",
-    gap: "1rem",
   },
 
   button: {
-    padding: "0.8rem 1.5rem",
-    flex: 1,
-    fontSize: "1.2rem",
+    width: "47%",
+    padding: "0.8rem 1rem",
+    fontSize: "1.1rem",
     border: "2px solid",
     borderRadius: "8px",
     fontFamily: "Cinzel, serif",
@@ -179,12 +143,15 @@ export default function InquisitorTargetModal({
   // Inquisitor can guess strengths: [0, 2, 3, 4, 5, 6, 7, 8]
   const allowedStrengths = [0, 2, 3, 4, 5, 6, 7, 8];
 
-  console.log(
-    "🕵️ InquisitorTargetModal opened! validTargets:",
-    validTargets.length,
-    "protectedPlayers:",
-    protectedPlayers
-  );
+  // Log only once when component mounts or targets change
+  useEffect(() => {
+    console.log(
+      "🕵️ InquisitorTargetModal opened! validTargets:",
+      validTargets.length,
+      "protectedPlayers:",
+      protectedPlayers
+    );
+  }, [validTargets.length, protectedPlayers.length]);
 
   return (
     <>
@@ -214,24 +181,17 @@ export default function InquisitorTargetModal({
         `}
       </style>
 
-      <div style={INQUISITOR_STYLES.modal}>
-        <div style={INQUISITOR_STYLES.content}>
-          <div style={INQUISITOR_STYLES.title}>🕵️‍♀️ THE ROYAL INQUISITOR 🔍</div>
-
-          <div style={INQUISITOR_STYLES.description}>
-            Your Inquisitor seeks heretical allies at the royal court. Choose a
-            target and the strength of the suspect you seek...
+      <div style={INQUISITOR_STYLES.content}>
+        {hasNoTargets && (
+          <div style={INQUISITOR_STYLES.noTargetMessage}>
+            🫖 All other players are enjoying tea with the Princess' Handmaid
+            and cannot be investigated.
           </div>
+        )}
 
-          {hasNoTargets && (
-            <div style={INQUISITOR_STYLES.noTargetMessage}>
-              🫖 All other players are enjoying tea with the Princess' Handmaid
-              and cannot be investigated.
-            </div>
-          )}
-
-          {!hasNoTargets && (
-            <>
+        {!hasNoTargets && (
+          <>
+            <div style={INQUISITOR_STYLES.dropdownContainer}>
               <div style={INQUISITOR_STYLES.dropdownSection}>
                 <label style={INQUISITOR_STYLES.dropdownLabel}>
                   🎯 Select Investigation Target
@@ -263,7 +223,7 @@ export default function InquisitorTargetModal({
 
               <div style={INQUISITOR_STYLES.dropdownSection}>
                 <label style={INQUISITOR_STYLES.dropdownLabel}>
-                  ⚔️ Guess Ally Strength
+                  ⚔️ Who are they ploting with?
                 </label>
                 <select
                   style={INQUISITOR_STYLES.select}
@@ -288,62 +248,62 @@ export default function InquisitorTargetModal({
                   ))}
                 </select>
               </div>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          <div style={INQUISITOR_STYLES.buttonsContainer}>
-            {hasNoTargets ? (
+        <div style={INQUISITOR_STYLES.buttonsContainer}>
+          {hasNoTargets ? (
+            <button
+              onClick={() => onConfirm({ target: "SKIP_TURN", guess: 0 })}
+              style={{
+                ...INQUISITOR_STYLES.button,
+                ...INQUISITOR_STYLES.confirmButton,
+                width: "100%",
+              }}
+            >
+              ⏭️ Skip Turn
+            </button>
+          ) : (
+            <>
               <button
-                onClick={() => onConfirm({ target: "SKIP_TURN", guess: 0 })}
+                onClick={() => onConfirm({ target: selectedTarget, guess })}
+                disabled={!selectedTarget}
+                onMouseEnter={() => setIsConfirmHovered(true)}
+                onMouseLeave={() => setIsConfirmHovered(false)}
                 style={{
                   ...INQUISITOR_STYLES.button,
-                  ...INQUISITOR_STYLES.confirmButton,
-                  width: "100%",
+                  ...(selectedTarget
+                    ? isConfirmHovered
+                      ? {
+                          ...INQUISITOR_STYLES.confirmButton,
+                          ...INQUISITOR_STYLES.confirmButtonHover,
+                        }
+                      : INQUISITOR_STYLES.confirmButton
+                    : INQUISITOR_STYLES.confirmButtonDisabled),
                 }}
               >
-                ⏭️ Skip Turn
+                Investigate
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => onConfirm({ target: selectedTarget, guess })}
-                  disabled={!selectedTarget}
-                  onMouseEnter={() => setIsConfirmHovered(true)}
-                  onMouseLeave={() => setIsConfirmHovered(false)}
-                  style={{
-                    ...INQUISITOR_STYLES.button,
-                    ...(selectedTarget
-                      ? isConfirmHovered
-                        ? {
-                            ...INQUISITOR_STYLES.confirmButton,
-                            ...INQUISITOR_STYLES.confirmButtonHover,
-                          }
-                        : INQUISITOR_STYLES.confirmButton
-                      : INQUISITOR_STYLES.confirmButtonDisabled),
-                  }}
-                >
-                  🔍 Investigate
-                </button>
 
-                <button
-                  onClick={onCancel}
-                  onMouseEnter={() => setIsBackHovered(true)}
-                  onMouseLeave={() => setIsBackHovered(false)}
-                  style={{
-                    ...INQUISITOR_STYLES.button,
-                    ...(isBackHovered
-                      ? {
-                          ...INQUISITOR_STYLES.backButton,
-                          ...INQUISITOR_STYLES.backButtonHover,
-                        }
-                      : INQUISITOR_STYLES.backButton),
-                  }}
-                >
-                  ↩️ Back
-                </button>
-              </>
-            )}
-          </div>
+              <button
+                onClick={onCancel}
+                onMouseEnter={() => setIsBackHovered(true)}
+                onMouseLeave={() => setIsBackHovered(false)}
+                style={{
+                  ...INQUISITOR_STYLES.button,
+                  ...(isBackHovered
+                    ? {
+                        ...INQUISITOR_STYLES.backButton,
+                        ...INQUISITOR_STYLES.backButtonHover,
+                      }
+                    : INQUISITOR_STYLES.backButton),
+                }}
+              >
+                ↩️ Back
+              </button>
+            </>
+          )}
         </div>
       </div>
     </>
