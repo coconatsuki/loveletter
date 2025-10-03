@@ -12,6 +12,7 @@ import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
 import {
+  applyJesterEffect,
   applyGuardEffect,
   resolveAssassinDefense,
   executeAssassinationElimination,
@@ -560,8 +561,8 @@ export default function Play() {
     // If actionData is provided, it means ActionModal already handled target selection
     if (actionData) {
       // Handle the action based on card type with target/guess data
-      if ([1, 2, 3, 6, 9].includes(card.id)) {
-        // Cards that need target selection (Guard, Priest, Baron, Phantom King, Inquisitor)
+      if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
+        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
         // Pass the card index directly to avoid state timing issues
         handleTargetConfirmWithIndex(index, actionData);
         return;
@@ -570,8 +571,8 @@ export default function Play() {
 
     // Original logic for cards that don't need ActionModal target selection
     // or when called from old system
-    if ([1, 2, 3, 6, 9].includes(card.id)) {
-      // Cards that need target selection (Guard, Priest, Baron, Phantom King, Inquisitor)
+    if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
+      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -704,6 +705,29 @@ export default function Play() {
       });
 
       // Note: Turn will be completed when player closes the result modal
+      return;
+    }
+
+    // === JESTER CARD LOGIC (ID: 0) ===
+    if (cardPlayed.id === 0) {
+      const result = await applyJesterEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+
+      // Show the target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        visibleTo: target,
+        attacker: nickname,
+        message: result.targetMessage,
+        timestamp: Date.now(),
+      });
+
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
       return;
     }
 
@@ -1061,6 +1085,29 @@ export default function Play() {
           cardNames[cardPlayed.id]
         } cannot find a target, so your turn is skipped.`,
       });
+      return;
+    }
+
+    // === JESTER CARD LOGIC (ID: 0) ===
+    if (cardPlayed.id === 0) {
+      const result = await applyJesterEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+
+      // Show the target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        visibleTo: target,
+        attacker: nickname,
+        message: result.targetMessage,
+        timestamp: Date.now(),
+      });
+
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
       return;
     }
 

@@ -15,7 +15,6 @@ const INQUISITOR_STYLES = {
   },
 
   noTargetMessage: {
-    fontSize: "1.2rem",
     lineHeight: "2em",
     textAlign: "left",
     color: "rgb(228 177 182)",

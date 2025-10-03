@@ -5,6 +5,7 @@ import { logRoundEndCheck } from "./roundEndDetection";
 
 // Turn advancement control for modal system
 export const CARD_MODAL_FLOW = {
+  0: { advanceOnAttacker: true, advanceOnTarget: false }, // Jester
   1: { advanceOnAttacker: true, advanceOnTarget: false }, // Guard
   2: { advanceOnAttacker: true, advanceOnTarget: false }, // Priest
   3: { advanceOnAttacker: true, advanceOnTarget: false }, // Baron
@@ -51,6 +52,46 @@ const cardStrengths = {
   15: 2, // Baroness
   16: 3, // Duke
 };
+
+// 🃏✨ JESTER EFFECT ✨🃏
+export async function applyJesterEffect({ roomCode, attacker, target }) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+
+  if (!data || !data.players || !data.players[target]) {
+    return {
+      result: "error",
+      message: "Target player not found",
+    };
+  }
+
+  const attackerPlayer = data.players[attacker];
+  const targetPlayer = data.players[target];
+
+  if (!attackerPlayer || !targetPlayer) {
+    return {
+      result: "error",
+      message: "Player not found",
+    };
+  }
+
+  // Give the Jester token to the target
+  const updates = {
+    [`players/${target}/jesterToken`]: { giver: attacker },
+  };
+
+  await update(ref(db, `rooms/${roomCode}`), updates);
+
+  return {
+    result: "jesterToken",
+    attacker,
+    target,
+    // 🎭 Colorful, joyful medieval narrative! 🎭
+    attackerMessage: `<div class="effect-description">🎭✨ With a laugh and a bow, you hand the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>!</div><div class="effect-description">🎪💎 If they should win, this shiny charm will also bring you the Princess's affection! 👑💕</div>`,
+    targetMessage: `<div class="effect-description">🃏🎪 The Jester dances before you, pressing into your hand a shiny charm:</div><div class="effect-description">✨💍 "Keep it close, my friend, and the Princess will surely smile on you!" It feels more like a joke than a gift... but you cannot refuse. 🎭😊</div>`,
+    publicMessage: `<div class="effect-description">🎭🎪 <span class="effect-player">${attackerPlayer.name}</span> handed the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>!</div><div class="effect-description">🃏✨ The court laughs — is it a gift, or a trick? 😄🎪</div>`,
+  };
+}
 
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   // Guard rule: You cannot guess Guard (strength 1)
