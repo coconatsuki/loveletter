@@ -139,8 +139,13 @@ export async function triggerRoundEnd(roomCode) {
       const winnerData = roomData.players[roundEndResult.winner];
       if (winnerData?.jesterToken?.giver) {
         const jesterGiver = winnerData.jesterToken.giver;
-        const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
-        updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+        // Only award jester bonus if giver is NOT the winner (avoid double-counting)
+        if (jesterGiver !== roundEndResult.winner) {
+          const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
+          updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+        }
+
         jesterBonusInfo = {
           giver: jesterGiver,
           giverName: roomData.players[jesterGiver]?.name || jesterGiver,
@@ -160,8 +165,13 @@ export async function triggerRoundEnd(roomCode) {
         const winnerData = roomData.players[winner];
         if (winnerData?.jesterToken?.giver) {
           const jesterGiver = winnerData.jesterToken.giver;
-          const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
-          updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+          // Only award jester bonus if giver is NOT among the winners (avoid double-counting)
+          if (!roundEndResult.winners.includes(jesterGiver)) {
+            const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
+            updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+          }
+
           jesterBonuses.push({
             giver: jesterGiver,
             giverName: roomData.players[jesterGiver]?.name || jesterGiver,

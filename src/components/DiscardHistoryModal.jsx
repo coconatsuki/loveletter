@@ -15,8 +15,8 @@ const discardHistoryOverlay = {
 
 const discardHistoryModalBase = {
   position: "absolute",
-  top: "-6rem",
-  left: "calc(100% + 1.5rem)",
+  top: "-15%",
+  right: "-20%",
   width: "300px",
   maxHeight: "550px",
   background: "linear-gradient(145deg, #f4f1e8 0%, #e8dcc0 50%, #d4c4a0 100%)",
