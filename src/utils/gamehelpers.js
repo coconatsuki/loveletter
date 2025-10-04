@@ -27,3 +27,71 @@ export function getCardCount(cardId, gameMode, cards) {
   const isPremiumMode = gameMode === "premium";
   return isPremiumMode ? card.countPremium : card.countNormal;
 }
+
+/**
+ * Handles card discard logic and special token management (like Chamberlain)
+ * @param {Object} params - The parameters
+ * @param {string} params.roomCode - The room code
+ * @param {string} params.playerName - The player discarding the card
+ * @param {Object} params.card - The card being discarded
+ * @param {string} params.gameMode - The game mode (normal/premium)
+ * @param {Object} params.existingUpdates - Existing Firebase updates to append to
+ * @returns {Object} Firebase updates including any special token logic
+ */
+export function handleCardDiscard({
+  roomCode,
+  playerName,
+  card,
+  gameMode,
+  existingUpdates = {},
+}) {
+  const updates = { ...existingUpdates };
+
+  // In premium mode, check if this is a Chamberlain card
+  if (gameMode === "premium" && card.id === 10) {
+    // Set ChamberlainToken flag to false (ready to be activated on elimination)
+    updates[`players/${playerName}/chamberlainToken`] = false;
+    console.log(
+      `🏰💰 Chamberlain token set for ${playerName} - ready for elimination bonus`
+    );
+  }
+
+  return updates;
+}
+
+/**
+ * Handles player elimination logic and special token management (like Chamberlain)
+ * @param {Object} params - The parameters
+ * @param {string} params.roomCode - The room code
+ * @param {string} params.playerName - The player being eliminated
+ * @param {string} params.gameMode - The game mode (normal/premium)
+ * @param {Object} params.currentPlayerData - Current player data from Firebase
+ * @param {Object} params.existingUpdates - Existing Firebase updates to append to
+ * @returns {Object} Firebase updates including any special token logic
+ */
+export function handlePlayerElimination({
+  roomCode,
+  playerName,
+  gameMode,
+  currentPlayerData,
+  existingUpdates = {},
+}) {
+  const updates = { ...existingUpdates };
+
+  // Set player as eliminated
+  updates[`players/${playerName}/isOut`] = true;
+
+  // In premium mode, check if this player has a Chamberlain token
+  if (gameMode === "premium" && currentPlayerData) {
+    // Check if player has ChamberlainToken set to false (meaning they discarded Chamberlain)
+    if (currentPlayerData.chamberlainToken === false) {
+      // Activate the token for love token reward at round end
+      updates[`players/${playerName}/chamberlainToken`] = true;
+      console.log(
+        `🏰⚔️ Chamberlain token activated for eliminated player ${playerName} - they will earn a love token!`
+      );
+    }
+  }
+
+  return updates;
+}

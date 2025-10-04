@@ -185,6 +185,34 @@ export async function triggerRoundEnd(roomCode) {
       jesterBonusInfo = jesterBonuses.length > 0 ? jesterBonuses[0] : null;
     }
 
+    // 🏰💰 Check for Chamberlain tokens - players eliminated with Chamberlain benefit
+    let chamberlainBonusInfo = null;
+    const chamberlainBonuses = [];
+
+    // Check all players for activated Chamberlain tokens (set to true upon elimination)
+    Object.entries(roomData.players || {}).forEach(
+      ([playerName, playerData]) => {
+        if (playerData?.chamberlainToken === true) {
+          // Award this eliminated player 1 love token for their Chamberlain's influence
+          const currentTokens = playerData.tokens || 0;
+          updates[`players/${playerName}/tokens`] = currentTokens + 1;
+
+          chamberlainBonuses.push({
+            player: playerName,
+            playerName: playerData.name || playerName,
+          });
+
+          console.log(
+            `🏰💰 Chamberlain bonus awarded to ${playerName} for noble sacrifice!`
+          );
+        }
+      }
+    );
+
+    // Use first Chamberlain bonus for main info, or null if none
+    chamberlainBonusInfo =
+      chamberlainBonuses.length > 0 ? chamberlainBonuses[0] : null;
+
     // Build round result data
     const roundResult = {
       roundNumber: roomData.gameStats?.currentRound || 1,
@@ -195,6 +223,7 @@ export async function triggerRoundEnd(roomCode) {
       hiddenCard: roomData.round?.hiddenCard || null,
       finalStandings: roundEndResult.finalStandings || [],
       jesterBonusInfo, // 🃏 Add jester bonus information
+      chamberlainBonusInfo, // 🏰💰 Add Chamberlain bonus information
       timestamp: Date.now(),
     };
 

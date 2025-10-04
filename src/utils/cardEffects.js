@@ -2,6 +2,7 @@ import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 import { cards } from "./cardsData";
 import { logRoundEndCheck } from "./roundEndDetection";
+import { handleCardDiscard, handlePlayerElimination } from "./gamehelpers";
 
 // Turn advancement control for modal system
 export const CARD_MODAL_FLOW = {
@@ -15,6 +16,7 @@ export const CARD_MODAL_FLOW = {
   7: { advanceOnAttacker: true, advanceOnTarget: false }, // Countess
   8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
   9: { advanceOnAttacker: true, advanceOnTarget: false }, // Inquisitor (target modal controls flow)
+  10: { advanceOnAttacker: true, advanceOnTarget: false }, // Chamberlain
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
   // Premium mode cards will be added as we implement them...
 };
@@ -93,6 +95,29 @@ export async function applyJesterEffect({ roomCode, attacker, target }) {
   };
 }
 
+// 🏰💰 CHAMBERLAIN EFFECT 💰🏰
+export async function applyChamberlainEffect({ roomCode, attacker }) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const data = snapshot.val();
+
+  if (!data || !data.players || !data.players[attacker]) {
+    return {
+      result: "error",
+      message: "Attacker player not found",
+    };
+  }
+
+  const attackerPlayer = data.players[attacker];
+
+  return {
+    result: "chamberlainInfluence",
+    attacker,
+    // 🏰💰 Rich, powerful, and slightly dramatic medieval narrative! 💰🏰
+    attackerMessage: `<div class="effect-description">🏰✨ You have secured the loyalty of the <span class="effect-card">Royal Chamberlain</span> — keeper of golden keys, guardian of royal secrets, and master of the crown's purse!</div><div class="effect-description">💰🗝️ This shrewd ally whispers in the right ears... Should misfortune befall you this round, the Chamberlain's influence shall ensure your sacrifice earns the Princess's favor! 👑💎</div>`,
+    publicMessage: `<div class="effect-description">🏰💰 <span class="effect-player">${attackerPlayer.name}</span> has gained the <span class="effect-card">Royal Chamberlain's</span> favor!</div><div class="effect-description">🗝️✨ Even in defeat, such powerful allies ensure victory... The court whispers of golden influence! 💎👑</div>`,
+  };
+}
+
 export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   // Guard rule: You cannot guess Guard (strength 1)
   if (guess === 1) {
@@ -152,7 +177,7 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
 
   // Immediate effects: Discard Assassin (full card object) + Draw new card for target
   // BUT do NOT eliminate attacker yet - that happens when they click "Continue"
-  const updates = {
+  const baseUpdates = {
     // Discard the full Assassin card object with all properties
     [`players/${target}/discard`]: [
       ...(data.players[target].discard || []),
@@ -166,7 +191,16 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
     [`round/pendingAssassinationTarget`]: attacker,
   };
 
-  await update(ref(db, `rooms/${roomCode}`), updates);
+  // Handle card discard and check for special tokens (like Chamberlain)
+  const finalUpdates = handleCardDiscard({
+    roomCode,
+    playerName: target,
+    card: assassinCard,
+    gameMode: data?.mode,
+    existingUpdates: baseUpdates,
+  });
+
+  await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
   console.log(
     "🗡️ ASSASSIN DEFENSE: Immediate effects applied - Card discarded, new card drawn, attacker marked for elimination"
@@ -193,12 +227,19 @@ export async function executeAssassinationElimination({ roomCode }) {
   }
 
   // Eliminate the marked attacker and clear the flag
-  const updates = {
-    [`players/${targetPlayer}/isOut`]: true,
+  const baseUpdates = {
     [`round/pendingAssassinationTarget`]: null,
   };
 
-  await update(ref(db, `rooms/${roomCode}`), updates);
+  const finalUpdates = handlePlayerElimination({
+    roomCode,
+    playerName: targetPlayer,
+    gameMode: data?.mode,
+    currentPlayerData: data.players[targetPlayer],
+    existingUpdates: baseUpdates,
+  });
+
+  await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
   console.log(
     `🗡️ EXECUTION: ${targetPlayer} has been eliminated by the Assassin`
@@ -413,18 +454,33 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   }
 
   // Update Firebase
-  const updates = {
+  const baseUpdates = {
     [`players/${target}/hand`]: newHand,
     [`players/${target}/discard`]: newTargetDiscard,
     [`round/deck`]: deckAfterDraw,
   };
 
+  // Handle card discard and check for special tokens (like Chamberlain)
+  let finalUpdates = handleCardDiscard({
+    roomCode,
+    playerName: target,
+    card: targetCard,
+    gameMode: data?.mode,
+    existingUpdates: baseUpdates,
+  });
+
   // If Princess was discarded, eliminate the target
   if (wasPrincessDiscarded) {
-    updates[`players/${target}/isOut`] = true;
+    finalUpdates = handlePlayerElimination({
+      roomCode,
+      playerName: target,
+      gameMode: data?.mode,
+      currentPlayerData: data.players[target],
+      existingUpdates: finalUpdates,
+    });
   }
 
-  await update(ref(db, `rooms/${roomCode}`), updates);
+  await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
   // Generate royal messages! 👑✨
   const attackerName = data.players[attacker]?.name || attacker;

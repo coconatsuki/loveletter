@@ -13,6 +13,7 @@ import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
 import {
   applyJesterEffect,
+  applyChamberlainEffect,
   applyGuardEffect,
   resolveAssassinDefense,
   executeAssassinationElimination,
@@ -36,7 +37,11 @@ import {
   triggerRoundEnd,
 } from "../utils/roundEndDetection";
 import { cards, getCardImage } from "../utils/cardsData";
-import { getCardCount } from "../utils/gamehelpers";
+import {
+  getCardCount,
+  handleCardDiscard,
+  handlePlayerElimination,
+} from "../utils/gamehelpers";
 import { useGridLayout } from "../utils/useGridLayout";
 import "./Play.css";
 
@@ -588,6 +593,9 @@ export default function Play() {
     } else if (card.id === 8) {
       // PRINCESS CARD - No target needed, immediate elimination!
       playPrincess(index);
+    } else if (card.id === 10) {
+      // CHAMBERLAIN CARD - No target needed, secure royal influence immediately
+      playChamberlain(index);
     } else if (card.id === 14) {
       // ASSASSIN CARD - No target needed, shadow moves through the court
       playAssassin(index);
@@ -635,6 +643,29 @@ export default function Play() {
     setResultModalData({
       resultText: result.playerMessage,
       isCountessRoyalty: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playChamberlain = async (index) => {
+    setSelectedCardIndex(index);
+    console.log("🏰 CHAMBERLAIN: Setting isPlaying = true");
+    setIsPlaying(true);
+
+    // Apply Chamberlain effect (secure royal influence)
+    const result = await applyChamberlainEffect({
+      roomCode,
+      attacker: nickname,
+    });
+
+    // Send public notification about the powerful alliance
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show rich influence modal to the player
+    setResultModalData({
+      resultText: result.attackerMessage,
+      isChamberlainInfluence: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -722,6 +753,20 @@ export default function Play() {
         attacker: nickname,
         message: result.targetMessage,
         timestamp: Date.now(),
+      });
+
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === CHAMBERLAIN CARD LOGIC (ID: 10) ===
+    if (cardPlayed.id === 10) {
+      const result = await applyChamberlainEffect({
+        roomCode,
+        attacker: nickname,
       });
 
       setResultModalData({
@@ -1111,6 +1156,20 @@ export default function Play() {
       return;
     }
 
+    // === CHAMBERLAIN CARD LOGIC (ID: 10) ===
+    if (cardPlayed.id === 10) {
+      const result = await applyChamberlainEffect({
+        roomCode,
+        attacker: nickname,
+      });
+
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
     // === GUARD CARD LOGIC (ID: 1) ===
     if (cardPlayed.id === 1) {
       // Apply the Guard effect to determine the outcome
@@ -1320,13 +1379,24 @@ export default function Play() {
       (player) => player !== nextPlayer
     );
 
-    // Update Firebase with the turn completion
-    await update(ref(db, `rooms/${roomCode}`), {
+    // Handle card discard and check for special tokens (like Chamberlain)
+    const baseUpdates = {
       [`players/${nickname}/hand`]: remainingHand,
       [`players/${nickname}/discard`]: newDiscard,
       [`round/currentPlayer`]: nextPlayer,
       protectedPlayers: updatedProtected,
+    };
+
+    const finalUpdates = handleCardDiscard({
+      roomCode,
+      playerName: nickname,
+      card: playedCard,
+      gameMode: roomData?.mode,
+      existingUpdates: baseUpdates,
     });
+
+    // Update Firebase with the turn completion
+    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
     // Notify all players about the turn change
     pushNotification(
@@ -1498,14 +1568,25 @@ export default function Play() {
         }
       );
 
-      // TODO CHECK IF IT SHOULD ALWAYS BE attackerNickname discard that we update
-      // For self-targeting: ONLY update discard and advance turn
-      // DO NOT modify hand - it was already correctly updated by applyPrinceEffect
-      await update(ref(db, `rooms/${roomCode}`), {
+      // Handle card discard and check for special tokens (like Chamberlain)
+      const baseUpdates = {
         [`players/${attackerNickname}/discard`]: newDiscard,
         [`round/currentPlayer`]: nextPlayer,
         protectedPlayers: updatedProtected,
+      };
+
+      const finalUpdates = handleCardDiscard({
+        roomCode,
+        playerName: attackerNickname,
+        card: playedCard,
+        gameMode: roomData?.mode,
+        existingUpdates: baseUpdates,
       });
+
+      // TODO CHECK IF IT SHOULD ALWAYS BE attackerNickname discard that we update
+      // For self-targeting: ONLY update discard and advance turn
+      // DO NOT modify hand - it was already correctly updated by applyPrinceEffect
+      await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
       // Notify all players about the turn change
       pushNotification(
@@ -1593,13 +1674,24 @@ export default function Play() {
       (player) => player !== nextPlayer
     );
 
-    // Update Firebase with the turn completion for external targeting
-    await update(ref(db, `rooms/${roomCode}`), {
+    // Handle card discard and check for special tokens (like Chamberlain)
+    const baseUpdates = {
       [`players/${attackerNickname}/hand`]: [remainingCard],
       [`players/${attackerNickname}/discard`]: newDiscard,
       [`round/currentPlayer`]: nextPlayer,
       protectedPlayers: updatedProtected,
+    };
+
+    const finalUpdates = handleCardDiscard({
+      roomCode,
+      playerName: attackerNickname,
+      card: playedCard,
+      gameMode: roomData?.mode,
+      existingUpdates: baseUpdates,
     });
+
+    // Update Firebase with the turn completion for external targeting
+    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
     // Notify all players about the turn change
     pushNotification(
@@ -1878,13 +1970,22 @@ export default function Play() {
     );
 
     // Update game state: discard Princess, ELIMINATE PLAYER, advance turn, clear protection
-    await update(ref(db, `rooms/${roomCode}`), {
+    const baseUpdates = {
       [`players/${nickname}/hand`]: newHand,
       [`players/${nickname}/discard`]: newDiscard,
-      [`players/${nickname}/isOut`]: true, // CRITICAL: This elimination happens AFTER modal confirmation
       [`round/currentPlayer`]: nextPlayer,
       protectedPlayers: updatedProtected,
+    };
+
+    const finalUpdates = handlePlayerElimination({
+      roomCode,
+      playerName: nickname,
+      gameMode: roomData?.mode,
+      currentPlayerData: player,
+      existingUpdates: baseUpdates,
     });
+
+    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
     // NOW check for round end after Princess elimination (moved from applyPrincessEffect)
     console.log(
@@ -2500,14 +2601,20 @@ export default function Play() {
                       baronResultModalData.eliminatedPlayer &&
                       !baronResultModalData.isTie
                     ) {
+                      const eliminatedPlayerData =
+                        players[baronResultModalData.eliminatedPlayer];
+
+                      const eliminationUpdates = handlePlayerElimination({
+                        roomCode,
+                        playerName: baronResultModalData.eliminatedPlayer,
+                        gameMode: roomData?.mode,
+                        currentPlayerData: eliminatedPlayerData,
+                        existingUpdates: {},
+                      });
+
                       await update(
-                        ref(
-                          db,
-                          `rooms/${roomCode}/players/${baronResultModalData.eliminatedPlayer}`
-                        ),
-                        {
-                          isOut: true,
-                        }
+                        ref(db, `rooms/${roomCode}`),
+                        eliminationUpdates
                       );
 
                       // Notify about the elimination
@@ -2572,9 +2679,19 @@ export default function Play() {
 
                     if (isCorrectGuess) {
                       // Attacker guessed correctly - eliminate target
+                      const targetPlayerData = players[target];
+
+                      const eliminationUpdates = handlePlayerElimination({
+                        roomCode,
+                        playerName: target,
+                        gameMode: roomData?.mode,
+                        currentPlayerData: targetPlayerData,
+                        existingUpdates: {},
+                      });
+
                       await update(
-                        ref(db, `rooms/${roomCode}/players/${target}`),
-                        { isOut: true }
+                        ref(db, `rooms/${roomCode}`),
+                        eliminationUpdates
                       );
                       pushNotification(
                         roomCode,

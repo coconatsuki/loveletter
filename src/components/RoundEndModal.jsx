@@ -100,6 +100,22 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                   </p>
                 </div>
               )}
+
+              {/* 🏰💰 Chamberlain Bonus Display */}
+              {roundResult.chamberlainBonusInfo && (
+                <div className="chamberlain-bonus-announcement">
+                  <p className="chamberlain-flavor-text">
+                    🏰✨ The Royal Chamberlain's golden influence reaches even
+                    beyond the grave! Though{" "}
+                    <strong>
+                      {roundResult.chamberlainBonusInfo.playerName}
+                    </strong>{" "}
+                    was eliminated, their powerful ally whispers sweet words to
+                    the Princess. She grants them a Love Token in recognition of
+                    their noble sacrifice! 💰👑
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -223,6 +239,22 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                     laughs! She rewards{" "}
                     <strong>{roundResult.jesterBonusInfo.giverName}</strong> too
                     — for even her heart has room for fools! 🃏💕
+                  </p>
+                </div>
+              )}
+
+              {/* 🏰💰 Chamberlain Bonus Display */}
+              {roundResult.chamberlainBonusInfo && (
+                <div className="chamberlain-bonus-announcement">
+                  <p className="chamberlain-flavor-text">
+                    🏰✨ The Royal Chamberlain's golden influence reaches even
+                    beyond the grave! Though{" "}
+                    <strong>
+                      {roundResult.chamberlainBonusInfo.playerName}
+                    </strong>{" "}
+                    was eliminated, their powerful ally whispers sweet words to
+                    the Princess. She grants them a Love Token in recognition of
+                    their noble sacrifice! 💰👑
                   </p>
                 </div>
               )}
