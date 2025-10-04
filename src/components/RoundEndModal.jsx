@@ -4,7 +4,7 @@ import "./RoundEndModal.css";
 export default function RoundEndModal({ roundResult, players, onContinue }) {
   const [countdown, setCountdown] = useState(5);
 
-  /*   useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -17,7 +17,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [onContinue]); */
+  }, [onContinue]);
 
   const handleManualContinue = () => {
     onContinue();
