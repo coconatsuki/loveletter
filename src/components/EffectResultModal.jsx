@@ -121,6 +121,11 @@ export default function EffectResultModal({
     resultText?.includes("tea and biscuits") ||
     resultText?.includes("protected from courtly intrigue");
 
+  // Check if this is a Jester effect (Fool's Favor)
+  const isJesterEffect =
+    resultText?.includes("Fool's Favor") ||
+    resultText?.includes("Jester dances before you");
+
   // Check if this is a Priest effect (looking at someone's card)
   const isPriestEffect =
     cardDetails &&
@@ -160,6 +165,7 @@ export default function EffectResultModal({
             ...modalContentStyle,
             ...(isHandmaidProtection ? handmaidModalStyle : {}),
             ...(isPriestEffect ? priestModalStyle : {}),
+            ...(isJesterEffect ? jesterModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -171,12 +177,16 @@ export default function EffectResultModal({
               transform: "translateX(-50%)",
               background: isPriestEffect
                 ? "#6a4c93"
+                : isJesterEffect
+                ? "rgb(22 3 3)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
               border: `3px solid ${
                 isPriestEffect
                   ? "#9b59b6"
+                  : isJesterEffect
+                  ? "#ff6b35"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -196,6 +206,8 @@ export default function EffectResultModal({
               ? "🔍"
               : isInquisitorEffect
               ? "🕵️"
+              : isJesterEffect
+              ? "🎭"
               : isHandmaidProtection
               ? "🛡️"
               : "📜"}
@@ -204,19 +216,22 @@ export default function EffectResultModal({
             style={getHeaderStyle(
               isHandmaidProtection,
               isPriestEffect,
-              isInquisitorEffect
+              isInquisitorEffect,
+              isJesterEffect
             )}
           >
             {isPriestEffect
               ? "Priest's Divine Revelation"
               : isInquisitorEffect
               ? "Inquisitor's Investigation"
+              : isJesterEffect
+              ? "🎪 Jester's Fool's Favor 🎭"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
-          {isPriestEffect && revealedCard && (
+          {isPriestEffect && revealedCard ? (
             <div style={priestLayoutStyle}>
               {/* Left side - The revealed card */}
               <div style={priestCardContainerStyle}>
@@ -243,72 +258,110 @@ export default function EffectResultModal({
 
               {/* Right side - The spying message */}
               <div style={priestMessageContainerStyle}>
-                <div style={priestSpyIconStyle}>👁️‍🗨️</div>
-                <div style={priestMessageStyle}>{formatText(resultText)}</div>
+                <div style={priestMessageIconStyle}>
+                  <div style={priestSpyIconStyle}>👁️‍🗨️</div>
+                  <div style={priestMessageStyle}>{formatText(resultText)}</div>
+                </div>
+                <div
+                  style={{
+                    ...buttonContainerStyle,
+                    ...priestButtonContainerStyle,
+                  }}
+                >
+                  <button
+                    onClick={onClose}
+                    style={{
+                      ...buttonStyle,
+                      ...priestButtonStyle,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#8b0000";
+                      e.target.style.background =
+                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#ffd700";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             </div>
+          ) : (
+            <div style={messageStyle}>{formatText(resultText)}</div>
           )}
-          {/* Standard layout for non-Priest effects*/}
 
-          <div style={messageStyle}>{formatText(resultText)}</div>
-
-          <div
-            style={{
-              ...buttonContainerStyle,
-              ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
-              ...(isPriestEffect ? priestButtonContainerStyle : {}),
-            }}
-          >
-            <button
-              onClick={onClose}
+          {!isPriestEffect && (
+            <div
               style={{
-                ...buttonStyle,
-                ...(isHandmaidProtection ? handmaidButtonStyle : {}),
-                ...(isPriestEffect ? priestButtonStyle : {}),
-              }}
-              onMouseEnter={(e) => {
-                if (isHandmaidProtection) {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(76, 175, 80, 0.5)";
-                } else if (isPriestEffect) {
-                  e.target.style.color = "#8b0000";
-                  e.target.style.background =
-                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(255, 215, 0, 0.5)";
-                } else {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow =
-                    "0 6px 25px rgba(255, 215, 0, 0.5)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isHandmaidProtection) {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                } else if (isPriestEffect) {
-                  e.target.style.color = "#ffd700";
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
-                } else {
-                  e.target.style.background =
-                    "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                }
+                ...buttonContainerStyle,
+                ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
               }}
             >
-              {isHandmaidProtection ? "🍰✨ Very Well ✨🫖" : "Continue"}
-            </button>
-          </div>
+              <button
+                onClick={onClose}
+                style={{
+                  ...buttonStyle,
+                  ...(isHandmaidProtection ? handmaidButtonStyle : {}),
+                  ...(isJesterEffect ? jesterButtonStyle : {}),
+                }}
+                onMouseEnter={(e) => {
+                  if (isJesterEffect) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(255, 107, 53, 0.6)";
+                    e.target.style.border = "2px solid rgb(45, 27, 27)";
+                  } else if (isHandmaidProtection) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(76, 175, 80, 0.5)";
+                  } else {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(255, 215, 0, 0.5)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isJesterEffect) {
+                    e.target.style.background = "rgb(22 3 3)";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 15px rgba(255, 107, 53, 0.4)";
+                    e.target.style.color = "rgb(255, 215, 0)";
+                    e.target.style.border = "2px solid rgb(106 92 48)";
+                  } else if (isHandmaidProtection) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                  } else {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
+                  }
+                }}
+              >
+                {isJesterEffect
+                  ? "🎪✨ Marvelous! ✨🎭"
+                  : isHandmaidProtection
+                  ? "🍰✨ Very Well ✨🫖"
+                  : "Continue"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -353,14 +406,26 @@ const handmaidModalStyle = {
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(139, 195, 74, 0.4), inset 0 1px 0 rgba(139, 195, 74, 0.3)",
 };
 
+// 🎭 Jester Modal Style - Colorful and joyful! 🎪
+const jesterModalStyle = {
+  background:
+    "linear-gradient(135deg, #ff6b35 0%, #ffa500 30%, #ffcc00 70%, #ff6b35 100%)",
+  border: "4px solid #ff6b35",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 107, 53, 0.6), inset 0 1px 0 rgba(255, 204, 0, 0.4)",
+};
+
 // Define headerStyle as a function that takes parameters
 const getHeaderStyle = (
   isHandmaidProtection,
   isPriestEffect,
-  isInquisitorEffect
+  isInquisitorEffect,
+  isJesterEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
+    : isJesterEffect
+    ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
     : isHandmaidProtection
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%);"
     : isInquisitorEffect
@@ -450,6 +515,14 @@ const handmaidButtonStyle = {
   border: "2px solid #8bc34a",
 };
 
+const jesterButtonStyle = {
+  width: "55%",
+  background: "rgb(22 3 3)",
+  color: "rgb(255, 215, 0)",
+  border: "2px solid rgb(106 92 48)",
+  fontWeight: "700",
+};
+
 // Priest-specific modal styles
 const priestModalStyle = {
   width: "90%",
@@ -467,6 +540,7 @@ const priestLayoutStyle = {
   alignItems: "flex-start",
   margin: "3% 0",
   justifyContent: "space-around",
+  height: "100%",
 };
 
 const priestCardContainerStyle = {
@@ -474,6 +548,7 @@ const priestCardContainerStyle = {
   flexDirection: "column",
   alignItems: "center",
   width: "30%",
+  height: "100%",
 };
 
 const priestCardStyle = {
@@ -554,17 +629,21 @@ const priestCardEffectStyle = {
 
 const priestMessageContainerStyle = {
   width: "55%",
-  height: "100%",
+  height: "-webkit-fill-available",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "space-between",
   textAlign: "center",
+};
+
+const priestMessageIconStyle = {
+  display: "flex",
+  flexDirection: "column",
 };
 
 const priestSpyIconStyle = {
   fontSize: "4rem",
-  marginBottom: "20px",
   filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))",
   animation: "priestGlow 2s ease-in-out infinite alternate",
 };
@@ -579,6 +658,8 @@ const priestMessageStyle = {
 
 const priestButtonContainerStyle = {
   background: "initial",
+  width: "100%",
+  padding: "0",
 };
 
 const priestButtonStyle = {
@@ -586,6 +667,7 @@ const priestButtonStyle = {
     "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)",
   color: "#ffd700",
   transition: "all 0.3s ease",
+  width: "70%",
 };
 
 // Add the animation CSS (this would normally be in a CSS file)

@@ -81,6 +81,7 @@ export default function RoundScoring() {
         playerUpdates[`players/${playerKey}/hand`] = [remainingDeck[index]]; // Deal one card
         playerUpdates[`players/${playerKey}/discard`] = [];
         playerUpdates[`players/${playerKey}/isOut`] = false;
+        playerUpdates[`players/${playerKey}/jesterToken`] = null; // 🃏 Clear jester tokens
       });
 
       // Increment round counter

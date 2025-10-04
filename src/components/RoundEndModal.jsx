@@ -85,6 +85,21 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 victorious! Their love letter shall reach the Princess, earning
                 them a precious Love Token! 💕
               </p>
+
+              {/* 🃏 Jester Bonus Display */}
+              {roundResult.jesterBonusInfo && (
+                <div className="jester-bonus-announcement">
+                  <p className="jester-flavor-text">
+                    🎭✨ The Princess, delighted by{" "}
+                    <strong>{roundResult.jesterBonusInfo.winnerName}</strong>'s
+                    victory, notices the{" "}
+                    <span className="jester-charm">Fool's Favor</span> and
+                    laughs! She rewards{" "}
+                    <strong>{roundResult.jesterBonusInfo.giverName}</strong> too
+                    — for even her heart has room for fools! 🃏💕
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -196,6 +211,21 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                   </p>
                 )}
               </div>
+
+              {/* 🃏 Jester Bonus Display */}
+              {roundResult.jesterBonusInfo && (
+                <div className="jester-bonus-announcement">
+                  <p className="jester-flavor-text">
+                    🎭✨ The Princess, delighted by{" "}
+                    <strong>{roundResult.jesterBonusInfo.winnerName}</strong>'s
+                    victory, notices the{" "}
+                    <span className="jester-charm">Fool's Favor</span> and
+                    laughs! She rewards{" "}
+                    <strong>{roundResult.jesterBonusInfo.giverName}</strong> too
+                    — for even her heart has room for fools! 🃏💕
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

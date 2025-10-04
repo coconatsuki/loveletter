@@ -127,18 +127,62 @@ export async function triggerRoundEnd(roomCode) {
 
     // Award love token to winner(s)
     const updates = {};
+    let jesterBonusInfo = null;
 
     if (roundEndResult.type === "lastPlayerStanding") {
       // Single winner gets 1 love token
       const currentTokens =
         roomData.players[roundEndResult.winner]?.tokens || 0;
       updates[`players/${roundEndResult.winner}/tokens`] = currentTokens + 1;
+
+      // 🃏 Check for Jester token - single winner case
+      const winnerData = roomData.players[roundEndResult.winner];
+      if (winnerData?.jesterToken?.giver) {
+        const jesterGiver = winnerData.jesterToken.giver;
+
+        // Only award jester bonus if giver is NOT the winner (avoid double-counting)
+        if (jesterGiver !== roundEndResult.winner) {
+          const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
+          updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+        }
+
+        jesterBonusInfo = {
+          giver: jesterGiver,
+          giverName: roomData.players[jesterGiver]?.name || jesterGiver,
+          winner: roundEndResult.winner,
+          winnerName: roundEndResult.winnerName,
+        };
+      }
     } else if (roundEndResult.type === "deckEmpty") {
       // Multiple winners possible (tie for highest strength)
+      const jesterBonuses = [];
+
       roundEndResult.winners.forEach((winner) => {
         const currentTokens = roomData.players[winner]?.tokens || 0;
         updates[`players/${winner}/tokens`] = currentTokens + 1;
+
+        // 🃏 Check for Jester token - multiple winners case
+        const winnerData = roomData.players[winner];
+        if (winnerData?.jesterToken?.giver) {
+          const jesterGiver = winnerData.jesterToken.giver;
+
+          // Only award jester bonus if giver is NOT among the winners (avoid double-counting)
+          if (!roundEndResult.winners.includes(jesterGiver)) {
+            const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
+            updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+          }
+
+          jesterBonuses.push({
+            giver: jesterGiver,
+            giverName: roomData.players[jesterGiver]?.name || jesterGiver,
+            winner: winner,
+            winnerName: roomData.players[winner]?.name || winner,
+          });
+        }
       });
+
+      // Use first jester bonus for main info, or null if none
+      jesterBonusInfo = jesterBonuses.length > 0 ? jesterBonuses[0] : null;
     }
 
     // Build round result data
@@ -150,6 +194,7 @@ export async function triggerRoundEnd(roomCode) {
       winnerNames: roundEndResult.winnerNames || [roundEndResult.winnerName],
       hiddenCard: roomData.round?.hiddenCard || null,
       finalStandings: roundEndResult.finalStandings || [],
+      jesterBonusInfo, // 🃏 Add jester bonus information
       timestamp: Date.now(),
     };
 
