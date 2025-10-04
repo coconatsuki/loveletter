@@ -112,18 +112,44 @@ export async function checkRoundEndConditions(roomCode) {
  */
 export async function triggerRoundEnd(roomCode) {
   try {
+    // 🛡️ PROTECTION: Check if round end is already in progress or completed
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(roomRef);
+    const roomData = snapshot.val();
+
+    if (!roomData) {
+      return { success: false, message: "Room not found" };
+    }
+
+    // Check if we're already in round scoring state
+    if (roomData.gameState === "roundScoring") {
+      console.log(
+        "🛡️ ROUND END PROTECTION: Already in roundScoring state, skipping trigger"
+      );
+      return { success: false, message: "Round end already triggered" };
+    }
+
+    // Check if round end is currently in progress
+    if (roomData.roundEndInProgress === true) {
+      console.log(
+        "🛡️ ROUND END PROTECTION: Round end already in progress, skipping trigger"
+      );
+      return { success: false, message: "Round end already in progress" };
+    }
+
+    // 🔒 SET PROTECTION FLAG: Mark round end as in progress
+    await update(roomRef, { roundEndInProgress: true });
+    console.log("🔒 ROUND END PROTECTION: Set roundEndInProgress flag");
+
     const roundEndResult = await checkRoundEndConditions(roomCode);
 
     if (!roundEndResult.isRoundEnd) {
+      // Clear protection flag if round hasn't actually ended
+      await update(roomRef, { roundEndInProgress: false });
       return { success: false, message: "Round has not ended yet" };
     }
 
     console.log("🎯 TRIGGERING ROUND END:", roundEndResult);
-
-    // Get current room data to build round result
-    const roomRef = ref(db, `rooms/${roomCode}`);
-    const snapshot = await get(roomRef);
-    const roomData = snapshot.val();
 
     // Award love token to winner(s)
     const updates = {};
@@ -206,6 +232,9 @@ export async function triggerRoundEnd(roomCode) {
             `🏰💰 Chamberlain bonus awarded to ${playerName} for noble sacrifice!`
           );
         }
+
+        // 🧹 CLEANUP: Clear all Chamberlain tokens for next round (regardless of state)
+        updates[`players/${playerName}/chamberlainToken`] = false;
       }
     );
 
@@ -231,6 +260,9 @@ export async function triggerRoundEnd(roomCode) {
     updates.gameState = "roundScoring";
     updates.roundResult = roundResult;
 
+    // 🔓 CLEAR PROTECTION FLAG: Round end process complete
+    updates.roundEndInProgress = false;
+
     // Update game stats
     updates["gameStats/lastRoundWinner"] = roundResult.winner;
     updates["gameStats/totalRoundsPlayed"] =
@@ -246,12 +278,23 @@ export async function triggerRoundEnd(roomCode) {
     return { success: true, roundResult };
   } catch (error) {
     console.error("🚨 Error triggering round end:", error);
+
+    // 🛡️ SAFETY: Clear protection flag on error to prevent deadlock
+    try {
+      const roomRef = ref(db, `rooms/${roomCode}`);
+      await update(roomRef, { roundEndInProgress: false });
+      console.log("🔓 ROUND END PROTECTION: Cleared flag after error");
+    } catch (cleanupError) {
+      console.error("🚨 Error clearing protection flag:", cleanupError);
+    }
+
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Logs round end detection for debugging and triggers round end if detected
+ * Logs round end detection for debugging - DOES NOT automatically trigger round end
+ * Use triggerRoundEndIfNeeded() for automatic triggering with protection
  * @param {string} context - Where this check was called from
  * @param {string} roomCode - The room code
  */
@@ -259,12 +302,25 @@ export async function logRoundEndCheck(context, roomCode) {
   console.log(`🔍 ROUND END CHECK: ${context}`, { roomCode });
   const result = await checkRoundEndConditions(roomCode);
   console.log(`🔍 ROUND END RESULT: ${context}`, result);
+  return result;
+}
 
-  // If round end is detected, trigger the actual round end
+/**
+ * Checks for round end and triggers it safely if needed (with protection against duplicates)
+ * @param {string} context - Where this check was called from
+ * @param {string} roomCode - The room code
+ */
+export async function triggerRoundEndIfNeeded(context, roomCode) {
+  console.log(`🔍 ROUND END CHECK WITH AUTO-TRIGGER: ${context}`, { roomCode });
+  const result = await checkRoundEndConditions(roomCode);
+  console.log(`🔍 ROUND END RESULT: ${context}`, result);
+
+  // If round end is detected, trigger the actual round end with protection
   if (result.isRoundEnd) {
     console.log(`🎯 ROUND END DETECTED - TRIGGERING: ${context}`);
     const triggerResult = await triggerRoundEnd(roomCode);
     console.log(`🎯 ROUND END TRIGGER RESULT: ${context}`, triggerResult);
+    return { ...result, triggerResult };
   }
 
   return result;

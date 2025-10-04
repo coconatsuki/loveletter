@@ -35,6 +35,7 @@ import {
   logRoundEndCheck,
   checkRoundEndConditions,
   triggerRoundEnd,
+  triggerRoundEndIfNeeded,
 } from "../utils/roundEndDetection";
 import { cards, getCardImage } from "../utils/cardsData";
 import {
@@ -1991,7 +1992,10 @@ export default function Play() {
     console.log(
       "👑 PRINCESS ELIMINATION: Checking for round end after elimination"
     );
-    logRoundEndCheck("After Princess Elimination (Modal Confirmed)", roomCode);
+    await triggerRoundEndIfNeeded(
+      "After Princess Elimination (Modal Confirmed)",
+      roomCode
+    );
 
     // Notify all players about the turn change
     pushNotification(
@@ -2623,8 +2627,11 @@ export default function Play() {
                         `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
                       );
 
-                      // Check for round end after Baron elimination
-                      logRoundEndCheck("After Baron Elimination", roomCode);
+                      // 🎯 FIXED: Use protected trigger instead of just logging
+                      await triggerRoundEndIfNeeded(
+                        "After Baron Elimination",
+                        roomCode
+                      );
                     }
 
                     // Clear Baron target data in Firebase
@@ -2941,7 +2948,7 @@ export default function Play() {
                       console.log(
                         "🗡️ ASSASSINATION: Checking for round end after elimination"
                       );
-                      logRoundEndCheck(
+                      await triggerRoundEndIfNeeded(
                         "After Assassin Elimination (Modal Confirmed)",
                         roomCode
                       );
