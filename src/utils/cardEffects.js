@@ -669,10 +669,6 @@ export async function applyHandmaidEffect({ roomCode, player }) {
 }
 
 export async function applyCountessEffect({ roomCode, player }) {
-  console.log("🎭 COUNTESS DEBUG: The royal matriarch takes the stage...", {
-    player,
-  });
-
   try {
     const gameRef = ref(db, `rooms/${roomCode}`);
     const snapshot = await get(gameRef);

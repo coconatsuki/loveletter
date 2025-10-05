@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { getCardImage } from "../utils/cardsData";
 
 // CSS styles for card effect formatting
 const effectTextStyles = `
@@ -59,32 +60,6 @@ const effectTextStyles = `
   }
 `;
 
-// Helper function to get the correct card image
-const getCardImage = (cardName) => {
-  const imageMap = {
-    Guard: "guard1.jpeg",
-    Priest: "priest1.jpeg",
-    Baron: "baron1.jpeg",
-    Handmaid: "handmaid1.jpeg",
-    Prince: "prince1.jpeg",
-    "Phantom King": "phantom-king1.jpeg",
-    Countess: "countess1.jpeg",
-    Princess: "princess-portrait1.jpeg",
-    // Premium cards that don't have images yet
-    Jester: "countess1.jpeg",
-    Inquisitor: "countess1.jpeg",
-    Chamberlain: "countess1.jpeg",
-    "Regent Queen": "countess1.jpeg",
-    "Court Whisperer": "countess1.jpeg",
-    "Royal Confessor": "countess1.jpeg",
-    Assassin: "countess1.jpeg",
-    Baroness: "countess1.jpeg",
-    Duke: "countess1.jpeg",
-  };
-
-  return imageMap[cardName] || "countess1.jpeg";
-};
-
 export default function EffectResultModal({
   resultText,
   cardDetails = null,
@@ -135,6 +110,13 @@ export default function EffectResultModal({
 
   // Check if this is an Inquisitor effect
   const isInquisitorEffect = resultText?.includes("Inquisitor");
+
+  // Check if this is a Chamberlain effect (golden influence or favor)
+  const isChamberlainEffect =
+    resultText?.includes("Royal Chamberlain") ||
+    resultText?.includes("Chamberlain's favor") ||
+    resultText?.includes("Chamberlain's influence") ||
+    resultText?.includes("golden influence");
 
   // Extract card information for Priest effect
   let revealedCard = null;
@@ -208,6 +190,8 @@ export default function EffectResultModal({
               ? "🕵️"
               : isJesterEffect
               ? "🎭"
+              : isChamberlainEffect
+              ? "💰"
               : isHandmaidProtection
               ? "🛡️"
               : "📜"}

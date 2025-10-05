@@ -170,6 +170,16 @@ export async function triggerRoundEnd(roomCode) {
         if (jesterGiver !== roundEndResult.winner) {
           const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
           updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+          console.log(
+            `🃏 JESTER BONUS: Awarding love token to ${jesterGiver} (had ${jesterTokens}, now ${
+              jesterTokens + 1
+            })`
+          );
+        } else {
+          console.log(
+            `🃏 JESTER BONUS: Skipping ${jesterGiver} (is the winner, avoiding double-counting)`
+          );
         }
 
         jesterBonusInfo = {
@@ -215,13 +225,34 @@ export async function triggerRoundEnd(roomCode) {
     let chamberlainBonusInfo = null;
     const chamberlainBonuses = [];
 
+    console.log(
+      "🏰💰 CHAMBERLAIN CHECK: Checking all players for Chamberlain tokens..."
+    );
+
     // Check all players for activated Chamberlain tokens (set to true upon elimination)
     Object.entries(roomData.players || {}).forEach(
       ([playerName, playerData]) => {
+        console.log(
+          `🏰💰 CHAMBERLAIN CHECK: Player ${playerName} has chamberlainToken: ${playerData?.chamberlainToken}`
+        );
+
         if (playerData?.chamberlainToken === true) {
-          // Award this eliminated player 1 love token for their Chamberlain's influence
+          // Get current token count BEFORE checking if it was already updated by Jester bonus
           const currentTokens = playerData.tokens || 0;
-          updates[`players/${playerName}/tokens`] = currentTokens + 1;
+
+          // Check if this player already got a Jester bonus in the updates object
+          const existingJesterUpdate = updates[`players/${playerName}/tokens`];
+          const baseTokens =
+            existingJesterUpdate !== undefined
+              ? existingJesterUpdate
+              : currentTokens;
+
+          console.log(
+            `🏰💰 CHAMBERLAIN BONUS: Player ${playerName} - base tokens: ${currentTokens}, existing update: ${existingJesterUpdate}, using base: ${baseTokens}`
+          );
+
+          // Award this eliminated player 1 love token for their Chamberlain's influence
+          updates[`players/${playerName}/tokens`] = baseTokens + 1;
 
           chamberlainBonuses.push({
             player: playerName,
@@ -229,7 +260,9 @@ export async function triggerRoundEnd(roomCode) {
           });
 
           console.log(
-            `🏰💰 Chamberlain bonus awarded to ${playerName} for noble sacrifice!`
+            `🏰💰 Chamberlain bonus awarded to ${playerName} for noble sacrifice! (Final tokens: ${
+              baseTokens + 1
+            })`
           );
         }
       }
@@ -271,6 +304,8 @@ export async function triggerRoundEnd(roomCode) {
       updates,
       roundResult,
     });
+
+    console.log("📊 FINAL TOKEN UPDATES:", JSON.stringify(updates, null, 2));
 
     return { success: true, roundResult };
   } catch (error) {

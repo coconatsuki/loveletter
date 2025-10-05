@@ -2282,14 +2282,6 @@ export default function Play() {
                               const countessForce = getCountessForcePlay(
                                 player.hand
                               );
-                              console.log(
-                                "🎭 COUNTESS DEBUG: Force play check result:",
-                                {
-                                  hand: player.hand,
-                                  countessForce,
-                                  handLength: player.hand?.length,
-                                }
-                              );
 
                               return (
                                 <>

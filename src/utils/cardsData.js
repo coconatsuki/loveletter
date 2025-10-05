@@ -16,7 +16,7 @@ export const getCardImage = (cardName) => {
     "Court Whisperer": "court-whisperer1.jpeg",
     "Royal Confessor": "royal-confessor1.jpeg",
     Assassin: "assassin1.jpeg",
-    Baronness: "baroness1.jpeg",
+    Baroness: "baroness1.jpeg",
     Duke: "duke1.jpeg",
   };
 
