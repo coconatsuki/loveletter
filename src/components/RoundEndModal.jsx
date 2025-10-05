@@ -67,7 +67,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
 
                 {eliminatedPlayers.length > 0 && (
                   <div className="eliminated-section">
-                    <h4>⚰️ Fallen in Battle ⚰️</h4>
+                    <h4>💔 Eliminated Suitors 💔</h4>
                     <div className="eliminated-list">
                       {eliminatedPlayers.map((playerKey) => (
                         <span key={playerKey} className="eliminated-player">
@@ -86,9 +86,10 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 them a precious Love Token! 💕
               </p>
 
-              {/* 🃏 Jester Bonus Display */}
-              {roundResult.jesterBonusInfo && (
-                <div className="jester-bonus-announcement">
+              {/* �🏰 Bonus Flavor Texts Container */}
+              <div className="bonus-flavors-container">
+                {/* �🃏 Jester Bonus Display */}
+                {roundResult.jesterBonusInfo && (
                   <p className="jester-flavor-text">
                     🎭✨ The Princess, delighted by{" "}
                     <strong>{roundResult.jesterBonusInfo.winnerName}</strong>'s
@@ -98,38 +99,39 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                     <strong>{roundResult.jesterBonusInfo.giverName}</strong> too
                     — for even her heart has room for fools! 🃏💕
                   </p>
-                </div>
-              )}
+                )}
 
-              {/* 🏰💰 Chamberlain Bonus Display */}
-              {roundResult.chamberlainBonusInfo && (
-                <div className="chamberlain-bonus-announcement">
+                {/* 🏰💰 Chamberlain Bonus Display */}
+                {roundResult.chamberlainBonusInfo && (
                   <p className="chamberlain-flavor-text">
-                    🏰✨ The Royal Chamberlain's golden influence reaches even
-                    beyond the grave! Though{" "}
+                    🏰✨ The Chamberlain's influence reaches even beyond defeat!
+                    Though{" "}
                     <strong>
                       {roundResult.chamberlainBonusInfo.playerName}
                     </strong>{" "}
-                    was eliminated, their powerful ally whispers sweet words to
-                    the Princess. She grants them a Love Token in recognition of
-                    their noble sacrifice! 💰👑
+                    was eliminated, their powerful ally secures them a Love
+                    Token!💰👑
                   </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
           <div className="modal-footer">
-            <button
-              className="btn btn-primary round-end-continue-btn"
-              onClick={handleManualContinue}
-            >
-              ⚡ View Round Scoring Board ⚡
-            </button>
-            <p className="auto-redirect-text">
-              Auto-redirecting in {countdown} second{countdown !== 1 ? "s" : ""}
-              ...
-            </p>
+            <div className="footer-content">
+              <div className="footer-spacer"></div>
+              <button
+                className="btn btn-primary round-end-continue-btn"
+                onClick={handleManualContinue}
+              >
+                ⚡ View Round Scoring Board ⚡
+              </button>
+              <p className="auto-redirect-text">
+                Auto-redirecting in {countdown} second
+                {countdown !== 1 ? "s" : ""}
+                ...
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -262,16 +264,20 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
           </div>
 
           <div className="modal-footer">
-            <button
-              className="btn btn-primary round-end-continue-btn"
-              onClick={handleManualContinue}
-            >
-              ⚡ View Round Scoring Board ⚡
-            </button>
-            <p className="auto-redirect-text">
-              Auto-redirecting in {countdown} second{countdown !== 1 ? "s" : ""}
-              ...
-            </p>
+            <div className="footer-content">
+              <div className="footer-spacer"></div>
+              <button
+                className="btn btn-primary round-end-continue-btn"
+                onClick={handleManualContinue}
+              >
+                ⚡ View Round Scoring Board ⚡
+              </button>
+              <p className="auto-redirect-text">
+                Auto-redirecting in {countdown} second
+                {countdown !== 1 ? "s" : ""}
+                ...
+              </p>
+            </div>
           </div>
         </div>
       </div>
