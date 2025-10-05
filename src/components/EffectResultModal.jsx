@@ -427,7 +427,7 @@ const getHeaderStyle = (
     : isJesterEffect
     ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
     : isHandmaidProtection
-    ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%);"
+    ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
     : isInquisitorEffect
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",

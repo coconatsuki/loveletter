@@ -231,13 +231,13 @@ export async function executeAssassinationElimination({ roomCode }) {
     [`round/pendingAssassinationTarget`]: null,
   };
 
-  const finalUpdates = handlePlayerElimination({
+  const finalUpdates = handlePlayerElimination(
     roomCode,
-    playerName: targetPlayer,
-    gameMode: data?.mode,
-    currentPlayerData: data.players[targetPlayer],
-    existingUpdates: baseUpdates,
-  });
+    targetPlayer,
+    data?.mode,
+    data.players[targetPlayer],
+    baseUpdates
+  );
 
   await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
@@ -471,13 +471,13 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
 
   // If Princess was discarded, eliminate the target
   if (wasPrincessDiscarded) {
-    finalUpdates = handlePlayerElimination({
+    finalUpdates = handlePlayerElimination(
       roomCode,
-      playerName: target,
-      gameMode: data?.mode,
-      currentPlayerData: data.players[target],
-      existingUpdates: finalUpdates,
-    });
+      target,
+      data?.mode,
+      data.players[target],
+      finalUpdates
+    );
   }
 
   await update(ref(db, `rooms/${roomCode}`), finalUpdates);

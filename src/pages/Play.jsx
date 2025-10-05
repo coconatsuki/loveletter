@@ -299,11 +299,22 @@ export default function Play() {
     const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
     const unsubscribe = onValue(promptRef, (snapshot) => {
       const data = snapshot.val();
+      console.log(`🔍 GUARD PROMPT LISTENER DEBUG:`, {
+        data: data,
+        hasData: !!data,
+        targetMatches: data && data.target === nickname,
+        nickname: nickname,
+        dataTarget: data?.target,
+        fullData: data,
+      });
+
       if (data && data.target === nickname) {
+        console.log(`🔍 SETTING GUARD TARGET PROMPT DATA:`, data);
         setGuardTargetPromptData(data);
         setShowGuardTargetPrompt(true);
       } else if (!data) {
         // Hide the modal when guardPrompt is cleared from Firebase
+        console.log(`🔍 CLEARING GUARD TARGET PROMPT DATA`);
         setGuardTargetPromptData(null);
         setShowGuardTargetPrompt(false);
       }
@@ -1978,13 +1989,13 @@ export default function Play() {
       protectedPlayers: updatedProtected,
     };
 
-    const finalUpdates = handlePlayerElimination({
+    const finalUpdates = handlePlayerElimination(
       roomCode,
-      playerName: nickname,
-      gameMode: roomData?.mode,
-      currentPlayerData: player,
-      existingUpdates: baseUpdates,
-    });
+      nickname,
+      roomData?.mode,
+      player,
+      baseUpdates
+    );
 
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
@@ -2608,13 +2619,13 @@ export default function Play() {
                       const eliminatedPlayerData =
                         players[baronResultModalData.eliminatedPlayer];
 
-                      const eliminationUpdates = handlePlayerElimination({
+                      const eliminationUpdates = handlePlayerElimination(
                         roomCode,
-                        playerName: baronResultModalData.eliminatedPlayer,
-                        gameMode: roomData?.mode,
-                        currentPlayerData: eliminatedPlayerData,
-                        existingUpdates: {},
-                      });
+                        baronResultModalData.eliminatedPlayer,
+                        roomData?.mode,
+                        eliminatedPlayerData,
+                        {}
+                      );
 
                       await update(
                         ref(db, `rooms/${roomCode}`),
@@ -2679,8 +2690,26 @@ export default function Play() {
                   promptData={guardTargetPromptData}
                   // Target acknowledges the guess without using Assassin
                   onAcknowledge={async () => {
+                    console.log(`🔍 GUARD PROMPT DATA FULL DEBUG:`, {
+                      guardTargetPromptData: guardTargetPromptData,
+                      keys: Object.keys(guardTargetPromptData || {}),
+                      target: guardTargetPromptData?.target,
+                      attacker: guardTargetPromptData?.attacker,
+                      isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
+                      targetCard: guardTargetPromptData?.targetCard,
+                    });
+
                     const { isCorrectGuess, targetCard, target, attacker } =
                       guardTargetPromptData;
+
+                    console.log(`🔍 DESTRUCTURED VALUES DEBUG:`, {
+                      isCorrectGuess,
+                      targetCard,
+                      target,
+                      attacker,
+                      targetType: typeof target,
+                      targetValue: target,
+                    });
 
                     let finalResultContent;
 
@@ -2688,13 +2717,28 @@ export default function Play() {
                       // Attacker guessed correctly - eliminate target
                       const targetPlayerData = players[target];
 
-                      const eliminationUpdates = handlePlayerElimination({
-                        roomCode,
-                        playerName: target,
-                        gameMode: roomData?.mode,
-                        currentPlayerData: targetPlayerData,
-                        existingUpdates: {},
+                      console.log(`🚨 GUARD ELIMINATION DEBUG:`, {
+                        isCorrectGuess,
+                        targetFromGuardData: target,
+                        targetPlayerData: targetPlayerData
+                          ? {
+                              name: targetPlayerData.name,
+                              chamberlainToken:
+                                targetPlayerData.chamberlainToken,
+                              isOut: targetPlayerData.isOut,
+                            }
+                          : "PLAYER NOT FOUND",
+                        allPlayersKeys: Object.keys(players || {}),
+                        guardPromptDataFull: guardTargetPromptData,
                       });
+
+                      const eliminationUpdates = handlePlayerElimination(
+                        roomCode,
+                        target,
+                        roomData?.mode,
+                        targetPlayerData,
+                        {}
+                      );
 
                       await update(
                         ref(db, `rooms/${roomCode}`),
@@ -2855,14 +2899,28 @@ export default function Play() {
                         const newCard = round.deck[0];
                         const newDeck = round.deck.slice(1);
 
-                        await update(ref(db, `rooms/${roomCode}`), {
+                        // Use handleCardDiscard to properly handle Chamberlain tokens
+                        const baseUpdates = {
                           [`players/${originalTarget}/hand`]: [newCard],
                           [`players/${originalTarget}/discard`]: [
                             ...(roomData.players[originalTarget].discard || []),
                             discardedCard,
                           ],
                           [`round/deck`]: newDeck,
+                        };
+
+                        const finalUpdates = handleCardDiscard({
+                          roomCode,
+                          playerName: originalTarget,
+                          card: discardedCard,
+                          gameMode: roomData?.mode,
+                          existingUpdates: baseUpdates,
                         });
+
+                        await update(
+                          ref(db, `rooms/${roomCode}`),
+                          finalUpdates
+                        );
                         console.log(
                           "🕵️ HAND REPLACEMENT: Target discarded and drew new card"
                         );

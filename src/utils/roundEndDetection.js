@@ -232,9 +232,6 @@ export async function triggerRoundEnd(roomCode) {
             `🏰💰 Chamberlain bonus awarded to ${playerName} for noble sacrifice!`
           );
         }
-
-        // 🧹 CLEANUP: Clear all Chamberlain tokens for next round (regardless of state)
-        updates[`players/${playerName}/chamberlainToken`] = false;
       }
     );
 

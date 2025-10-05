@@ -39,16 +39,6 @@ export const useGridLayout = (totalPlayers) => {
 
     setPlayersPerRow(actualPlayersPerRow);
 
-    // Debug logging (can be removed later)
-    console.log(`Grid Layout Debug:`, {
-      containerWidth: containerRect.width,
-      availableWidth,
-      playerWidth,
-      gapSize,
-      actualPlayersPerRow,
-      totalPlayers,
-    });
-
     // Calculate which player indices are in the rightmost position of each row
     const rightmostSet = new Set();
 

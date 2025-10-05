@@ -69,13 +69,27 @@ export function handleCardDiscard({
  * @param {Object} params.existingUpdates - Existing Firebase updates to append to
  * @returns {Object} Firebase updates including any special token logic
  */
-export function handlePlayerElimination({
+export function handlePlayerElimination(
   roomCode,
   playerName,
   gameMode,
   currentPlayerData,
-  existingUpdates = {},
-}) {
+  existingUpdates = {}
+) {
+  console.log(`🚨 HANDLE PLAYER ELIMINATION CALLED:`, {
+    roomCode,
+    playerName,
+    gameMode,
+    currentPlayerData: currentPlayerData
+      ? {
+          name: currentPlayerData.name,
+          chamberlainToken: currentPlayerData.chamberlainToken,
+          isOut: currentPlayerData.isOut,
+        }
+      : null,
+    existingUpdates,
+  });
+
   const updates = { ...existingUpdates };
 
   // Set player as eliminated
@@ -83,6 +97,14 @@ export function handlePlayerElimination({
 
   // In premium mode, check if this player has a Chamberlain token
   if (gameMode === "premium" && currentPlayerData) {
+    console.log(
+      `🏰 PREMIUM MODE: Checking Chamberlain token for ${playerName}`,
+      {
+        hasChamberlainToken: "chamberlainToken" in currentPlayerData,
+        chamberlainTokenValue: currentPlayerData.chamberlainToken,
+      }
+    );
+
     // Check if player has ChamberlainToken set to false (meaning they discarded Chamberlain)
     if (currentPlayerData.chamberlainToken === false) {
       // Activate the token for love token reward at round end
@@ -90,8 +112,17 @@ export function handlePlayerElimination({
       console.log(
         `🏰⚔️ Chamberlain token activated for eliminated player ${playerName} - they will earn a love token!`
       );
+    } else {
+      console.log(
+        `🏰 NO CHAMBERLAIN ACTIVATION: Token value is ${currentPlayerData.chamberlainToken} (not false)`
+      );
     }
+  } else {
+    console.log(
+      `🏰 NO CHAMBERLAIN CHECK: gameMode=${gameMode}, hasPlayerData=${!!currentPlayerData}`
+    );
   }
 
+  console.log(`🚨 HANDLE PLAYER ELIMINATION RETURNING:`, updates);
   return updates;
 }
