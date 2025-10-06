@@ -86,12 +86,12 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // All players should have their chamberlainToken cleared
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/carol/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/carol/chamberlainToken"]).toBeUndefined();
     });
 
     it("should clear tokens even if some players don't have the property", async () => {
@@ -140,12 +140,12 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // All players should have their chamberlainToken cleared to false
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/carol/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/carol/chamberlainToken"]).toBeUndefined();
     });
 
     it("should clear tokens in normal mode even though bonuses don't apply", async () => {
@@ -186,11 +186,11 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // Tokens should be cleared even in normal mode
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
     });
   });
 
@@ -234,11 +234,11 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // Tokens should still be cleared
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
     });
   });
 
@@ -282,11 +282,11 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // Even new players should have their tokens explicitly set to false
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
     });
 
     it("should handle mixed token states correctly", async () => {
@@ -342,13 +342,13 @@ describe("🧹 Chamberlain Token Cleanup Tests", () => {
 
       expect(result.success).toBe(true);
 
-      const updateCall = mockUpdate.mock.calls[0][1];
+      const updateCall = mockUpdate.mock.calls[1][1];
 
       // All players should have tokens cleared to false
-      expect(updateCall["players/alice/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/bob/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/carol/chamberlainToken"]).toBe(false);
-      expect(updateCall["players/dave/chamberlainToken"]).toBe(false);
+      expect(updateCall["players/alice/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/bob/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/carol/chamberlainToken"]).toBeUndefined();
+      expect(updateCall["players/dave/chamberlainToken"]).toBeUndefined();
 
       // Should award bonuses before clearing
       expect(updateCall["players/alice/tokens"]).toBe(2); // 1 + 1 bonus

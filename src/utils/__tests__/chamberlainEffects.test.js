@@ -211,13 +211,13 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
         "round/currentPlayer": "bob",
       };
 
-      const result = handlePlayerElimination({
-        roomCode: "TEST123",
-        playerName: "alice",
-        gameMode: "premium",
-        currentPlayerData: playerData,
-        existingUpdates: baseUpdates,
-      });
+      const result = handlePlayerElimination(
+        "TEST123",
+        "alice",
+        "premium",
+        playerData,
+        baseUpdates
+      );
 
       expect(result).toEqual({
         ...baseUpdates,
@@ -239,13 +239,13 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
         "round/currentPlayer": "bob",
       };
 
-      const result = handlePlayerElimination({
-        roomCode: "TEST123",
-        playerName: "alice",
-        gameMode: "premium",
-        currentPlayerData: playerData,
-        existingUpdates: baseUpdates,
-      });
+      const result = handlePlayerElimination(
+        "TEST123",
+        "alice",
+        "premium",
+        playerData,
+        baseUpdates
+      );
 
       expect(result).toEqual({
         ...baseUpdates,
@@ -267,13 +267,13 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
         "round/currentPlayer": "bob",
       };
 
-      const result = handlePlayerElimination({
-        roomCode: "TEST123",
-        playerName: "alice",
-        gameMode: "normal", // Normal mode
-        currentPlayerData: playerData,
-        existingUpdates: baseUpdates,
-      });
+      const result = handlePlayerElimination(
+        "TEST123",
+        "alice",
+        "normal", // Normal mode
+        playerData,
+        baseUpdates
+      );
 
       expect(result).toEqual({
         ...baseUpdates,
@@ -287,13 +287,13 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
         "round/currentPlayer": "bob",
       };
 
-      const result = handlePlayerElimination({
-        roomCode: "TEST123",
-        playerName: "alice",
-        gameMode: "premium",
-        currentPlayerData: null, // Missing data
-        existingUpdates: baseUpdates,
-      });
+      const result = handlePlayerElimination(
+        "TEST123",
+        "alice",
+        "premium",
+        null, // Missing data
+        baseUpdates
+      );
 
       expect(result).toEqual({
         ...baseUpdates,

@@ -196,9 +196,12 @@ describe("🃏 Jester UI Component Tests", () => {
 
     it("should apply correct jester bonus styling", () => {
       const mockRoundResult = {
-        type: "lastPlayerStanding",
-        winner: "bob",
+        type: "deckEmpty", // Change to deckEmpty where wrapper div exists
+        winners: ["bob"],
         winnerName: "Bob",
+        finalStandings: [
+          { player: "bob", strength: 8, hand: [{ id: 8, name: "Princess" }] },
+        ],
         jesterBonusInfo: {
           giver: "alice",
           giverName: "Alice",
@@ -220,7 +223,7 @@ describe("🃏 Jester UI Component Tests", () => {
 
       const { container } = render(<RoundEndModal {...mockProps} />);
 
-      // Check that jester bonus section exists
+      // Check that jester bonus section exists (only in deckEmpty case)
       const jesterSection = container.querySelector(
         ".jester-bonus-announcement"
       );

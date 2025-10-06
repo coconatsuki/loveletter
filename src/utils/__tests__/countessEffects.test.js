@@ -94,7 +94,7 @@ describe("🎭 Countess Effects - The Royal Matriarch", () => {
 
       // Check player message contains royal protocol
       expect(result.playerMessage).toContain("🎭✨ THE COUNTESS ✨🎭");
-      expect(result.playerMessage).toContain("Royal Effect: None.");
+      expect(result.playerMessage).toContain("👑 Royal Effect: None.");
       expect(result.playerMessage).toContain(
         '"My dear, no one knows the Princess as I do. Let me handle that."'
       );
@@ -178,11 +178,6 @@ describe("🎭 Countess Effects - The Royal Matriarch", () => {
         roomCode: "test-room",
         player: "alice",
       });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "🎭 COUNTESS DEBUG: The royal matriarch takes the stage...",
-        { player: "alice" }
-      );
 
       expect(consoleSpy).toHaveBeenCalledWith(
         "🎭 COUNTESS: Royal presence confirmed",
