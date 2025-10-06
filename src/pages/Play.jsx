@@ -8,6 +8,7 @@ import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
+import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
@@ -19,6 +20,7 @@ import {
   executeAssassinationElimination,
   applyPriestEffect,
   applyBaronEffect,
+  applyRegentQueenEffect,
   applyHandmaidEffect,
   applyPrinceEffect,
   applyKingEffect,
@@ -104,6 +106,10 @@ export default function Play() {
   const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
+  const [regentQueenResultModalData, setRegentQueenResultModalData] =
+    useState(null);
+  const [regentQueenTargetModalData, setRegentQueenTargetModalData] =
+    useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
@@ -126,6 +132,8 @@ export default function Play() {
       priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
+      regentQueenResultModalData ||
+      regentQueenTargetModalData ||
       targetMessageModalData ||
       showGuardTargetPrompt ||
       roundEndModalData ||
@@ -415,6 +423,23 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
+  // Listen to regent queen target modal data
+  useEffect(() => {
+    const refRegentQueenTarget = ref(db, `rooms/${roomCode}/regentQueenTarget`);
+    const unsubscribe = onValue(refRegentQueenTarget, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data && data.visibleTo === nickname) {
+        // Show Regent Queen target modal to the target player
+        setRegentQueenTargetModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        setRegentQueenTargetModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
   // Listen to general target message modal data (for Prince, etc.)
   useEffect(() => {
     const refTargetMessage = ref(db, `rooms/${roomCode}/targetMessage`);
@@ -578,8 +603,8 @@ export default function Play() {
     // If actionData is provided, it means ActionModal already handled target selection
     if (actionData) {
       // Handle the action based on card type with target/guess data
-      if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
-        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
+      if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
+        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
         // Pass the card index directly to avoid state timing issues
         handleTargetConfirmWithIndex(index, actionData);
         return;
@@ -588,8 +613,8 @@ export default function Play() {
 
     // Original logic for cards that don't need ActionModal target selection
     // or when called from old system
-    if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
-      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
+    if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
+      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -904,6 +929,52 @@ export default function Play() {
       });
 
       // Baron effect is complete - return early, turn will be completed when result modal is closed
+      return;
+    }
+
+    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
+    else if (cardPlayed.id === 11) {
+      const regentQueenResult = await applyRegentQueenEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+
+      if (regentQueenResult.result === "error") {
+        setResultModalData({
+          resultText: `❌ Error: ${regentQueenResult.message}`,
+        });
+        return;
+      }
+
+      // Send the public notification (reveals eliminated player's card only)
+      pushNotification(roomCode, regentQueenResult.publicMessage);
+
+      // Show Regent Queen result modal to the target (no button needed)
+      await update(ref(db, `rooms/${roomCode}/regentQueenTarget`), {
+        visibleTo: target,
+        attacker: nickname,
+        targetName: target,
+        attackerCard: regentQueenResult.attackerCard,
+        targetCard: regentQueenResult.targetCard,
+        eliminatedPlayer: regentQueenResult.eliminatedPlayer,
+        isTie: regentQueenResult.isTie,
+        targetMessage: regentQueenResult.targetMessage,
+      });
+
+      // Show Regent Queen result modal to the attacker (with confirm button to control game flow)
+      setRegentQueenResultModalData({
+        attackerName: nickname,
+        targetName: target,
+        attackerCard: regentQueenResult.attackerCard,
+        targetCard: regentQueenResult.targetCard,
+        eliminatedPlayer: regentQueenResult.eliminatedPlayer,
+        isTie: regentQueenResult.isTie,
+        attackerMessage: regentQueenResult.attackerMessage,
+        targetMessage: regentQueenResult.targetMessage,
+      });
+
+      // Regent Queen effect is complete - return early, turn will be completed when result modal is closed
       return;
     }
 
@@ -1232,6 +1303,20 @@ export default function Play() {
     // === BARON CARD LOGIC (ID: 3) ===
     else if (cardPlayed.id === 3) {
       const result = await applyBaronEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
+    else if (cardPlayed.id === 11) {
+      const result = await applyRegentQueenEffect({
         roomCode,
         attacker: nickname,
         target,
@@ -2648,6 +2733,157 @@ export default function Play() {
                   })
                 }
               />
+            )}
+
+            {/* === REGENT QUEEN RESULT MODAL === */}
+            {regentQueenResultModalData && (
+              <RegentQueenResultModal
+                isOpen={true}
+                userRole={
+                  nickname === regentQueenResultModalData.attackerName
+                    ? "attacker"
+                    : "target"
+                }
+                attackerName={regentQueenResultModalData.attackerName}
+                targetName={regentQueenResultModalData.targetName}
+                attackerCard={regentQueenResultModalData.attackerCard}
+                targetCard={regentQueenResultModalData.targetCard}
+                eliminatedPlayer={regentQueenResultModalData.eliminatedPlayer}
+                isTie={regentQueenResultModalData.isTie}
+                message={
+                  nickname === regentQueenResultModalData.attackerName
+                    ? regentQueenResultModalData.attackerMessage
+                    : regentQueenResultModalData.targetMessage
+                }
+                onConfirm={() =>
+                  handleModalTransition(async () => {
+                    // Only attacker can confirm to proceed with the game
+
+                    // If there was an elimination, apply it now
+                    if (
+                      regentQueenResultModalData.eliminatedPlayer &&
+                      !regentQueenResultModalData.isTie
+                    ) {
+                      const eliminatedPlayerData =
+                        players[regentQueenResultModalData.eliminatedPlayer];
+
+                      const eliminationUpdates = handlePlayerElimination(
+                        roomCode,
+                        regentQueenResultModalData.eliminatedPlayer,
+                        roomData?.mode,
+                        eliminatedPlayerData,
+                        {}
+                      );
+
+                      await update(
+                        ref(db, `rooms/${roomCode}`),
+                        eliminationUpdates
+                      );
+
+                      // Notify about the elimination
+                      pushNotification(
+                        roomCode,
+                        `🪞💫 ${regentQueenResultModalData.eliminatedPlayer} has been consumed by their own strength in the Regent Queen's dark mirror!`
+                      );
+
+                      // 🎯 FIXED: Use protected trigger instead of just logging
+                      await triggerRoundEndIfNeeded(
+                        "After Regent Queen Elimination",
+                        roomCode
+                      );
+                    }
+
+                    // Clear Regent Queen target data in Firebase
+                    await set(
+                      ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                      null
+                    );
+                    setRegentQueenResultModalData(null);
+
+                    // Complete the Regent Queen turn (discard card, advance turn)
+                    if (selectedCardIndex !== null) {
+                      handleEffectResultClose();
+                    }
+                  })
+                }
+              />
+            )}
+
+            {/* === BARON TARGET MODAL === */}
+            {baronTargetModalData && (
+              <div
+                className="target-notification-modal"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(0, 0, 0, 0.8)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1000,
+                }}
+              >
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #8B0000, #DC143C)",
+                    padding: "30px",
+                    borderRadius: "15px",
+                    border: "3px solid gold",
+                    color: "white",
+                    textAlign: "center",
+                    maxWidth: "500px",
+                    fontFamily: "'Cinzel', serif",
+                  }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: baronTargetModalData.targetMessage,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* === REGENT QUEEN TARGET MODAL === */}
+            {regentQueenTargetModalData && (
+              <div
+                className="target-notification-modal"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(46, 7, 63, 0.9)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1000,
+                }}
+              >
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #2e073f, #4a148c)",
+                    padding: "30px",
+                    borderRadius: "15px",
+                    border: "3px solid #9b59b6",
+                    color: "#d2b4de",
+                    textAlign: "center",
+                    maxWidth: "500px",
+                    fontFamily: "'Cinzel', serif",
+                    boxShadow: "0 0 20px rgba(155, 89, 182, 0.7)",
+                  }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: regentQueenTargetModalData.targetMessage,
+                    }}
+                  />
+                </div>
+              </div>
             )}
 
             {/* === PRIEST TARGET MODAL === */}
