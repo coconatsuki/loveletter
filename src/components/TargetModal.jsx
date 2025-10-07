@@ -196,7 +196,7 @@ const RegentQueenMessageStyle = {
   textAlign: "justify",
   fontSize: "1.1rem",
   lineHeight: "1.4",
-  color: "#cc92e4",
+  color: "rgb(92 246 122)",
   fontStyle: "italic",
   fontFamily: "Lora, serif",
 };

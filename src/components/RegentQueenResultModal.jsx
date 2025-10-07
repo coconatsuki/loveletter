@@ -200,12 +200,14 @@ const styles = {
     fontWeight: "bold",
     marginBottom: "8px",
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+    color: "#d4af37",
   },
 
   resultSubtitle: {
     fontSize: "1rem",
     opacity: 0.9,
     textShadow: "1px 1px 2px rgba(0, 0, 0, 0.6)",
+    color: "#e6c575",
   },
 
   // Message Section
@@ -214,7 +216,7 @@ const styles = {
     borderRadius: "12px",
     padding: "0.7rem 1rem",
     margin: "20px 0",
-    border: "2px solid rgba(212, 175, 55, 0.3)",
+    border: "1px solid rgb(212, 175, 55)",
     boxShadow: "inset 0 0 10px rgba(46, 93, 71, 0.3)",
   },
 
@@ -340,6 +342,36 @@ const RegentQueenResultModal = ({
   const currentPlayer = userRole === "attacker" ? attackerName : targetName;
   const wasEliminated = eliminatedPlayer === currentPlayer;
 
+  // Helper function to get loser-specific dimmed styles
+  const getLoserStyles = (playerName) => {
+    const isLoser = eliminatedPlayer === playerName && !isTie;
+
+    return {
+      knightName: {
+        ...styles.knightName,
+        color: isLoser ? "#8B8B8B" : styles.knightName.color, // Dimmed gray for loser
+        opacity: isLoser ? 0.7 : 1,
+      },
+      duelCard: {
+        ...styles.duelCard,
+        border: isLoser ? "3px solid #666666" : styles.duelCard.border, // Dimmed border for loser
+        opacity: isLoser ? 0.8 : 1,
+      },
+      cardName: {
+        ...styles.cardName,
+        color: isLoser ? "#A0A0A0" : styles.cardName.color, // Dimmed text for loser
+      },
+      cardStrength: {
+        ...styles.cardStrength,
+        color: isLoser ? "#888888" : styles.cardStrength.color, // Dimmed strength for loser
+      },
+      cardEffect: {
+        ...styles.cardEffect,
+        color: isLoser ? "#777777" : styles.cardEffect.color, // Dimmed effect for loser
+      },
+    };
+  };
+
   // Helper function to get narrative text based on scenario
   const getNarrativeText = () => {
     if (isTie) {
@@ -398,17 +430,21 @@ const RegentQueenResultModal = ({
               <div style={styles.combatArena}>
                 {/* Attacker Knight */}
                 <div style={styles.knight}>
-                  <div style={styles.knightName}>{attackerName}</div>
-                  <div style={styles.duelCard}>
-                    <div style={styles.cardName}>
+                  <div style={getLoserStyles(attackerName).knightName}>
+                    {attackerName}
+                  </div>
+                  <div style={getLoserStyles(attackerName).duelCard}>
+                    <div style={getLoserStyles(attackerName).cardName}>
                       {attackerCard.name}
-                      <span style={styles.cardStrength}>
+                      <span style={getLoserStyles(attackerName).cardStrength}>
                         (Strength: {attackerCard.strength})
                       </span>
                     </div>
 
                     {attackerCard.effect && (
-                      <div style={styles.cardEffect}>{attackerCard.effect}</div>
+                      <div style={getLoserStyles(attackerName).cardEffect}>
+                        {attackerCard.effect}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -420,16 +456,20 @@ const RegentQueenResultModal = ({
 
                 {/* Target Knight */}
                 <div style={styles.knight}>
-                  <div style={styles.knightName}>{targetName}</div>
-                  <div style={styles.duelCard}>
-                    <div style={styles.cardName}>
+                  <div style={getLoserStyles(targetName).knightName}>
+                    {targetName}
+                  </div>
+                  <div style={getLoserStyles(targetName).duelCard}>
+                    <div style={getLoserStyles(targetName).cardName}>
                       {targetCard.name}
-                      <span style={styles.cardStrength}>
+                      <span style={getLoserStyles(targetName).cardStrength}>
                         (Strength: {targetCard.strength})
                       </span>
                     </div>
                     {targetCard.effect && (
-                      <div style={styles.cardEffect}>{targetCard.effect}</div>
+                      <div style={getLoserStyles(targetName).cardEffect}>
+                        {targetCard.effect}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -460,7 +500,6 @@ const RegentQueenResultModal = ({
                     <div
                       style={{
                         ...styles.resultTitle,
-                        color: wasEliminated ? "#8B4513" : "#d4af37",
                       }}
                     >
                       {eliminatedPlayer === attackerName
@@ -474,7 +513,6 @@ const RegentQueenResultModal = ({
                     <div
                       style={{
                         ...styles.resultSubtitle,
-                        color: wasEliminated ? "#A0522D" : "#e6c575",
                       }}
                     >
                       {eliminatedPlayer === nickname
