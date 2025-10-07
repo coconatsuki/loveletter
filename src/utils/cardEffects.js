@@ -560,22 +560,16 @@ export async function applyRegentQueenEffect({
           }</span>). The cursed magic finds no victim this turn!</div>`,
 
     publicMessage: eliminatedPlayer
-      ? `<div class="effect-description">🪞💫 <span class="effect-player">${
+      ? `The Regent Queen, ever protective of her influence, took an interest in the suitor ${
           data.players[attacker]?.name || attacker
-        }</span> invokes the Regent Queen's dark mirror upon <span class="effect-player">${
-          data.players[target]?.name || target
-        }</span>! The reflection reveals that <span class="effect-card">${
-          loserCard.name
-        }</span> (<span class="effect-strength">${
-          loserCard.strength
-        }</span>) carries too much power and turns upon its wielder - <span class="effect-warning">${
+        }. Not long after, ${
           data.players[eliminatedPlayer]?.name || eliminatedPlayer
-        } is consumed by their own strength!</span> 👑💀</div>`
-      : `<div class="effect-description">🪞✨ <span class="effect-player">${
+        } vanished from the court. The Queen's idea of 'help,' it seems, is a dangerous blessing. 👑💀`
+      : `The Regent Queen studied both suitors carefully. '${
           data.players[attacker]?.name || attacker
-        }</span> summons the Regent Queen's mirror upon <span class="effect-player">${
+        }' and '${
           data.players[target]?.name || target
-        }</span>! The reflection shows perfect equilibrium - both souls are equally matched and survive the dark magic! 🌟⚖️</div>`,
+        }' - both show promise,' she mused. 'You may both remain... for now.' 👑⚖️`,
   };
 }
 
