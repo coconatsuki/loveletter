@@ -293,7 +293,7 @@
 .chronicle-content {
   flex: 1;
   padding: 0.7rem;
-  overflow-y: hidden;
+  overflow-y: scroll;
 }
 
 .chronicle-notification {

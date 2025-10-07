@@ -494,7 +494,7 @@ const RegentQueenResultModal = ({
               ) : (
                 <>
                   <span style={styles.resultIcon}>
-                    {wasEliminated ? "💀" : "👑"}
+                    {wasEliminated ? "👎" : "👑"}
                   </span>
                   <div style={styles.resultMessage}>
                     <div
@@ -522,7 +522,7 @@ const RegentQueenResultModal = ({
                     </div>
                   </div>
                   <span style={styles.resultIcon}>
-                    {wasEliminated ? "💀" : "👑"}
+                    {wasEliminated ? "👎" : "👑"}
                   </span>
                 </>
               )}

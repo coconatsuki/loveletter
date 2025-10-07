@@ -484,6 +484,7 @@ export async function applyRegentQueenEffect({
     winner,
     isTie: !eliminatedPlayer,
     result: eliminatedPlayer ? "elimination" : "tie",
+
     // Dark magical notifications for different audiences
     attackerMessage:
       eliminatedPlayer === target

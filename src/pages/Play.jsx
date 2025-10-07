@@ -2218,7 +2218,13 @@ export default function Play() {
                   !resultModalData &&
                   !priestTargetModalData &&
                   !baronResultModalData &&
+                  !baronTargetModalData &&
+                  !regentQueenResultModalData &&
+                  !regentQueenTargetModalData &&
                   !targetMessageModalData &&
+                  !showGuardTargetPrompt &&
+                  !roundEndModalData &&
+                  !isModalTransitioning &&
                   (!isPlaying ||
                     (roomData?.guardPrompt &&
                       roomData.guardPrompt.attacker === nickname));
