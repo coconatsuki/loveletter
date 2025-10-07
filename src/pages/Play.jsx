@@ -892,6 +892,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: selectedCardIndex, // Pass the index of the played card
       });
 
       if (baronResult.result === "error") {
@@ -938,6 +939,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: selectedCardIndex, // Pass the index of the played card
       });
 
       if (regentQueenResult.result === "error") {
@@ -1306,6 +1308,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: cardIndex, // Pass the index of the played card
       });
       setResultModalData({
         resultText: result.attackerMessage,
@@ -1320,6 +1323,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: cardIndex, // Pass the index of the played card
       });
       setResultModalData({
         resultText: result.attackerMessage,
@@ -2673,6 +2677,7 @@ export default function Play() {
                     ? "attacker"
                     : "target"
                 }
+                nickname={nickname}
                 attackerName={baronResultModalData.attackerName}
                 targetName={baronResultModalData.targetName}
                 attackerCard={baronResultModalData.attackerCard}
@@ -2809,44 +2814,6 @@ export default function Play() {
               />
             )}
 
-            {/* === BARON TARGET MODAL === */}
-            {baronTargetModalData && (
-              <div
-                className="target-notification-modal"
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: "rgba(0, 0, 0, 0.8)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1000,
-                }}
-              >
-                <div
-                  style={{
-                    background: "linear-gradient(135deg, #8B0000, #DC143C)",
-                    padding: "30px",
-                    borderRadius: "15px",
-                    border: "3px solid gold",
-                    color: "white",
-                    textAlign: "center",
-                    maxWidth: "500px",
-                    fontFamily: "'Cinzel', serif",
-                  }}
-                >
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: baronTargetModalData.targetMessage,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* === REGENT QUEEN TARGET MODAL === */}
             {regentQueenTargetModalData && (
               <div
@@ -2897,6 +2864,7 @@ export default function Play() {
             {/* === BARON TARGET MODAL === */}
             {baronTargetModalData && (
               <BaronResultModal
+                nickname={nickname}
                 isOpen={true}
                 userRole="target"
                 attackerName={baronTargetModalData.attacker}

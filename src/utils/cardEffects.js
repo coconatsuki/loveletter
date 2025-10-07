@@ -307,11 +307,21 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   };
 }
 
-export async function applyBaronEffect({ roomCode, attacker, target }) {
+export async function applyBaronEffect({
+  roomCode,
+  attacker,
+  target,
+  playedCardIndex,
+}) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
 
-  const attackerCard = data.players[attacker].hand[0];
+  // Get the attacker's hand (should have 2 cards at this point)
+  const attackerHand = data.players[attacker].hand;
+
+  // The attackerCard should be the OTHER card (not the Baron being played)
+  const attackerCard =
+    playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
 
   // Enrich card data with names and effects from cardsData
@@ -418,11 +428,21 @@ export async function applyBaronEffect({ roomCode, attacker, target }) {
   };
 }
 
-export async function applyRegentQueenEffect({ roomCode, attacker, target }) {
+export async function applyRegentQueenEffect({
+  roomCode,
+  attacker,
+  target,
+  playedCardIndex,
+}) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
 
-  const attackerCard = data.players[attacker].hand[0];
+  // Get the attacker's hand (should have 2 cards at this point)
+  const attackerHand = data.players[attacker].hand;
+
+  // The attackerCard should be the OTHER card (not the Regent Queen being played)
+  const attackerCard =
+    playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
 
   // Enrich card data with names and effects from cardsData
