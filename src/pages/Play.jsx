@@ -2744,6 +2744,7 @@ export default function Play() {
             {regentQueenResultModalData && (
               <RegentQueenResultModal
                 isOpen={true}
+                nickname={nickname}
                 userRole={
                   nickname === regentQueenResultModalData.attackerName
                     ? "attacker"
@@ -2816,41 +2817,18 @@ export default function Play() {
 
             {/* === REGENT QUEEN TARGET MODAL === */}
             {regentQueenTargetModalData && (
-              <div
-                className="target-notification-modal"
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: "rgba(46, 7, 63, 0.9)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1000,
-                }}
-              >
-                <div
-                  style={{
-                    background: "linear-gradient(135deg, #2e073f, #4a148c)",
-                    padding: "30px",
-                    borderRadius: "15px",
-                    border: "3px solid #9b59b6",
-                    color: "#d2b4de",
-                    textAlign: "center",
-                    maxWidth: "500px",
-                    fontFamily: "'Cinzel', serif",
-                    boxShadow: "0 0 20px rgba(155, 89, 182, 0.7)",
-                  }}
-                >
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: regentQueenTargetModalData.targetMessage,
-                    }}
-                  />
-                </div>
-              </div>
+              <RegentQueenResultModal
+                nickname={nickname}
+                isOpen={true}
+                userRole="target"
+                attackerName={regentQueenTargetModalData.attacker}
+                targetName={regentQueenTargetModalData.targetName}
+                attackerCard={regentQueenTargetModalData.attackerCard}
+                targetCard={regentQueenTargetModalData.targetCard}
+                eliminatedPlayer={regentQueenTargetModalData.eliminatedPlayer}
+                isTie={regentQueenTargetModalData.isTie}
+                // No onConfirm for target - they just observe
+              />
             )}
 
             {/* === PRIEST TARGET MODAL === */}

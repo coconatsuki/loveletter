@@ -192,6 +192,10 @@ const styles = {
     justifyContent: "center",
   },
 
+  resultMessage: {
+    margin: "0 2%",
+  },
+
   resultIcon: {
     fontSize: "3rem",
     display: "block",
@@ -326,8 +330,9 @@ const animations = `
 
 const RegentQueenResultModal = ({
   isOpen,
+  nickname,
   onConfirm,
-  userRole,
+  userRole, // "attacker" or "target"
   attackerName,
   targetName,
   attackerCard,
@@ -337,9 +342,9 @@ const RegentQueenResultModal = ({
 }) => {
   if (!isOpen) return null;
 
-  // Determine if the current user won or lost
-  const userIsEliminated =
-    eliminatedPlayer === (userRole === "attacker" ? attackerName : targetName);
+  // Determine if this player was eliminated
+  const currentPlayer = userRole === "attacker" ? attackerName : targetName;
+  const wasEliminated = eliminatedPlayer === currentPlayer;
 
   return (
     <>
@@ -399,39 +404,52 @@ const RegentQueenResultModal = ({
             <div style={styles.resultSection}>
               {isTie ? (
                 <>
-                  <div style={styles.resultIcon}>⚖️</div>
-                  <div>
+                  <span style={styles.resultIcon}>⚖️</span>
+                  <div style={styles.resultMessage}>
                     <div style={{ ...styles.resultTitle, color: "#C39BD3" }}>
                       Mirror Shows Equality
                     </div>
                     <div style={{ ...styles.resultSubtitle, color: "#D7BDE2" }}>
-                      The reflection reveals equal power - both remain
+                      Both souls survive the dark reflection
                     </div>
                   </div>
-                </>
-              ) : userIsEliminated ? (
-                <>
-                  <div style={styles.resultIcon}>💀</div>
-                  <div>
-                    <div style={{ ...styles.resultTitle, color: "#8E44AD" }}>
-                      The Mirror's Cruel Truth
-                    </div>
-                    <div style={{ ...styles.resultSubtitle, color: "#BB8FCE" }}>
-                      You have been vanquished by superior power
-                    </div>
-                  </div>
+                  <span style={styles.resultIcon}>⚖️</span>
                 </>
               ) : (
                 <>
-                  <div style={styles.resultIcon}>👑</div>
-                  <div>
-                    <div style={{ ...styles.resultTitle, color: "#9B59B6" }}>
-                      Mirror Reveals Victory
+                  <span style={styles.resultIcon}>
+                    {wasEliminated ? "💀" : "👑"}
+                  </span>
+                  <div style={styles.resultMessage}>
+                    <div
+                      style={{
+                        ...styles.resultTitle,
+                        color: wasEliminated ? "#8E44AD" : "#9B59B6",
+                      }}
+                    >
+                      {eliminatedPlayer === attackerName
+                        ? `${
+                            targetName === nickname ? "YOU" : targetName
+                          } Survive${targetName === nickname ? "" : "s"}!`
+                        : `${
+                            attackerName === nickname ? "YOU" : attackerName
+                          } Survive${attackerName === nickname ? "" : "s"}!`}
                     </div>
-                    <div style={{ ...styles.resultSubtitle, color: "#D2B4DE" }}>
-                      Your reflection shows greater strength
+                    <div
+                      style={{
+                        ...styles.resultSubtitle,
+                        color: wasEliminated ? "#BB8FCE" : "#D2B4DE",
+                      }}
+                    >
+                      {eliminatedPlayer === nickname
+                        ? "You are"
+                        : eliminatedPlayer + " is"}{" "}
+                      consumed by their own power
                     </div>
                   </div>
+                  <span style={styles.resultIcon}>
+                    {wasEliminated ? "💀" : "👑"}
+                  </span>
                 </>
               )}
             </div>
@@ -449,7 +467,8 @@ const RegentQueenResultModal = ({
 
             {/* Action Section */}
             <div style={styles.actionSection}>
-              {userRole === "attacker" ? (
+              {/* Only show confirm button to attacker (to control game flow) */}
+              {userRole === "attacker" && (
                 <button
                   style={styles.continueButton}
                   onClick={onConfirm}
@@ -468,9 +487,10 @@ const RegentQueenResultModal = ({
                 >
                   Continue
                 </button>
-              ) : (
+              )}
+              {userRole === "target" && (
                 <div style={styles.waitingText}>
-                  Waiting for {attackerName} to continue...
+                  ⏳ Awaiting {attackerName}'s command to continue...
                 </div>
               )}
             </div>
