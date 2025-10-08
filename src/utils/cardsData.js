@@ -119,7 +119,7 @@ export const cards = [
     strength: 7,
     countNormal: 0,
     countPremium: 1,
-    effect: "Compare hands. Higher is eliminated.",
+    effect: "Compare hands. Player with higher strength is eliminated.",
   },
   {
     id: 12,

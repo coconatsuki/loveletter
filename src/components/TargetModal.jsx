@@ -21,6 +21,7 @@ export default function TargetModal({
   const isGuard = cardPlayed === 1;
   const isPrince = cardPlayed === 5;
   const isPhantomKing = cardPlayed === 6;
+  const isRegentQueen = cardPlayed === 11;
   const hasNoTargets = validTargets.length === 0 && !isPrince; // Prince can always target self
 
   console.log(
@@ -57,6 +58,7 @@ export default function TargetModal({
             command yourself!
           </p>
         )}
+
         <div className="dropdown-section-container">
           <div className="dropdown-section-label" style={dropdownSectionStyle}>
             Select a target for your card
@@ -107,6 +109,20 @@ export default function TargetModal({
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {isRegentQueen && (
+          <div style={RegentQueenMessageContainerStyle}>
+            <em>
+              <p style={RegentQueenMessageStyle}>
+                You whisper your plea to the Regent Queen.
+              </p>
+              <p style={RegentQueenMessageStyle}>
+                She smiles — a cold, knowing smile. ‘If you wish to rise, my
+                dear,’ she says, ‘let me remove the ones who stand too tall’.
+              </p>
+            </em>
           </div>
         )}
 
@@ -170,6 +186,19 @@ const cardOptionsContentStyle = {
   color: "#2c1810",
   fontFamily: "Cinzel, serif",
   maxWidth: "none",
+};
+
+const RegentQueenMessageContainerStyle = {
+  marginBottom: "15px",
+};
+
+const RegentQueenMessageStyle = {
+  textAlign: "justify",
+  fontSize: "1.1rem",
+  lineHeight: "1.4",
+  color: "rgb(92 246 122)",
+  fontStyle: "italic",
+  fontFamily: "Lora, serif",
 };
 
 const buttonsContainerStyle = {

@@ -8,6 +8,7 @@ import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
+import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
@@ -19,6 +20,7 @@ import {
   executeAssassinationElimination,
   applyPriestEffect,
   applyBaronEffect,
+  applyRegentQueenEffect,
   applyHandmaidEffect,
   applyPrinceEffect,
   applyKingEffect,
@@ -104,6 +106,10 @@ export default function Play() {
   const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
+  const [regentQueenResultModalData, setRegentQueenResultModalData] =
+    useState(null);
+  const [regentQueenTargetModalData, setRegentQueenTargetModalData] =
+    useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
@@ -126,6 +132,8 @@ export default function Play() {
       priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
+      regentQueenResultModalData ||
+      regentQueenTargetModalData ||
       targetMessageModalData ||
       showGuardTargetPrompt ||
       roundEndModalData ||
@@ -415,6 +423,23 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
+  // Listen to regent queen target modal data
+  useEffect(() => {
+    const refRegentQueenTarget = ref(db, `rooms/${roomCode}/regentQueenTarget`);
+    const unsubscribe = onValue(refRegentQueenTarget, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data && data.visibleTo === nickname) {
+        // Show Regent Queen target modal to the target player
+        setRegentQueenTargetModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        setRegentQueenTargetModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
   // Listen to general target message modal data (for Prince, etc.)
   useEffect(() => {
     const refTargetMessage = ref(db, `rooms/${roomCode}/targetMessage`);
@@ -578,8 +603,8 @@ export default function Play() {
     // If actionData is provided, it means ActionModal already handled target selection
     if (actionData) {
       // Handle the action based on card type with target/guess data
-      if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
-        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
+      if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
+        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
         // Pass the card index directly to avoid state timing issues
         handleTargetConfirmWithIndex(index, actionData);
         return;
@@ -588,8 +613,8 @@ export default function Play() {
 
     // Original logic for cards that don't need ActionModal target selection
     // or when called from old system
-    if ([0, 1, 2, 3, 6, 9].includes(card.id)) {
-      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor)
+    if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
+      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -867,6 +892,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: selectedCardIndex, // Pass the index of the played card
       });
 
       if (baronResult.result === "error") {
@@ -904,6 +930,53 @@ export default function Play() {
       });
 
       // Baron effect is complete - return early, turn will be completed when result modal is closed
+      return;
+    }
+
+    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
+    else if (cardPlayed.id === 11) {
+      const regentQueenResult = await applyRegentQueenEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        playedCardIndex: selectedCardIndex, // Pass the index of the played card
+      });
+
+      if (regentQueenResult.result === "error") {
+        setResultModalData({
+          resultText: `❌ Error: ${regentQueenResult.message}`,
+        });
+        return;
+      }
+
+      // Send the public notification (reveals eliminated player's card only)
+      pushNotification(roomCode, regentQueenResult.publicMessage);
+
+      // Show Regent Queen result modal to the target (no button needed)
+      await update(ref(db, `rooms/${roomCode}/regentQueenTarget`), {
+        visibleTo: target,
+        attacker: nickname,
+        targetName: target,
+        attackerCard: regentQueenResult.attackerCard,
+        targetCard: regentQueenResult.targetCard,
+        eliminatedPlayer: regentQueenResult.eliminatedPlayer,
+        isTie: regentQueenResult.isTie,
+        targetMessage: regentQueenResult.targetMessage,
+      });
+
+      // Show Regent Queen result modal to the attacker (with confirm button to control game flow)
+      setRegentQueenResultModalData({
+        attackerName: nickname,
+        targetName: target,
+        attackerCard: regentQueenResult.attackerCard,
+        targetCard: regentQueenResult.targetCard,
+        eliminatedPlayer: regentQueenResult.eliminatedPlayer,
+        isTie: regentQueenResult.isTie,
+        attackerMessage: regentQueenResult.attackerMessage,
+        targetMessage: regentQueenResult.targetMessage,
+      });
+
+      // Regent Queen effect is complete - return early, turn will be completed when result modal is closed
       return;
     }
 
@@ -1235,6 +1308,22 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        playedCardIndex: cardIndex, // Pass the index of the played card
+      });
+      setResultModalData({
+        resultText: result.attackerMessage,
+      });
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
+    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
+    else if (cardPlayed.id === 11) {
+      const result = await applyRegentQueenEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        playedCardIndex: cardIndex, // Pass the index of the played card
       });
       setResultModalData({
         resultText: result.attackerMessage,
@@ -2129,7 +2218,13 @@ export default function Play() {
                   !resultModalData &&
                   !priestTargetModalData &&
                   !baronResultModalData &&
+                  !baronTargetModalData &&
+                  !regentQueenResultModalData &&
+                  !regentQueenTargetModalData &&
                   !targetMessageModalData &&
+                  !showGuardTargetPrompt &&
+                  !roundEndModalData &&
+                  !isModalTransitioning &&
                   (!isPlaying ||
                     (roomData?.guardPrompt &&
                       roomData.guardPrompt.attacker === nickname));
@@ -2588,6 +2683,7 @@ export default function Play() {
                     ? "attacker"
                     : "target"
                 }
+                nickname={nickname}
                 attackerName={baronResultModalData.attackerName}
                 targetName={baronResultModalData.targetName}
                 attackerCard={baronResultModalData.attackerCard}
@@ -2650,6 +2746,97 @@ export default function Play() {
               />
             )}
 
+            {/* === REGENT QUEEN RESULT MODAL === */}
+            {regentQueenResultModalData && (
+              <RegentQueenResultModal
+                isOpen={true}
+                nickname={nickname}
+                userRole={
+                  nickname === regentQueenResultModalData.attackerName
+                    ? "attacker"
+                    : "target"
+                }
+                attackerName={regentQueenResultModalData.attackerName}
+                targetName={regentQueenResultModalData.targetName}
+                attackerCard={regentQueenResultModalData.attackerCard}
+                targetCard={regentQueenResultModalData.targetCard}
+                eliminatedPlayer={regentQueenResultModalData.eliminatedPlayer}
+                isTie={regentQueenResultModalData.isTie}
+                message={
+                  nickname === regentQueenResultModalData.attackerName
+                    ? regentQueenResultModalData.attackerMessage
+                    : regentQueenResultModalData.targetMessage
+                }
+                onConfirm={() =>
+                  handleModalTransition(async () => {
+                    // Only attacker can confirm to proceed with the game
+
+                    // If there was an elimination, apply it now
+                    if (
+                      regentQueenResultModalData.eliminatedPlayer &&
+                      !regentQueenResultModalData.isTie
+                    ) {
+                      const eliminatedPlayerData =
+                        players[regentQueenResultModalData.eliminatedPlayer];
+
+                      const eliminationUpdates = handlePlayerElimination(
+                        roomCode,
+                        regentQueenResultModalData.eliminatedPlayer,
+                        roomData?.mode,
+                        eliminatedPlayerData,
+                        {}
+                      );
+
+                      await update(
+                        ref(db, `rooms/${roomCode}`),
+                        eliminationUpdates
+                      );
+
+                      // Notify about the elimination
+                      pushNotification(
+                        roomCode,
+                        `🪞💫 ${regentQueenResultModalData.eliminatedPlayer} has been consumed by their own strength in the Regent Queen's dark mirror!`
+                      );
+
+                      // 🎯 FIXED: Use protected trigger instead of just logging
+                      await triggerRoundEndIfNeeded(
+                        "After Regent Queen Elimination",
+                        roomCode
+                      );
+                    }
+
+                    // Clear Regent Queen target data in Firebase
+                    await set(
+                      ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                      null
+                    );
+                    setRegentQueenResultModalData(null);
+
+                    // Complete the Regent Queen turn (discard card, advance turn)
+                    if (selectedCardIndex !== null) {
+                      handleEffectResultClose();
+                    }
+                  })
+                }
+              />
+            )}
+
+            {/* === REGENT QUEEN TARGET MODAL === */}
+            {regentQueenTargetModalData && (
+              <RegentQueenResultModal
+                nickname={nickname}
+                isOpen={true}
+                userRole="target"
+                attackerName={regentQueenTargetModalData.attacker}
+                targetName={regentQueenTargetModalData.targetName}
+                attackerCard={regentQueenTargetModalData.attackerCard}
+                targetCard={regentQueenTargetModalData.targetCard}
+                eliminatedPlayer={regentQueenTargetModalData.eliminatedPlayer}
+                isTie={regentQueenTargetModalData.isTie}
+                // No onConfirm for target - they just observe
+              />
+            )}
+
             {/* === PRIEST TARGET MODAL === */}
             {priestTargetModalData && (
               <PriestTargetModal
@@ -2661,6 +2848,7 @@ export default function Play() {
             {/* === BARON TARGET MODAL === */}
             {baronTargetModalData && (
               <BaronResultModal
+                nickname={nickname}
                 isOpen={true}
                 userRole="target"
                 attackerName={baronTargetModalData.attacker}
