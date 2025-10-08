@@ -2251,7 +2251,6 @@ export default function Play() {
                             ({isYou ? "You" : p.realName})
                           </div>
                         )}
-                        {isEliminated && " 💀"}
                       </div>
                       <div className="player-tokens">
                         <span>❤️</span> <span>{p.tokens || 0}</span>
@@ -3055,20 +3054,28 @@ export default function Play() {
 
                       if (foundPrincess) {
                         // Princess found - eliminate target (no new card draw)
+                        const targetPlayerData =
+                          roomData.players[originalTarget];
+
+                        const baseUpdates = {
+                          [`players/${originalTarget}/hand`]: [], // Empty hand
+                          [`players/${originalTarget}/discard`]: [
+                            ...(targetPlayerData.discard || []),
+                            discardedCard,
+                          ],
+                        };
+
+                        const eliminationUpdates = handlePlayerElimination(
+                          roomCode,
+                          originalTarget,
+                          roomData?.mode,
+                          targetPlayerData,
+                          baseUpdates
+                        );
+
                         await update(
-                          ref(
-                            db,
-                            `rooms/${roomCode}/players/${originalTarget}`
-                          ),
-                          {
-                            hand: [], // Empty hand
-                            discard: [
-                              ...(roomData.players[originalTarget].discard ||
-                                []),
-                              discardedCard,
-                            ],
-                            isOut: true, // ELIMINATE
-                          }
+                          ref(db, `rooms/${roomCode}`),
+                          eliminationUpdates
                         );
                         console.log(
                           "🕵️ PRINCESS ELIMINATION: Target eliminated for heresy"

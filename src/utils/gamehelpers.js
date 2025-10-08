@@ -123,6 +123,29 @@ export function handlePlayerElimination(
     );
   }
 
+  // Discard any remaining hand cards to player's discard pile
+  if (currentPlayerData?.hand && currentPlayerData.hand.length > 0) {
+    console.log(
+      `🃏 Discarding ${currentPlayerData.hand.length} remaining hand cards for eliminated player ${playerName}:`,
+      currentPlayerData.hand
+    );
+
+    // Move all hand cards to discard pile
+    const existingDiscard = currentPlayerData.discard || [];
+    const newDiscard = [...existingDiscard, ...currentPlayerData.hand];
+
+    updates[`players/${playerName}/discard`] = newDiscard;
+    updates[`players/${playerName}/hand`] = [];
+
+    console.log(
+      `🃏 Hand cleanup complete for ${playerName} - ${currentPlayerData.hand.length} cards moved to discard`
+    );
+  } else {
+    console.log(
+      `🃏 No hand cleanup needed for ${playerName} - hand is empty or undefined`
+    );
+  }
+
   console.log(`🚨 HANDLE PLAYER ELIMINATION RETURNING:`, updates);
   return updates;
 }

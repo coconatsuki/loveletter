@@ -200,7 +200,7 @@ If the guess is correct, the chosen player must discard their hand and draw a ne
 At the end of the round, this card beats all other cards except the Princess.
 
 ID 10 → Chamberlain (Strength: 6, Count: 1)
-→ If the player has played or discarded this card and is eliminated before the end of the round, they win a Love Token.
+→ If the player has played or discarded this card (in a previous round) and is eliminated before the end of the round, they win a Love Token.
 
 ID 11 → Regent Queen (Strength: 7, Count: 1)
 → Player may choose another player and privately compare hands. The player with the higher strength-numbered card is eliminated from the round.
