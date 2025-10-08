@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update, remove } from "firebase/database";
@@ -6,6 +6,7 @@ import { generateNickname } from "../utils/names";
 import { buildDeck } from "../utils/deckBuilder";
 import "./LandingPage.css"; // Import royal styles
 import waitingRoomPicture from "../img/waiting-room.jpeg";
+import medievalMusic from "../sounds/medieval-ambient.mp3";
 
 export default function Room() {
   const { id: roomCode } = useParams();
@@ -18,6 +19,79 @@ export default function Room() {
   const [gameStarted, setGameStarted] = useState(false);
   const [roundNumber, setRoundNumber] = useState(1);
   const [roomMode, setRoomMode] = useState("normal");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const audioRef = useRef(null);
+  const fadeIntervalRef = useRef(null);
+
+  // Fade utility functions for smooth volume transitions
+  const fadeIn = (audio, targetVolume = 0.7, duration = 1000) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      audio.volume = 0;
+      const steps = 50; // Number of volume steps
+      const stepTime = duration / steps;
+      const volumeIncrement = targetVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.min(volumeIncrement * currentStep, targetVolume);
+
+        if (currentStep >= steps) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = targetVolume;
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
+
+  const fadeOut = (audio, duration = 800) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      const initialVolume = audio.volume;
+      const steps = 50;
+      const stepTime = duration / steps;
+      const volumeDecrement = initialVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.max(
+          initialVolume - volumeDecrement * currentStep,
+          0
+        );
+
+        if (currentStep >= steps || audio.volume <= 0) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = 0;
+          audio.pause();
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
 
   useEffect(() => {
     const roomRef = ref(db, `rooms/${roomCode}`);
@@ -72,6 +146,91 @@ export default function Room() {
       }
     }
   }, [players, nickname, navigate]);
+
+  // Music setup for Room page (manual control only)
+  useEffect(() => {
+    console.log(
+      "🎵 MUSIC DEBUG: Room page mounted, setting up manual music control..."
+    );
+
+    if (audioRef.current) {
+      // Set up audio properties
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0; // Start at 0 for fade-in
+
+      // Ensure audio is loaded before attempting to play
+      audioRef.current.load();
+
+      console.log("🎵 Audio element prepared:", {
+        src: audioRef.current.src,
+        readyState: audioRef.current.readyState,
+        networkState: audioRef.current.networkState,
+      });
+    }
+
+    // Cleanup function
+    return () => {
+      // Clear any fade intervals
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
+  // Music toggle function with smart timing and smooth fades
+  const toggleMusic = () => {
+    if (audioRef.current) {
+      console.log("🎵 TOGGLE MUSIC: Current state:", {
+        isPlaying,
+        paused: audioRef.current.paused,
+        readyState: audioRef.current.readyState,
+        networkState: audioRef.current.networkState,
+        src: audioRef.current.src,
+      });
+
+      if (isPlaying) {
+        console.log("🎵 Fading out medieval music...");
+        setIsPlaying(false);
+        fadeOut(audioRef.current).then(() => {
+          console.log("🎵 Medieval music faded out and paused by user");
+        });
+      } else {
+        // Smart timing: Start at 6 seconds on first play (skip silence), 0 seconds on subsequent plays
+        if (!hasUserInteracted) {
+          console.log("🎵 First play - starting at 6 seconds to skip silence");
+          audioRef.current.currentTime = 6; // Skip the 6 seconds of silence
+          setHasUserInteracted(true);
+        } else {
+          console.log(
+            "🎵 Subsequent play - starting at 0 seconds (natural loop)"
+          );
+          audioRef.current.currentTime = 0; // Natural loop with silence as rest
+        }
+
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            console.log("🎵 Medieval music started, fading in smoothly...");
+            // Bring back the smooth fade-in for polished experience
+            fadeIn(audioRef.current);
+          })
+          .catch((error) => {
+            console.error("🎵 Error playing music:", error);
+            console.log("🎵 Audio error details:", {
+              readyState: audioRef.current.readyState,
+              networkState: audioRef.current.networkState,
+              error: audioRef.current.error,
+            });
+          });
+      }
+    }
+  };
 
   const isHost = nickname === host;
   const playerCount = players.length;
@@ -155,6 +314,37 @@ export default function Room() {
 
   return (
     <div className="royal-landing-container">
+      {/* Audio element for background music */}
+      <audio ref={audioRef} src={medievalMusic} preload="auto" />
+
+      {/* Music toggle button */}
+      <button
+        onClick={toggleMusic}
+        className="music-toggle-btn"
+        style={{
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          border: "none",
+          background: isPlaying ? "#4CAF50" : "#666",
+          color: "white",
+          fontSize: "24px",
+          cursor: "pointer",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.3s ease",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+        }}
+        title={isPlaying ? "Stop Music" : "Play Music"}
+      >
+        {isPlaying ? "🔊" : "🔇"}
+      </button>
+
       {/* 🏰 Royal Header */}
       <div className="royal-header">
         <div className="royal-header-text">
