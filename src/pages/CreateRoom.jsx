@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, set } from "firebase/database";
@@ -6,6 +6,7 @@ import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
 import princessImage from "../img/princess-square.jpeg";
 import loveLetterImage from "../img/love-letter.png";
+import sentimentalMusic from "../sounds/sentimental-classical-gentle-love.mp3";
 import "./LandingPage.css";
 
 export default function CreateRoom() {
@@ -14,7 +15,80 @@ export default function CreateRoom() {
   const [preferredGender, setPreferredGender] = useState("");
   const [mode, setMode] = useState("normal");
   const [isCreating, setIsCreating] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const audioRef = useRef(null);
+  const fadeIntervalRef = useRef(null);
   const navigate = useNavigate();
+
+  // Fade utility functions for smooth volume transitions
+  const fadeIn = (audio, targetVolume = 0.7, duration = 1000) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      audio.volume = 0;
+      const steps = 50; // Number of volume steps
+      const stepTime = duration / steps;
+      const volumeIncrement = targetVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.min(volumeIncrement * currentStep, targetVolume);
+
+        if (currentStep >= steps) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = targetVolume;
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
+
+  const fadeOut = (audio, duration = 800) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      const initialVolume = audio.volume;
+      const steps = 50;
+      const stepTime = duration / steps;
+      const volumeDecrement = initialVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.max(
+          initialVolume - volumeDecrement * currentStep,
+          0
+        );
+
+        if (currentStep >= steps || audio.volume <= 0) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = 0;
+          audio.pause();
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
 
   const handleCreate = async () => {
     if (!nickname || !realName) return;
@@ -43,6 +117,131 @@ export default function CreateRoom() {
     }
   };
 
+  // Music setup and first-interaction trigger
+  useEffect(() => {
+    console.log(
+      "🎵 MUSIC DEBUG: CreateRoom page mounted, setting up first-interaction trigger..."
+    );
+
+    if (audioRef.current) {
+      // Set up audio properties
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.7;
+
+      // Ensure audio is loaded before attempting to play
+      audioRef.current.load();
+
+      console.log("🎵 Audio element prepared:", {
+        src: audioRef.current.src,
+        readyState: audioRef.current.readyState,
+        networkState: audioRef.current.networkState,
+      });
+    }
+
+    // Function to handle first user interaction
+    const handleFirstInteraction = () => {
+      if (!hasUserInteracted && audioRef.current) {
+        console.log("🎵 FIRST INTERACTION DETECTED: Starting music...");
+        console.log("🎵 Audio state before play:", {
+          readyState: audioRef.current.readyState,
+          networkState: audioRef.current.networkState,
+          paused: audioRef.current.paused,
+          currentTime: audioRef.current.currentTime,
+          duration: audioRef.current.duration,
+        });
+
+        setHasUserInteracted(true);
+
+        // Wait a moment to ensure audio is ready, then play with fade-in
+        setTimeout(() => {
+          audioRef.current
+            .play()
+            .then(() => {
+              console.log(
+                "🎵 SUCCESS: Music started after user interaction, fading in..."
+              );
+              setIsPlaying(true);
+              // Fade in the music smoothly
+              fadeIn(audioRef.current);
+            })
+            .catch((error) => {
+              console.log(
+                "🎵 ERROR: Could not start music after interaction -",
+                error.message
+              );
+              console.log("🎵 Audio state after error:", {
+                readyState: audioRef.current.readyState,
+                networkState: audioRef.current.networkState,
+                error: audioRef.current.error,
+              });
+              setIsPlaying(false);
+            });
+        }, 100); // Small delay to ensure audio is ready
+      }
+    };
+
+    // Add event listeners for any user interaction
+    const interactionEvents = ["click", "keydown", "keyup", "input", "change"];
+
+    interactionEvents.forEach((event) => {
+      document.addEventListener(event, handleFirstInteraction, { once: false });
+    });
+
+    // Cleanup function
+    return () => {
+      interactionEvents.forEach((event) => {
+        document.removeEventListener(event, handleFirstInteraction);
+      });
+
+      // Clear any fade intervals
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [hasUserInteracted]);
+
+  // Music toggle function with smooth fade effects
+  const toggleMusic = () => {
+    if (audioRef.current) {
+      console.log("🎵 TOGGLE MUSIC: Current state:", {
+        isPlaying,
+        paused: audioRef.current.paused,
+        readyState: audioRef.current.readyState,
+        networkState: audioRef.current.networkState,
+        src: audioRef.current.src,
+      });
+
+      if (isPlaying) {
+        console.log("🎵 Fading out music...");
+        setIsPlaying(false);
+        fadeOut(audioRef.current).then(() => {
+          console.log("🎵 Music faded out and paused by user");
+        });
+      } else {
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            console.log("🎵 Music started by user, fading in...");
+            fadeIn(audioRef.current);
+          })
+          .catch((error) => {
+            console.error("🎵 Error playing music:", error);
+            console.log("🎵 Audio error details:", {
+              readyState: audioRef.current.readyState,
+              networkState: audioRef.current.networkState,
+              error: audioRef.current.error,
+            });
+          });
+      }
+    }
+  };
+
   const handleGenerateName = () => {
     const generatedName = generateNickname(preferredGender);
     setNickname(generatedName);
@@ -56,6 +255,37 @@ export default function CreateRoom() {
 
   return (
     <div className="royal-landing-container">
+      {/* Audio element for background music */}
+      <audio ref={audioRef} src={sentimentalMusic} preload="auto" />
+
+      {/* Music toggle button */}
+      <button
+        onClick={toggleMusic}
+        className="music-toggle-btn"
+        style={{
+          position: "absolute",
+          top: "0.5rem",
+          left: "0.5rem",
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          border: "none",
+          background: isPlaying ? "#4CAF50" : "#666",
+          color: "white",
+          fontSize: "24px",
+          cursor: "pointer",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.3s ease",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+        }}
+        title={isPlaying ? "Stop Music" : "Play Music"}
+      >
+        {isPlaying ? "🔊" : "🔇"}
+      </button>
+
       {/* Full width centered title */}
       <div className="royal-header">
         <img

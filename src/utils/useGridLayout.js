@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 
 /**
- * Custom hook to calculate dynamic grid layout for players
- * Determines how many players can fit per row and which should show popover on left
+ * @deprecated This dynamic grid layout calculation has been replaced with hardcoded positioning.
+ * See popoverPositioning.js for the new approach.
+ *
+ * This file is kept for reference but is no longer used in the codebase.
+ * The new approach uses a simple hardcoded map based on player count and position
+ * to determine popover positioning, avoiding complex getBoundingClientRect calculations.
  */
 export const useGridLayout = (totalPlayers) => {
   const [playersPerRow, setPlayersPerRow] = useState(4); // Default fallback

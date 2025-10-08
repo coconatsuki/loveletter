@@ -200,13 +200,13 @@ If the guess is correct, the chosen player must discard their hand and draw a ne
 At the end of the round, this card beats all other cards except the Princess.
 
 ID 10 → Chamberlain (Strength: 6, Count: 1)
-→ If the player has played or discarded this card and is eliminated before the end of the round, they win a Love Token.
+→ If the player has played or discarded this card (in a previous round) and is eliminated before the end of the round, they win a Love Token.
 
 ID 11 → Regent Queen (Strength: 7, Count: 1)
 → Player may choose another player and privately compare hands. The player with the higher strength-numbered card is eliminated from the round.
 
 ID 12 → Court Whisperer (Strength: 4, Count: 2)
-→ Player may choose another player (who's not protected by a Handmaid) as the target for the next card played targeting an opponent.
+→ → Player may choose another player (including themselves) and who's not protected by a Handmaid. Then, as long as the next card played has an effect that chooses one or more targets, the player marked by the Court Whisperer MUST be the one targeted, or one of them if many targets have to be selected (for the Royal Confessor card, or for the Baroness card, for ex).
 
 ID 13 → Royal Confessor (Strength: 2, Count: 2)
 → Player chooses any two players (including themselves) and the chosen players trade hands. The player may then look at the chosen player's hand if they chose to trade hands themselves.
