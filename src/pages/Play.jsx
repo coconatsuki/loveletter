@@ -45,7 +45,7 @@ import {
   handleCardDiscard,
   handlePlayerElimination,
 } from "../utils/gamehelpers";
-import { useGridLayout } from "../utils/useGridLayout";
+import { shouldShowPopoverOnLeft } from "../utils/popoverPositioning";
 import "./Play.css";
 
 const cardNames = {
@@ -117,12 +117,10 @@ export default function Play() {
   const [showDiscardHistory, setShowDiscardHistory] = useState(false); // For discard pile popover
   const [isModalTransitioning, setIsModalTransitioning] = useState(false);
 
-  // Grid layout hook for dynamic popover positioning
+  // Total players count for popover positioning
   const totalPlayers = roomData?.players
     ? Object.keys(roomData.players).length
-    : 0;
-  const { gridRef, playersPerRow, shouldShowPopoverOnLeft } =
-    useGridLayout(totalPlayers); // Prevents flash during modal transitions
+    : 0; // Prevents flash during modal transitions
 
   // Helper function to check if any modal is currently active
   const hasActiveModal = () => {
@@ -2201,16 +2199,18 @@ export default function Play() {
             </div>
 
             {/* PLAYERS GRID */}
-            <div className="players-game-grid" ref={gridRef}>
+            <div className="players-game-grid">
               {Object.entries(players).map(([name, p], index) => {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
                 const isCurrentPlayer = name === currentPlayer;
                 const isEliminated = p.isOut;
                 const isYou = name === nickname;
 
-                // Use dynamic calculation for popover positioning
-                const shouldShowPopoverOnLeftSide =
-                  shouldShowPopoverOnLeft(index);
+                // Use hardcoded positioning logic based on player count and position
+                const shouldShowPopoverOnLeftSide = shouldShowPopoverOnLeft(
+                  index,
+                  totalPlayers
+                );
 
                 // Check if essential game actions are needed that would block the popover
                 const shouldBlockPopover =
