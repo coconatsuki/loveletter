@@ -206,7 +206,9 @@ ID 11 → Regent Queen (Strength: 7, Count: 1)
 → Player may choose another player and privately compare hands. The player with the higher strength-numbered card is eliminated from the round.
 
 ID 12 → Court Whisperer (Strength: 4, Count: 2)
-→ → Player may choose another player (including themselves) and who's not protected by a Handmaid. Then, as long as the next card played has an effect that chooses one or more targets, the player marked by the Court Whisperer MUST be the one targeted, or one of them if many targets have to be selected (for the Royal Confessor card, or for the Baroness card, for ex).
+→ Player may choose another player (including themselves) who's NOT protected by a Handmaid, and "mark" them as the Target (for court rumors) for the next player's turn. Then, if the card played on next turn (by someone else, that could also be the Court Whisperer's target themselves if their turn comes next) involves choosing one or more targets, the "marked" player MUST be the one targeted (or one of them if many targets have to be selected -for the Royal Confessor card, or for the Baroness card, for ex).
+IMPORTANT NOTE 1: If the next card played doesn't involve targetting anyone, then the Court Whisperer has no effect at all.
+IMPORTANT NOTE 2: The Court Whisperer effect vanishes at the end of the NEXT TURN, no matter what (end even if it had no effect at all)
 
 ID 13 → Royal Confessor (Strength: 2, Count: 2)
 → Player chooses any two players (including themselves) and the chosen players trade hands. The player may then look at the chosen player's hand if they chose to trade hands themselves.
