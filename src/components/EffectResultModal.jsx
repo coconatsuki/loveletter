@@ -59,12 +59,13 @@ const effectTextStyles = `
     font-weight: bold;
   }
 
-  .effect-technical {
-    border-top: 1px dashed;
+.effect-technical {
+    border-top: 1px #dfdf73 dashed;
     padding-top: 1rem;
     margin-top: 1.2rem;
     text-align: center;
-  }
+    color: #dfdf73;
+}
 `;
 
 export default function EffectResultModal({
@@ -175,7 +176,7 @@ export default function EffectResultModal({
                 : isJesterEffect
                 ? "rgb(22 3 3)"
                 : isCourtWhispererEffect
-                ? "linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)"
+                ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -304,7 +305,7 @@ export default function EffectResultModal({
               </div>
             </div>
           ) : (
-            <div style={messageStyle}>
+            <div style={getMessageStyle(isCourtWhispererEffect)}>
               {formatText(resultText)}
               <div
                 style={{
@@ -332,7 +333,7 @@ export default function EffectResultModal({
                       e.target.style.border = "2px solid rgb(45, 27, 27)";
                     } else if (isCourtWhispererEffect) {
                       e.target.style.background =
-                        "linear-gradient(135deg, #FF69B4 0%, #FFB6C1 100%)";
+                        "linear-gradient(135deg, rgb(255 205 212) 0%, rgb(202 75 139) 50%, rgb(99 9 57) 100%)";
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(255, 20, 147, 0.6)";
@@ -361,11 +362,11 @@ export default function EffectResultModal({
                       e.target.style.border = "2px solid rgb(106 92 48)";
                     } else if (isCourtWhispererEffect) {
                       e.target.style.background =
-                        "linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)";
+                        "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)";
                       e.target.style.transform = "translateY(0)";
                       e.target.style.boxShadow =
                         "0 4px 15px rgba(255, 20, 147, 0.4)";
-                      e.target.style.color = "#8B0000";
+                      e.target.style.color = "white";
                       e.target.style.border = "2px solid #FF1493";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
@@ -459,13 +460,13 @@ const getHeaderStyle = (
     : isJesterEffect
     ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
     : isCourtWhispererEffect
-    ? "linear-gradient(135deg, #FF1493 0%, #FF69B4 50%, #FFB6C1 100%)"
+    ? "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)"
     : isHandmaidProtection
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
     : isInquisitorEffect
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-  color: isCourtWhispererEffect ? "#8B0000" : "#ffd700",
+  color: isCourtWhispererEffect ? "rgb(242 242 242)" : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -489,16 +490,16 @@ const getHeaderStyle = (
   position: "relative",
 });
 
-const messageStyle = {
+const getMessageStyle = (isCourtWhispererEffect) => ({
   fontSize: "1.3rem",
   textAlign: "justify",
   lineHeight: "1.6",
-  color: "white",
+  color: isCourtWhispererEffect ? "#faebd7" : "white",
   margin: "0",
   padding: "25px",
   background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
-};
+});
 
 const classicResultTextContainer = {
   display: "flex",
@@ -566,8 +567,9 @@ const jesterButtonStyle = {
 
 const courtWhispererButtonStyle = {
   width: "60%",
-  background: "linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)",
-  color: "#8B0000",
+  background:
+    "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)",
+  color: "white",
   border: "2px solid #FF1493",
   fontWeight: "700",
   textShadow: "1px 1px 2px rgba(139, 0, 0, 0.8)",

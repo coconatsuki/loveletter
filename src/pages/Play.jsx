@@ -2303,6 +2303,12 @@ export default function Play() {
                       isCurrentPlayer ? "is-current-player" : ""
                     } ${isEliminated ? "is-eliminated" : ""} ${
                       isProtected ? "is-protected" : ""
+                    } ${
+                      roomData?.round?.nextTarget &&
+                      roomData.round.nextTarget.nickname === name &&
+                      !roomData.round.nextTarget.used
+                        ? "is-targeted"
+                        : ""
                     }`}
                     onClick={() => handlePlayerSectionClick(name, p)}
                     onMouseEnter={() => setHoveredPlayer(name)}
@@ -2322,34 +2328,6 @@ export default function Play() {
                       <div className="player-tokens">
                         <span>❤️</span> <span>{p.tokens || 0}</span>
                       </div>
-
-                      {/* 🗣️ Court Whisperer: Show gossip target indicator */}
-                      {roomData?.round?.nextTarget &&
-                        roomData.round.nextTarget.nickname === name &&
-                        !roomData.round.nextTarget.used && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "5px",
-                              right: "5px",
-                              background:
-                                "linear-gradient(135deg, #FF69B4, #FFB6C1)",
-                              border: "2px solid #FF1493",
-                              borderRadius: "50%",
-                              width: "30px",
-                              height: "30px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "16px",
-                              boxShadow: "0 2px 8px rgba(255, 20, 147, 0.4)",
-                              animation: "gossipPulse 2s infinite",
-                              zIndex: 10,
-                            }}
-                          >
-                            🎯
-                          </div>
-                        )}
                     </div>
 
                     {/* Player Info Grid - Simplified */}

@@ -189,6 +189,17 @@ export default function TargetModal({
 
         <div className="buttons-container" style={buttonsContainerStyle}>
           <button
+            onClick={onCancel}
+            onMouseEnter={() => setIsBackHovered(true)}
+            onMouseLeave={() => setIsBackHovered(false)}
+            style={{
+              ...buttonsStyle,
+              ...(isBackHovered ? backButtonHoverStyle : backButtonStyle),
+            }}
+          >
+            Back
+          </button>
+          <button
             onClick={() => onConfirm({ target: selectedTarget, guess })}
             disabled={!selectedTarget}
             onMouseEnter={() => setIsConfirmHovered(true)}
@@ -201,17 +212,6 @@ export default function TargetModal({
             }}
           >
             Confirm
-          </button>
-          <button
-            onClick={onCancel}
-            onMouseEnter={() => setIsBackHovered(true)}
-            onMouseLeave={() => setIsBackHovered(false)}
-            style={{
-              ...buttonsStyle,
-              ...(isBackHovered ? backButtonHoverStyle : backButtonStyle),
-            }}
-          >
-            Back
           </button>
         </div>
       </div>
