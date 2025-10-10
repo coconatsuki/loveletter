@@ -17,6 +17,8 @@ export const CARD_MODAL_FLOW = {
   8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
   9: { advanceOnAttacker: true, advanceOnTarget: false }, // Inquisitor (target modal controls flow)
   10: { advanceOnAttacker: true, advanceOnTarget: false }, // Chamberlain
+  11: { advanceOnAttacker: true, advanceOnTarget: false }, // Regent Queen
+  12: { advanceOnAttacker: true, advanceOnTarget: false }, // Court Whisperer
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
   // Premium mode cards will be added as we implement them...
 };
@@ -1315,6 +1317,118 @@ export async function applyInquisitorEffect({
       result: "error",
       error: error.message,
       isCorrectGuess: false,
+    };
+  }
+}
+
+// 🗣️💅 COURT WHISPERER EFFECT 💅🗣️
+export async function applyCourtWhispererEffect({
+  roomCode,
+  attacker,
+  target,
+}) {
+  console.log(
+    "🗣️ COURT WHISPERER EFFECT: Spreading delicious gossip!",
+    attacker,
+    "targeting",
+    target
+  );
+
+  try {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const data = snapshot.val();
+
+    if (!data || !data.players[target]) {
+      return {
+        result: "error",
+        error: "Invalid target player",
+      };
+    }
+
+    const attackerPlayer = data.players[attacker];
+    const targetPlayer = data.players[target];
+
+    // Set the nextTarget in Firebase (in the round section)
+    const nextTargetObject = {
+      nickname: target,
+      name: targetPlayer.name,
+      used: false,
+    };
+
+    const updates = {
+      [`round/nextTarget`]: nextTargetObject,
+    };
+
+    await update(ref(db, `rooms/${roomCode}`), updates);
+
+    // Generate gossip magazine style messages! 💅📰
+    const attackerMessage = `<div style="
+      background: linear-gradient(135deg, #FF69B4, #FFB6C1, #FFC0CB, #FFEFD5);
+      border: 3px solid #FF1493;
+      border-radius: 15px;
+      padding: 20px;
+      font-family: 'Cinzel', serif;
+      color: #8B0000;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+    ">
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
+      </div>
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        A knowing smile spreads across their painted face. Within hours, every servant, scribe, and stable boy is whispering that name.
+      </div>
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        Your rival now glitters at the center of every scandal — a royal disaster in progress. ✨�
+      </div>
+      <div style="font-size: 0.9rem; margin-top: 15px; color: #FF1493; border-top: 2px dashed #FF69B4; padding-top: 10px;">
+        🎯 Next player MUST target <span style="font-weight: bold;">${targetPlayer.name}</span> (if their card requires targeting)
+      </div>
+    </div>`;
+
+    const targetMessage = `<div style="
+      background: linear-gradient(135deg, #FF69B4, #FFB6C1, #FFC0CB, #FFEFD5);
+      border: 3px solid #FF1493;
+      border-radius: 15px;
+      padding: 20px;
+      font-family: 'Cinzel', serif;
+      color: #8B0000;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(255, 20, 147, 0.4);
+    ">
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        You arrive at court and the air changes.
+      </div>
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        Eyes follow you, fans flutter, and every laugh seems to end in your name.
+      </div>
+      <div style="font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+        The Court Whisperer has clearly been busy — your reputation is now the court's favorite entertainment. 🎭✨
+      </div>
+      <div style="font-size: 1rem; font-style: italic; color: #8B0000; margin: 15px 0; text-align: center; border: 2px dashed #FF69B4; padding: 10px; background: rgba(255, 255, 255, 0.8);">
+        "Some sway hearts with poetry — others with rumors." �
+      </div>
+      <div style="font-size: 0.9rem; margin-top: 15px; color: #FF1493; border-top: 2px dashed #FF69B4; padding-top: 10px;">
+        🎯 Next player MUST target <span style="font-weight: bold;">${targetPlayer.name}</span> (if their card requires targeting)
+      </div>
+    </div>`;
+
+    const publicMessage = `<div class="effect-description">� <span class="effect-player">${attackerPlayer.name}</span> whispers into the right ear...</div><div class="effect-description">�️✨ The ever-talkative Court Whisperer has found a new subject: <span class="effect-player">${targetPlayer.name}</span>. Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. �</div>`;
+
+    return {
+      result: "nextTargetSet",
+      attacker,
+      target,
+      nextTarget: nextTargetObject,
+      attackerMessage,
+      targetMessage,
+      publicMessage,
+    };
+  } catch (error) {
+    console.error("🗣️ COURT WHISPERER ERROR:", error);
+    return {
+      result: "error",
+      error: error.message,
     };
   }
 }

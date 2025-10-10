@@ -5,6 +5,7 @@ export default function TargetModal({
   currentPlayer,
   cardPlayed,
   protectedPlayers = [],
+  nextTarget = null,
   onConfirm,
   onCancel,
 }) {
@@ -18,11 +19,27 @@ export default function TargetModal({
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
+  // 🗣️ Court Whisperer: Check if targeting is forced
+  const isTargetingForced = nextTarget && nextTarget.used === false;
+  const forcedTargetNickname = isTargetingForced ? nextTarget.nickname : null;
+
+  // If targeting is forced, override validTargets to only include the forced target
+  const finalValidTargets = isTargetingForced
+    ? validTargets.filter(([name]) => name === forcedTargetNickname)
+    : validTargets;
+
   const isGuard = cardPlayed === 1;
   const isPrince = cardPlayed === 5;
   const isPhantomKing = cardPlayed === 6;
   const isRegentQueen = cardPlayed === 11;
-  const hasNoTargets = validTargets.length === 0 && !isPrince; // Prince can always target self
+  const hasNoTargets = finalValidTargets.length === 0 && !isPrince; // Prince can always target self
+
+  // Auto-select forced target if targeting is forced
+  React.useEffect(() => {
+    if (isTargetingForced && forcedTargetNickname && !selectedTarget) {
+      setSelectedTarget(forcedTargetNickname);
+    }
+  }, [isTargetingForced, forcedTargetNickname, selectedTarget]);
 
   console.log(
     "TargetModal has been called! / players: ",
@@ -63,21 +80,54 @@ export default function TargetModal({
           <div className="dropdown-section-label" style={dropdownSectionStyle}>
             Select a target for your card
           </div>
+
+          {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+          {isTargetingForced && (
+            <div
+              style={{
+                background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
+                border: "2px solid #FF1493",
+                borderRadius: "10px",
+                padding: "12px",
+                margin: "8px 0",
+                color: "#8B0000",
+                fontSize: "0.9rem",
+                fontStyle: "italic",
+                textAlign: "center",
+                fontFamily: "'Cinzel', serif",
+              }}
+            >
+              💅✨ The whole court can only talk about one name lately…{" "}
+              <strong>{nextTarget.name}</strong>! <br />
+              And it's echoing in every corridor... 🗣️💋
+            </div>
+          )}
+
           <select
             className="royal-select"
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
+            disabled={isTargetingForced} // Lock dropdown when targeting is forced
+            style={
+              isTargetingForced
+                ? {
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                    background: "#f0f0f0",
+                  }
+                : {}
+            }
           >
             <option value="">-- Choose a player --</option>
-            {isPhantomKing && (
+            {isPhantomKing && !isTargetingForced && (
               <option value="Nobody">👻 Nobody (skip effect)</option>
             )}
-            {validTargets.map(([name, p]) => (
+            {finalValidTargets.map(([name, p]) => (
               <option key={name} value={name}>
-                {p.name} ({p.realName})
+                {p.name} ({p.realName}) {isTargetingForced ? "🎯" : ""}
               </option>
             ))}
-            {isPrince && (
+            {isPrince && !isTargetingForced && (
               <option value={currentPlayer}>
                 👑 Yourself ({players[currentPlayer]?.name || currentPlayer})
               </option>

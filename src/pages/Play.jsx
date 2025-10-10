@@ -29,6 +29,7 @@ import {
   applyAssassinEffect,
   applyPrincessEffect,
   applyInquisitorEffect,
+  applyCourtWhispererEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -526,6 +527,25 @@ export default function Play() {
     const newHand = [...player.hand, nextCard];
     const roomRef = ref(db, `rooms/${roomCode}`);
 
+    // 🗣️ COURT WHISPERER: Handle nextTarget lifecycle
+    let nextTargetUpdates = {};
+    if (round.nextTarget) {
+      console.log(
+        "🗣️ COURT WHISPERER: Processing nextTarget lifecycle:",
+        round.nextTarget
+      );
+
+      if (round.nextTarget.used === false) {
+        // Mark as used (this is the turn right after Court Whisperer was played)
+        console.log("🗣️ COURT WHISPERER: Marking nextTarget as used");
+        nextTargetUpdates["round/nextTarget/used"] = true;
+      } else if (round.nextTarget.used === true) {
+        // Clear nextTarget (this is the turn after the forced targeting turn)
+        console.log("🗣️ COURT WHISPERER: Clearing nextTarget");
+        nextTargetUpdates["round/nextTarget"] = null;
+      }
+    }
+
     // Check if deck is now empty (round end condition)
     if (newDeck.length === 0) {
       console.log(
@@ -535,12 +555,14 @@ export default function Play() {
       update(roomRef, {
         round: { ...round, deck: newDeck, isFinalTurn: true },
         [`players/${nickname}/hand`]: newHand,
+        ...nextTargetUpdates,
       });
     } else {
       // Normal deck update
       update(roomRef, {
         round: { ...round, deck: newDeck },
         [`players/${nickname}/hand`]: newHand,
+        ...nextTargetUpdates,
       });
     }
 
@@ -611,8 +633,8 @@ export default function Play() {
 
     // Original logic for cards that don't need ActionModal target selection
     // or when called from old system
-    if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
-      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
+    if ([0, 1, 2, 3, 6, 9, 11, 12].includes(card.id)) {
+      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -653,6 +675,7 @@ export default function Play() {
 
     // Show protection confirmation modal to the player
     setResultModalData({
+      selectedCardId: 4, // Handmaid
       resultText: result.playerMessage,
       isHandmaidProtection: true,
     });
@@ -676,6 +699,7 @@ export default function Play() {
 
     // Show royal confirmation modal to the player
     setResultModalData({
+      selectedCardId: 7, // Countess
       resultText: result.playerMessage,
       isCountessRoyalty: true,
     });
@@ -699,6 +723,7 @@ export default function Play() {
 
     // Show rich influence modal to the player
     setResultModalData({
+      selectedCardId: 10, // Chamberlain
       resultText: result.attackerMessage,
       isChamberlainInfluence: true,
     });
@@ -722,6 +747,7 @@ export default function Play() {
 
     // Show tragic elimination modal to the player
     setResultModalData({
+      selectedCardId: 8, // Princess
       resultText: result.playerMessage,
       isPrincessElimination: true,
     });
@@ -745,6 +771,7 @@ export default function Play() {
 
     // Show mysterious shadow modal to the player
     setResultModalData({
+      selectedCardId: 14, // Assassin
       resultText: result.playerMessage,
       isAssassinShadow: true,
     });
@@ -765,6 +792,7 @@ export default function Play() {
     if (target === "SKIP_TURN") {
       // Show a result modal explaining the skip
       setResultModalData({
+        selectedCardId: cardPlayed.id,
         resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
           cardNames[cardPlayed.id]
         } cannot find a target, so your turn is skipped.`,
@@ -784,6 +812,7 @@ export default function Play() {
 
       // Show the target message to the target
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
         visibleTo: target,
         attacker: nickname,
         message: result.targetMessage,
@@ -871,6 +900,7 @@ export default function Play() {
 
       // Show the result to the attacker with card details
       setResultModalData({
+        selectedCardId: 2, // Priest
         resultText: priestResult.attackerMessage,
         cardDetails: {
           "Target Player": target,
@@ -978,6 +1008,43 @@ export default function Play() {
       return;
     }
 
+    // === COURT WHISPERER CARD LOGIC (ID: 12) ===
+    else if (cardPlayed.id === 12) {
+      const courtWhispererResult = await applyCourtWhispererEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+      });
+
+      if (courtWhispererResult.result === "error") {
+        setResultModalData({
+          resultText: `❌ Error: ${courtWhispererResult.error}`,
+        });
+        return;
+      }
+
+      // Send the public notification
+      pushNotification(roomCode, courtWhispererResult.publicMessage);
+
+      // Send target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        message: courtWhispererResult.targetMessage,
+        timestamp: Date.now(),
+      });
+
+      // Show result modal to the attacker
+      setResultModalData({
+        selectedCardId: 12, // Court Whisperer
+        resultText: courtWhispererResult.attackerMessage,
+      });
+
+      // Court Whisperer effect is complete - return early, turn will be completed when result modal is closed
+      return;
+    }
+
     // === PRINCE CARD LOGIC (ID: 5) ===
     else if (cardPlayed.id === 5) {
       // Clear any existing target messages to ensure clean state
@@ -987,6 +1054,7 @@ export default function Play() {
       const originalAttackerHand = [...player.hand];
 
       const princeResult = await applyPrinceEffect({
+        selectedCardId: cardPlayed.id,
         roomCode,
         attacker: nickname,
         target,
@@ -1011,6 +1079,7 @@ export default function Play() {
 
       // Show result modal to the attacker (prince player)
       setResultModalData({
+        selectedCardId: 5, // Prince
         resultText: princeResult.attackerMessage,
         isInfoOnly: !princeResult.isSelfTarget, // For self-targeting, modal should advance turn
         isPrinceModal: true, // Flag to identify this as a Prince modal
@@ -1029,6 +1098,7 @@ export default function Play() {
         );
 
         await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
           visibleTo: target,
           message: princeResult.targetMessage,
           from: nickname,
@@ -1086,11 +1156,6 @@ export default function Play() {
         if (result.result === "success") {
           console.log(
             "🎭 PHANTOM KING STEP 2 COMPLETE: Hands have been exchanged"
-          );
-
-          // STEP 3: Show modals and notifications
-          console.log(
-            "🎭 PHANTOM KING STEP 3: Manifesting ethereal communications..."
           );
 
           // Send target message if there's a target involved
@@ -1173,6 +1238,7 @@ export default function Play() {
 
       // Show attacker's result modal first (info only) with card details
       setResultModalData({
+        selectedCardId: 9, // Inquisitor
         resultText: result.attackerMessage,
       });
 
@@ -1226,6 +1292,7 @@ export default function Play() {
 
       // Show the target message to the target
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
         visibleTo: target,
         attacker: nickname,
         message: result.targetMessage,
@@ -2255,6 +2322,34 @@ export default function Play() {
                       <div className="player-tokens">
                         <span>❤️</span> <span>{p.tokens || 0}</span>
                       </div>
+
+                      {/* 🗣️ Court Whisperer: Show gossip target indicator */}
+                      {roomData?.round?.nextTarget &&
+                        roomData.round.nextTarget.nickname === name &&
+                        !roomData.round.nextTarget.used && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "5px",
+                              right: "5px",
+                              background:
+                                "linear-gradient(135deg, #FF69B4, #FFB6C1)",
+                              border: "2px solid #FF1493",
+                              borderRadius: "50%",
+                              width: "30px",
+                              height: "30px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "16px",
+                              boxShadow: "0 2px 8px rgba(255, 20, 147, 0.4)",
+                              animation: "gossipPulse 2s infinite",
+                              zIndex: 10,
+                            }}
+                          >
+                            🎯
+                          </div>
+                        )}
                     </div>
 
                     {/* Player Info Grid - Simplified */}
@@ -2526,6 +2621,9 @@ export default function Play() {
                                               protectedPlayers={
                                                 roomData?.protectedPlayers || []
                                               }
+                                              nextTarget={
+                                                roomData?.round?.nextTarget
+                                              }
                                               onConfirm={handleTargetConfirm}
                                               onCancel={handleCardBack}
                                             />
@@ -2539,6 +2637,9 @@ export default function Play() {
                                               }
                                               protectedPlayers={
                                                 roomData?.protectedPlayers || []
+                                              }
+                                              nextTarget={
+                                                roomData?.round?.nextTarget
                                               }
                                               onConfirm={handleTargetConfirm}
                                               onCancel={handleCardBack}
@@ -2589,6 +2690,8 @@ export default function Play() {
             {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
             {targetMessageModalData && (
               <EffectResultModal
+                selectedCardId={targetMessageModalData.selectedCardId}
+                role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={targetMessageModalData.message}
                 onClose={() =>
                   handleModalTransition(async () => {
@@ -3028,6 +3131,8 @@ export default function Play() {
             {/* === INQUISITOR RESULT MODAL === */}
             {inquisitorResultModalData && (
               <EffectResultModal
+                selectedCardId={9} // Inquisitor card ID
+                role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={inquisitorResultModalData.resultText}
                 onClose={() =>
                   handleModalTransition(async () => {
@@ -3161,6 +3266,8 @@ export default function Play() {
 
             {resultModalData && (
               <EffectResultModal
+                selectedCardId={resultModalData.selectedCardId}
+                role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={resultModalData.resultText || resultModalData}
                 cardDetails={resultModalData.cardDetails || null}
                 onClose={() =>

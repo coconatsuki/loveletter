@@ -124,6 +124,7 @@ export default function InquisitorTargetModal({
   players,
   currentPlayer,
   protectedPlayers = [],
+  nextTarget = null, // 🗣️ Court Whisperer forcing target
   onConfirm,
   onCancel,
 }) {
@@ -132,12 +133,27 @@ export default function InquisitorTargetModal({
   const [isConfirmHovered, setIsConfirmHovered] = useState(false);
   const [isBackHovered, setIsBackHovered] = useState(false);
 
+  // 🗣️ Court Whisperer: Check if targeting is forced
+  const isTargetingForced = nextTarget && !nextTarget.used;
+
   const validTargets = Object.entries(players).filter(
     ([name, p]) =>
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name)
   );
 
-  const hasNoTargets = validTargets.length === 0;
+  // 🗣️ Court Whisperer: Filter targets based on gossip
+  const finalValidTargets = isTargetingForced
+    ? validTargets.filter(([name, p]) => name === nextTarget.nickname)
+    : validTargets;
+
+  const hasNoTargets = finalValidTargets.length === 0;
+
+  // 🗣️ Court Whisperer: Auto-select forced target
+  useEffect(() => {
+    if (isTargetingForced && finalValidTargets.length === 1) {
+      setSelectedTarget(finalValidTargets[0][0]);
+    }
+  }, [isTargetingForced, finalValidTargets.length]);
 
   // Inquisitor can guess strengths: [0, 2, 3, 4, 5, 6, 7, 8]
   const allowedStrengths = [0, 2, 3, 4, 5, 6, 7, 8];
@@ -195,26 +211,63 @@ export default function InquisitorTargetModal({
                 <label style={INQUISITOR_STYLES.dropdownLabel}>
                   🎯 Select Investigation Target
                 </label>
+
+                {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+                {isTargetingForced && (
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
+                      border: "2px solid #FF1493",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      margin: "8px 0",
+                      color: "#8B0000",
+                      fontSize: "0.9rem",
+                      fontStyle: "italic",
+                      textAlign: "center",
+                      fontFamily: "'Cinzel', serif",
+                    }}
+                  >
+                    🔍✨ The whole court can only talk about one name lately…{" "}
+                    <strong>{nextTarget.name}</strong>! <br />
+                    And it's echoing in every corridor... 🗣️💋
+                  </div>
+                )}
+
                 <select
-                  style={INQUISITOR_STYLES.select}
+                  style={{
+                    ...INQUISITOR_STYLES.select,
+                    ...(isTargetingForced
+                      ? {
+                          opacity: 0.7,
+                          cursor: "not-allowed",
+                          background: "#f0f0f0",
+                        }
+                      : {}),
+                  }}
                   value={selectedTarget}
                   onChange={(e) => setSelectedTarget(e.target.value)}
+                  disabled={isTargetingForced} // Lock dropdown when targeting is forced
                   onFocus={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.selectFocus.borderColor;
-                    e.target.style.boxShadow =
-                      INQUISITOR_STYLES.selectFocus.boxShadow;
+                    if (!isTargetingForced) {
+                      e.target.style.borderColor =
+                        INQUISITOR_STYLES.selectFocus.borderColor;
+                      e.target.style.boxShadow =
+                        INQUISITOR_STYLES.selectFocus.boxShadow;
+                    }
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.select.borderColor;
-                    e.target.style.boxShadow = "none";
+                    if (!isTargetingForced) {
+                      e.target.style.borderColor =
+                        INQUISITOR_STYLES.select.borderColor;
+                      e.target.style.boxShadow = "none";
+                    }
                   }}
                 >
                   <option value="">⚖️ Choose a suspect...</option>
-                  {validTargets.map(([name, p]) => (
+                  {finalValidTargets.map(([name, p]) => (
                     <option key={name} value={name}>
-                      👤 {p.name || name}
+                      👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
                     </option>
                   ))}
                 </select>
