@@ -44,8 +44,8 @@ const effectTextStyles = `
   }
 
   .effect-description {
-    line-height: 1.4;
-    margin: 0.5em 0;
+    line-height: 1.5;
+    margin-bottom: 0.7em;
     font-size: 1.3rem;
   }
 
@@ -57,6 +57,13 @@ const effectTextStyles = `
   .effect-success {
     color: #44ff44;
     font-weight: bold;
+  }
+
+  .effect-technical {
+    border-top: 1px dashed;
+    padding-top: 1rem;
+    margin-top: 1.2rem;
+    text-align: center;
   }
 `;
 
@@ -488,7 +495,7 @@ const messageStyle = {
   lineHeight: "1.6",
   color: "white",
   margin: "0",
-  /*   padding: "25px",*/
+  padding: "25px",
   background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
 };
@@ -510,14 +517,10 @@ const cardDetailsStyle = {
   fontFamily: '"Lora", serif',
 };
 
-const detailRowStyle = {
-  marginBottom: "0.5rem",
-  color: "#2c1810",
-  fontSize: "1rem",
-};
-
 const buttonContainerStyle = {
-  padding: "15px 25px 20px",
+  display: "flex",
+  padding: "15px 25px 0",
+  marginTop: "1rem",
   borderRadius: "0 0 20px 20px",
   justifyContent: "center",
 };

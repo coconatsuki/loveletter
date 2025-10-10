@@ -32,6 +32,7 @@ export default function TargetModal({
   const isPrince = cardPlayed === 5;
   const isPhantomKing = cardPlayed === 6;
   const isRegentQueen = cardPlayed === 11;
+  const isCourtWhisperer = cardPlayed === 12;
   const hasNoTargets = finalValidTargets.length === 0 && !isPrince; // Prince can always target self
 
   // Auto-select forced target if targeting is forced
@@ -176,6 +177,16 @@ export default function TargetModal({
           </div>
         )}
 
+        {isCourtWhisperer && (
+          <div style={RegentQueenMessageContainerStyle}>
+            <em>
+              <p style={CourtWhispererMessageStyle}>
+                "Some sway hearts with poetry — others with rumors."
+              </p>
+            </em>
+          </div>
+        )}
+
         <div className="buttons-container" style={buttonsContainerStyle}>
           <button
             onClick={() => onConfirm({ target: selectedTarget, guess })}
@@ -249,6 +260,18 @@ const RegentQueenMessageStyle = {
   color: "rgb(92 246 122)",
   fontStyle: "italic",
   fontFamily: "Lora, serif",
+};
+
+const CourtWhispererMessageStyle = {
+  fontStyle: "italic",
+  fontFamily: "Lora, serif",
+  lineHeight: "1.4",
+  fontSize: "1.1rem",
+  color: "rgb(235 190 234)",
+  padding: "0.15em",
+  borderLeft: "3px solid rgb(235 190 234)",
+  paddingLeft: "1em",
+  textAlign: "left",
 };
 
 const buttonsContainerStyle = {
