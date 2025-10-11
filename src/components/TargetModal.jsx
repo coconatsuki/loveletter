@@ -48,18 +48,15 @@ export default function TargetModal({
     }
   }, [isTargetingForced, forcedTargetNickname, selectedTarget]);
 
-  console.log(
-    "TargetModal has been called! / players: ",
-    players,
-    " / currentPlayer: ",
-    currentPlayer,
-    " / cardPlayed: ",
-    cardPlayed,
-    " / protectedPlayers: ",
-    protectedPlayers,
-    " / hasNoTargets: ",
-    hasNoTargets
-  );
+  const isConfirmDisabled =
+    !selectedTarget || selectedTarget === "" || selectedTarget === "SKIP_TURN";
+
+  console.log("TargetModal button state:", {
+    selectedTarget,
+    isConfirmDisabled,
+    hasNoTargets,
+    isTargetingForced,
+  });
 
   return (
     <div className="modal" style={cardOptionsContainerStyle}>
@@ -151,7 +148,7 @@ export default function TargetModal({
           </select>
         </div>
 
-        {isGuard && (
+        {isGuard && !hasNoTargets && (
           <div className="dropdown-section-container">
             <div
               className="dropdown-section-label"
@@ -211,7 +208,11 @@ export default function TargetModal({
           </button>
           <button
             onClick={() => onConfirm({ target: selectedTarget, guess })}
-            disabled={!selectedTarget}
+            disabled={
+              !selectedTarget ||
+              selectedTarget === "" ||
+              selectedTarget === "SKIP_TURN"
+            }
             onMouseEnter={() => setIsConfirmHovered(true)}
             onMouseLeave={() => setIsConfirmHovered(false)}
             style={{
