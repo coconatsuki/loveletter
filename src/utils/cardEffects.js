@@ -1348,18 +1348,8 @@ export async function applyCourtWhispererEffect({
     const attackerPlayer = data.players[attacker];
     const targetPlayer = data.players[target];
 
-    // Set the nextTarget in Firebase (in the round section)
-    const nextTargetObject = {
-      nickname: target,
-      name: targetPlayer.name,
-      used: false,
-    };
-
-    const updates = {
-      [`round/nextTarget`]: nextTargetObject,
-    };
-
-    await update(ref(db, `rooms/${roomCode}`), updates);
+    // DON'T set nextTarget here - it will be set in completeCourtWhispererTurn
+    // when the attacker clicks "Continue" on their EffectResultModal
 
     // Generate gossip magazine style messages! 💅📰
     const attackerMessage = `<div class="effect-description">
@@ -1388,13 +1378,13 @@ export async function applyCourtWhispererEffect({
         🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)
       </div>`;
 
-    const publicMessage = `<div class="effect-description">🗣️👂🏼 <span class="effect-player">${attackerPlayer.name}</span> whispers into the right ear...</div><div class="effect-description">, giving the ever-talkative Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
+    const publicMessage = `<div class="effect-description">🗣️👂🏼 <span class="effect-player">${attackerPlayer.name}</span> whispers into the right ear...</div><div class="effect-description"> giving the ever-talkative Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
 
     return {
-      result: "nextTargetSet",
+      result: "success",
       attacker,
       target,
-      nextTarget: nextTargetObject,
+      targetPlayer,
       attackerMessage,
       targetMessage,
       publicMessage,

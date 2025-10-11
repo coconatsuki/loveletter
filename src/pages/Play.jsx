@@ -528,7 +528,7 @@ export default function Play() {
     const roomRef = ref(db, `rooms/${roomCode}`);
 
     // 🗣️ COURT WHISPERER: Handle nextTarget lifecycle
-    let nextTargetUpdates = {};
+    let updatedRound = { ...round, deck: newDeck };
     if (round.nextTarget) {
       console.log(
         "🗣️ COURT WHISPERER: Processing nextTarget lifecycle:",
@@ -538,11 +538,11 @@ export default function Play() {
       if (round.nextTarget.used === false) {
         // Mark as used (this is the turn right after Court Whisperer was played)
         console.log("🗣️ COURT WHISPERER: Marking nextTarget as used");
-        nextTargetUpdates["round/nextTarget/used"] = true;
+        updatedRound.nextTarget = { ...round.nextTarget, used: true };
       } else if (round.nextTarget.used === true) {
         // Clear nextTarget (this is the turn after the forced targeting turn)
         console.log("🗣️ COURT WHISPERER: Clearing nextTarget");
-        nextTargetUpdates["round/nextTarget"] = null;
+        updatedRound.nextTarget = null;
       }
     }
 
@@ -552,17 +552,16 @@ export default function Play() {
         "🏆 DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
       );
       // Flag in Firebase that this is the final turn - all players will see this
+      updatedRound.isFinalTurn = true;
       update(roomRef, {
-        round: { ...round, deck: newDeck, isFinalTurn: true },
+        round: updatedRound,
         [`players/${nickname}/hand`]: newHand,
-        ...nextTargetUpdates,
       });
     } else {
       // Normal deck update
       update(roomRef, {
-        round: { ...round, deck: newDeck },
+        round: updatedRound,
         [`players/${nickname}/hand`]: newHand,
-        ...nextTargetUpdates,
       });
     }
 
@@ -1029,6 +1028,7 @@ export default function Play() {
       // Send target message to the target
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
         selectedCardId: cardPlayed.id,
+        shouldAdvanceTurn: false, // Attacker modal controls turn advancement
         visibleTo: target,
         attacker: nickname,
         message: courtWhispererResult.targetMessage,
@@ -1039,6 +1039,9 @@ export default function Play() {
       setResultModalData({
         selectedCardId: 12, // Court Whisperer
         resultText: courtWhispererResult.attackerMessage,
+        isInfoOnly: false,
+        isCourtWhispererEffect: true, // Handle in handleEffectResultClose
+        courtWhispererTarget: target, // Store target for completeCourtWhispererTurn
       });
 
       // Court Whisperer effect is complete - return early, turn will be completed when result modal is closed
@@ -1443,6 +1446,13 @@ export default function Play() {
     if (resultModalData?.isHandmaidProtection) {
       console.log("🛡️ HANDMAID: Using special turn completion");
       await completeHandmaidTurn();
+      return;
+    }
+
+    // Special handling for Court Whisperer - effect must be applied now
+    if (resultModalData?.isCourtWhispererEffect) {
+      console.log("🗣️ COURT WHISPERER: Using special turn completion");
+      await completeCourtWhispererTurn(resultModalData.courtWhispererTarget);
       return;
     }
 
@@ -2073,6 +2083,97 @@ export default function Play() {
   };
 
   /**
+   * Completes the Court Whisperer turn - sets nextTarget and completes the turn
+   * Called after the attacker confirms their EffectResultModal
+   */
+  const completeCourtWhispererTurn = async (target) => {
+    console.log(
+      "🗣️ COURT WHISPERER TURN COMPLETION: Setting next target and completing turn"
+    );
+
+    // Validate selectedCardIndex and get the Court Whisperer card
+    if (
+      selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      !player.hand ||
+      selectedCardIndex >= player.hand.length
+    ) {
+      console.error(
+        "🗣️ COURT WHISPERER ERROR: Cannot complete turn - invalid selectedCardIndex:",
+        { selectedCardIndex, handLength: player.hand?.length }
+      );
+      return;
+    }
+
+    const courtWhispererCard = player.hand[selectedCardIndex];
+
+    if (!courtWhispererCard || courtWhispererCard.id !== 12) {
+      console.error(
+        "🗣️ COURT WHISPERER ERROR: Cannot complete turn - invalid Court Whisperer card:",
+        courtWhispererCard
+      );
+      return;
+    }
+
+    // Remove Court Whisperer from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), courtWhispererCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+    const currentProtected = roomData?.protectedPlayers || [];
+    const updatedProtected = currentProtected.filter(
+      (player) => player !== nextPlayer
+    );
+
+    // Set the nextTarget in Firebase (this is when the effect actually takes place)
+    const targetPlayer = players[target];
+    const nextTargetObject = {
+      nickname: target,
+      name: targetPlayer.realName,
+      used: false,
+    };
+
+    // Update game state: discard Court Whisperer, advance turn, clear protection, set nextTarget
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`round/currentPlayer`]: nextPlayer,
+      [`round/nextTarget`]: nextTargetObject,
+      protectedPlayers: updatedProtected,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🕰️ The rumors have taken root. The crown now passes to ${nextPlayer}. 🗣️✨`
+    );
+
+    // Reset local state
+    console.log(
+      "🔄 COURT WHISPERER TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
+    setSelectedCardIndex(null);
+  };
+
+  /**
    * Completes the Princess turn - elimination effect has already been applied
    * Just need to discard the card and advance the turn
    */
@@ -2305,8 +2406,7 @@ export default function Play() {
                       isProtected ? "is-protected" : ""
                     } ${
                       roomData?.round?.nextTarget &&
-                      roomData.round.nextTarget.nickname === name &&
-                      !roomData.round.nextTarget.used
+                      roomData.round.nextTarget.nickname === name
                         ? "is-targeted"
                         : ""
                     }`}

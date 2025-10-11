@@ -19,8 +19,14 @@ export default function TargetModal({
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
+  var canTargetSelfCardsIds = [5, 12, 13]; // Prince, Court Whisperer and Royal Confessor can target self
+  const canTargetSelf = canTargetSelfCardsIds.includes(cardPlayed);
+  if (canTargetSelf) {
+    validTargets.push([currentPlayer, players[currentPlayer]]);
+  }
+
   // 🗣️ Court Whisperer: Check if targeting is forced
-  const isTargetingForced = nextTarget && nextTarget.used === false;
+  const isTargetingForced = nextTarget && nextTarget.used === true;
   const forcedTargetNickname = isTargetingForced ? nextTarget.nickname : null;
 
   // If targeting is forced, override validTargets to only include the forced target
@@ -33,7 +39,7 @@ export default function TargetModal({
   const isPhantomKing = cardPlayed === 6;
   const isRegentQueen = cardPlayed === 11;
   const isCourtWhisperer = cardPlayed === 12;
-  const hasNoTargets = finalValidTargets.length === 0 && !isPrince; // Prince can always target self
+  const hasNoTargets = finalValidTargets.length === 0;
 
   // Auto-select forced target if targeting is forced
   React.useEffect(() => {
@@ -58,7 +64,7 @@ export default function TargetModal({
   return (
     <div className="modal" style={cardOptionsContainerStyle}>
       <div className="modal-content" style={cardOptionsContentStyle}>
-        {hasNoTargets && !isPrince && (
+        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
           <p style={noTargetMessageStyle}>
             🫖 All other players are enjoying tea with the Princess' Handmaid
             and cannot be targeted.
@@ -83,7 +89,7 @@ export default function TargetModal({
           </div>
 
           {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
-          {isTargetingForced && (
+          {/* isTargetingForced && !hasNoTargets && (
             <div
               style={{
                 background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
@@ -98,19 +104,20 @@ export default function TargetModal({
                 fontFamily: "'Cinzel', serif",
               }}
             >
-              💅✨ The whole court can only talk about one name lately…{" "}
-              <strong>{nextTarget.name}</strong>! <br />
-              And it's echoing in every corridor... 🗣️💋
+              <p style={{ fontSize: "0.9rem" }}>
+                💅✨ The whole court can only talk about one name lately…
+              </p>
+              <p style={{ fontSize: "0.9rem" }}>
             </div>
-          )}
+          ) */}
 
           <select
             className="royal-select"
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
-            disabled={isTargetingForced} // Lock dropdown when targeting is forced
+            disabled={isTargetingForced && !hasNoTargets} // Lock dropdown when targeting is forced
             style={
-              isTargetingForced
+              isTargetingForced && !hasNoTargets
                 ? {
                     opacity: 0.7,
                     cursor: "not-allowed",
@@ -125,7 +132,10 @@ export default function TargetModal({
             )}
             {finalValidTargets.map(([name, p]) => (
               <option key={name} value={name}>
-                {p.name} ({p.realName}) {isTargetingForced ? "🎯" : ""}
+                {name === currentPlayer
+                  ? "👑 YOURSELF ✨"
+                  : `${p.name} (${p.realName})`}{" "}
+                {isTargetingForced ? "🎯" : ""}
               </option>
             ))}
             {isPrince && !isTargetingForced && (
@@ -133,7 +143,7 @@ export default function TargetModal({
                 👑 Yourself ({players[currentPlayer]?.name || currentPlayer})
               </option>
             )}
-            {hasNoTargets && !isPrince && (
+            {hasNoTargets && (
               <option value="SKIP_TURN">
                 Skip turn (no available targets)
               </option>
