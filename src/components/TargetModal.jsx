@@ -80,29 +80,6 @@ export default function TargetModal({
             Select a target for your card
           </div>
 
-          {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
-          {/* isTargetingForced && !hasNoTargets && (
-            <div
-              style={{
-                background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
-                border: "2px solid #FF1493",
-                borderRadius: "10px",
-                padding: "12px",
-                margin: "8px 0",
-                color: "#8B0000",
-                fontSize: "0.9rem",
-                fontStyle: "italic",
-                textAlign: "center",
-                fontFamily: "'Cinzel', serif",
-              }}
-            >
-              <p style={{ fontSize: "0.9rem" }}>
-                💅✨ The whole court can only talk about one name lately…
-              </p>
-              <p style={{ fontSize: "0.9rem" }}>
-            </div>
-          ) */}
-
           <select
             className="royal-select"
             value={selectedTarget}
@@ -128,6 +105,23 @@ export default function TargetModal({
           </select>
         </div>
 
+        {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+        {isTargetingForced && !hasNoTargets && (
+          <p
+            style={{
+              fontSize: "1.1rem",
+              margin: "8px 0",
+              color: "rgb(245 170 242)",
+              fontStyle: "italic",
+              textAlign: "left",
+              fontFamily: "Lora, serif",
+              lineHeight: "1.4em",
+            }}
+          >
+            💅✨ The whole court can only talk about one name lately…
+          </p>
+        )}
+
         {isGuard && !hasNoTargets && (
           <div className="dropdown-section-container">
             <div
@@ -150,7 +144,7 @@ export default function TargetModal({
           </div>
         )}
 
-        {isRegentQueen && (
+        {isRegentQueen && !isTargetingForced && (
           <div style={RegentQueenMessageContainerStyle}>
             <em>
               <p style={RegentQueenMessageStyle}>
@@ -164,7 +158,7 @@ export default function TargetModal({
           </div>
         )}
 
-        {isCourtWhisperer && (
+        {isCourtWhisperer && !isTargetingForced && (
           <div style={RegentQueenMessageContainerStyle}>
             <em>
               <p style={CourtWhispererMessageStyle}>
