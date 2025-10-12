@@ -145,12 +145,12 @@ export default function TargetModal({
         )}
 
         {isRegentQueen && !isTargetingForced && (
-          <div style={RegentQueenMessageContainerStyle}>
+          <div style={specialQuoteContainerStyle}>
             <em>
-              <p style={RegentQueenMessageStyle}>
+              <p style={{ ...specialQuoteStyle, ...RegentQueenMessageStyle }}>
                 You whisper your plea to the Regent Queen.
               </p>
-              <p style={RegentQueenMessageStyle}>
+              <p style={{ ...specialQuoteStyle, ...RegentQueenMessageStyle }}>
                 She smiles — a cold, knowing smile. ‘If you wish to rise, my
                 dear,’ she says, ‘let me remove the ones who stand too tall’.
               </p>
@@ -158,10 +158,26 @@ export default function TargetModal({
           </div>
         )}
 
-        {isCourtWhisperer && !isTargetingForced && (
-          <div style={RegentQueenMessageContainerStyle}>
+        {isPhantomKing && !isTargetingForced && (
+          <div style={specialQuoteContainerStyle}>
             <em>
-              <p style={CourtWhispererMessageStyle}>
+              <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>
+                Even after death (and one too many drinks), the late King still
+                meddles in matters of his daughter’s heart
+              </p>
+              <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>
+                — usually by making a glorious mess.
+              </p>
+            </em>
+          </div>
+        )}
+
+        {isCourtWhisperer && !isTargetingForced && (
+          <div style={specialQuoteContainerStyle}>
+            <em>
+              <p
+                style={{ ...specialQuoteStyle, ...CourtWhispererMessageStyle }}
+              >
                 "Some sway hearts with poetry — others with rumors."
               </p>
             </em>
@@ -230,29 +246,32 @@ const cardOptionsContentStyle = {
   maxWidth: "none",
 };
 
-const RegentQueenMessageContainerStyle = {
+const specialQuoteContainerStyle = {
   marginBottom: "15px",
 };
 
-const RegentQueenMessageStyle = {
-  textAlign: "justify",
-  fontSize: "1.1rem",
-  lineHeight: "1.4",
-  color: "rgb(92 246 122)",
+const specialQuoteStyle = {
   fontStyle: "italic",
   fontFamily: "Lora, serif",
+  lineHeight: "1.4",
+  fontSize: "1.1rem",
+  textAlign: "justify",
+};
+
+const RegentQueenMessageStyle = {
+  color: "rgb(92 246 122)",
 };
 
 const CourtWhispererMessageStyle = {
-  fontStyle: "italic",
-  fontFamily: "Lora, serif",
-  lineHeight: "1.4",
-  fontSize: "1.1rem",
   color: "rgb(235 190 234)",
   padding: "0.15em",
   borderLeft: "3px solid rgb(235 190 234)",
   paddingLeft: "1em",
   textAlign: "left",
+};
+
+const phantomKingMessageStyle = {
+  color: "rgb(235 190 234)",
 };
 
 const buttonsContainerStyle = {
