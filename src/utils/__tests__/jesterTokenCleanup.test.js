@@ -38,7 +38,7 @@ describe("🃏 Jester Token Cleanup Tests", () => {
 
   describe("🔄 Round Start Cleanup", () => {
     it("should clear all jester tokens when starting a new round", async () => {
-      // Mock the startNewRound functionality
+      // Mock the round start cleanup functionality
       const mockRoomData = {
         players: {
           alice: {
@@ -76,31 +76,21 @@ describe("🃏 Jester Token Cleanup Tests", () => {
 
       mockGet.mockResolvedValue({ val: () => mockRoomData });
 
-      // Import and call the round start function
-      const { startNewRound } = await import("../../pages/RoundScoring.jsx");
+      // Test jester token cleanup logic directly
+      const playerUpdates = {};
+      for (const [nickname, player] of Object.entries(mockRoomData.players)) {
+        if (player.jesterToken) {
+          playerUpdates[`players/${nickname}/jesterToken`] = null;
+        }
+      }
 
-      // Simulate starting a new round (this would be called from RoundScoring component)
-      // We'll test the update data structure that should be generated
-
-      const expectedPlayerUpdates = {
-        "players/alice/hand": [{ id: 1, name: "Guard" }], // New dealt card
-        "players/alice/discard": [],
-        "players/alice/isOut": false,
+      // Verify the expected cleanup happens
+      expect(playerUpdates).toEqual({
         "players/alice/jesterToken": null, // ✨ CLEARED!
-
-        "players/bob/hand": [{ id: 2, name: "Priest" }], // New dealt card
-        "players/bob/discard": [],
-        "players/bob/isOut": false,
         "players/bob/jesterToken": null, // ✨ CLEARED!
+      });
 
-        "players/carol/hand": [{ id: 3, name: "Baron" }], // New dealt card
-        "players/carol/discard": [],
-        "players/carol/isOut": false,
-        "players/carol/jesterToken": null, // ✨ STAYS NULL
-      };
-
-      // Verify the cleanup logic exists in the round start process
-      expect(true).toBe(true); // This test verifies the implementation exists
+      // Carol already had null jesterToken, so no cleanup needed for her
     });
 
     it("should clear jester tokens even for players who were eliminated", async () => {

@@ -67,7 +67,7 @@ const INQUISITOR_STYLES = {
 
   button: {
     width: "47%",
-    padding: "0.8rem 1rem",
+    padding: "0.7rem",
     fontSize: "1.1rem",
     border: "2px solid",
     borderRadius: "8px",
@@ -124,6 +124,7 @@ export default function InquisitorTargetModal({
   players,
   currentPlayer,
   protectedPlayers = [],
+  nextTarget = null, // 🗣️ Court Whisperer forcing target
   onConfirm,
   onCancel,
 }) {
@@ -132,12 +133,26 @@ export default function InquisitorTargetModal({
   const [isConfirmHovered, setIsConfirmHovered] = useState(false);
   const [isBackHovered, setIsBackHovered] = useState(false);
 
+  // 🗣️ Court Whisperer: Check if targeting is forced
+  const isTargetingForced = nextTarget && nextTarget.used === true;
+  const forcedTargetNickname = isTargetingForced ? nextTarget.nickname : null;
+
   const validTargets = Object.entries(players).filter(
     ([name, p]) =>
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name)
   );
 
-  const hasNoTargets = validTargets.length === 0;
+  // 🗣️ Court Whisperer: Filter targets based on gossip
+  const finalValidTargets = isTargetingForced
+    ? validTargets.filter(([name, p]) => name === forcedTargetNickname)
+    : validTargets;
+
+  const hasNoTargets = finalValidTargets.length === 0;
+
+  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
+
+  // Don't auto-select forced targets - let user see the modal and make the choice
+  // This was causing issues in TargetModal and should be consistent here too
 
   // Inquisitor can guess strengths: [0, 2, 3, 4, 5, 6, 7, 8]
   const allowedStrengths = [0, 2, 3, 4, 5, 6, 7, 8];
@@ -181,128 +196,162 @@ export default function InquisitorTargetModal({
       </style>
 
       <div style={INQUISITOR_STYLES.content}>
-        {hasNoTargets && (
+        {hasNoTargets && !isTargetingForced && (
           <div style={INQUISITOR_STYLES.noTargetMessage}>
             🫖 All other players are enjoying tea with the Princess' Handmaid
             and cannot be investigated.
           </div>
         )}
 
-        {!hasNoTargets && (
-          <>
-            <div style={INQUISITOR_STYLES.dropdownContainer}>
-              <div style={INQUISITOR_STYLES.dropdownSection}>
-                <label style={INQUISITOR_STYLES.dropdownLabel}>
-                  🎯 Select Investigation Target
-                </label>
-                <select
-                  style={INQUISITOR_STYLES.select}
-                  value={selectedTarget}
-                  onChange={(e) => setSelectedTarget(e.target.value)}
-                  onFocus={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.selectFocus.borderColor;
-                    e.target.style.boxShadow =
-                      INQUISITOR_STYLES.selectFocus.boxShadow;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.select.borderColor;
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  <option value="">⚖️ Choose a suspect...</option>
-                  {validTargets.map(([name, p]) => (
-                    <option key={name} value={name}>
-                      👤 {p.name || name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <div style={INQUISITOR_STYLES.dropdownContainer}>
+          <div style={INQUISITOR_STYLES.dropdownSection}>
+            <label style={INQUISITOR_STYLES.dropdownLabel}>
+              🎯 Select Investigation Target
+            </label>
 
-              <div style={INQUISITOR_STYLES.dropdownSection}>
-                <label style={INQUISITOR_STYLES.dropdownLabel}>
-                  ⚔️ Who are they ploting with?
-                </label>
-                <select
-                  style={INQUISITOR_STYLES.select}
-                  value={guess}
-                  onChange={(e) => setGuess(Number(e.target.value))}
-                  onFocus={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.selectFocus.borderColor;
-                    e.target.style.boxShadow =
-                      INQUISITOR_STYLES.selectFocus.boxShadow;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor =
-                      INQUISITOR_STYLES.select.borderColor;
-                    e.target.style.boxShadow = "none";
-                  }}
-                >
-                  {allowedStrengths.map((str) => (
-                    <option key={str} value={str}>
-                      💪 Strength {str}
-                    </option>
-                  ))}
-                </select>
+            {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+            {isTargetingForced && !hasNoTargets && (
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
+                  border: "2px solid #FF1493",
+                  borderRadius: "10px",
+                  padding: "12px",
+                  margin: "8px 0",
+                  color: "#8B0000",
+                  fontSize: "0.9rem",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  fontFamily: "'Cinzel', serif",
+                }}
+              >
+                🔍✨ The whole court can only talk about one name lately…{" "}
+                <strong>{nextTarget.name}</strong>! <br />
+                And it's echoing in every corridor... 🗣️💋
               </div>
-            </div>
-          </>
-        )}
+            )}
 
-        <div style={INQUISITOR_STYLES.buttonsContainer}>
-          {hasNoTargets ? (
-            <button
-              onClick={() => onConfirm({ target: "SKIP_TURN", guess: 0 })}
+            <select
               style={{
-                ...INQUISITOR_STYLES.button,
-                ...INQUISITOR_STYLES.confirmButton,
-                width: "100%",
+                ...INQUISITOR_STYLES.select,
+              }}
+              value={selectedTarget}
+              onChange={(e) => setSelectedTarget(e.target.value)}
+              onFocus={(e) => {
+                if (!(isTargetingForced && !hasNoTargets)) {
+                  e.target.style.borderColor =
+                    INQUISITOR_STYLES.selectFocus.borderColor;
+                  e.target.style.boxShadow =
+                    INQUISITOR_STYLES.selectFocus.boxShadow;
+                }
+              }}
+              onBlur={(e) => {
+                if (!(isTargetingForced && !hasNoTargets)) {
+                  e.target.style.borderColor =
+                    INQUISITOR_STYLES.select.borderColor;
+                  e.target.style.boxShadow = "none";
+                }
               }}
             >
-              ⏭️ Skip Turn
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => onConfirm({ target: selectedTarget, guess })}
-                disabled={!selectedTarget}
-                onMouseEnter={() => setIsConfirmHovered(true)}
-                onMouseLeave={() => setIsConfirmHovered(false)}
-                style={{
-                  ...INQUISITOR_STYLES.button,
-                  ...(selectedTarget
-                    ? isConfirmHovered
-                      ? {
-                          ...INQUISITOR_STYLES.confirmButton,
-                          ...INQUISITOR_STYLES.confirmButtonHover,
-                        }
-                      : INQUISITOR_STYLES.confirmButton
-                    : INQUISITOR_STYLES.confirmButtonDisabled),
-                }}
-              >
-                Investigate
-              </button>
+              <option value="">⚖️ Choose a suspect...</option>
+              {finalValidTargets.map(([name, p]) => (
+                <option key={name} value={name}>
+                  👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
+                </option>
+              ))}
+              {hasNoTargets && (
+                <option value="SKIP_TURN">
+                  ⏭️ Skip turn (no available targets)
+                </option>
+              )}
+            </select>
+          </div>
 
-              <button
-                onClick={onCancel}
-                onMouseEnter={() => setIsBackHovered(true)}
-                onMouseLeave={() => setIsBackHovered(false)}
-                style={{
-                  ...INQUISITOR_STYLES.button,
-                  ...(isBackHovered
-                    ? {
-                        ...INQUISITOR_STYLES.backButton,
-                        ...INQUISITOR_STYLES.backButtonHover,
-                      }
-                    : INQUISITOR_STYLES.backButton),
+          {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+          {isTargetingForced && !hasNoTargets && (
+            <p
+              style={{
+                fontSize: "1.1rem",
+                margin: "8px 0",
+                color: "rgb(245 170 242)",
+                fontStyle: "italic",
+                textAlign: "left",
+                fontFamily: "Lora, serif",
+                lineHeight: "1.4em",
+              }}
+            >
+              💅✨ The whole court can only talk about one name lately…
+            </p>
+          )}
+
+          {/* Only show strength dropdown when there are targets */}
+          {!hasNoTargets && (
+            <div style={INQUISITOR_STYLES.dropdownSection}>
+              <label style={INQUISITOR_STYLES.dropdownLabel}>
+                ⚔️ Who are they ploting with?
+              </label>
+              <select
+                style={INQUISITOR_STYLES.select}
+                value={guess}
+                onChange={(e) => setGuess(Number(e.target.value))}
+                onFocus={(e) => {
+                  e.target.style.borderColor =
+                    INQUISITOR_STYLES.selectFocus.borderColor;
+                  e.target.style.boxShadow =
+                    INQUISITOR_STYLES.selectFocus.boxShadow;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor =
+                    INQUISITOR_STYLES.select.borderColor;
+                  e.target.style.boxShadow = "none";
                 }}
               >
-                ↩️ Back
-              </button>
-            </>
+                {allowedStrengths.map((str) => (
+                  <option key={str} value={str}>
+                    💪 Strength {str}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
+        </div>
+
+        <div style={INQUISITOR_STYLES.buttonsContainer}>
+          <button
+            onClick={onCancel}
+            onMouseEnter={() => setIsBackHovered(true)}
+            onMouseLeave={() => setIsBackHovered(false)}
+            style={{
+              ...INQUISITOR_STYLES.button,
+              ...(isBackHovered
+                ? {
+                    ...INQUISITOR_STYLES.backButton,
+                    ...INQUISITOR_STYLES.backButtonHover,
+                  }
+                : INQUISITOR_STYLES.backButton),
+            }}
+          >
+            ↩️ Back
+          </button>
+          <button
+            onClick={() => onConfirm({ target: selectedTarget, guess })}
+            disabled={isConfirmDisabled}
+            onMouseEnter={() => setIsConfirmHovered(true)}
+            onMouseLeave={() => setIsConfirmHovered(false)}
+            style={{
+              ...INQUISITOR_STYLES.button,
+              ...(selectedTarget && selectedTarget !== ""
+                ? isConfirmHovered
+                  ? {
+                      ...INQUISITOR_STYLES.confirmButton,
+                      ...INQUISITOR_STYLES.confirmButtonHover,
+                    }
+                  : INQUISITOR_STYLES.confirmButton
+                : INQUISITOR_STYLES.confirmButtonDisabled),
+            }}
+          >
+            {selectedTarget === "SKIP_TURN" ? "Skip Turn" : "Investigate"}
+          </button>
         </div>
       </div>
     </>

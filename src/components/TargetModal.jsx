@@ -5,6 +5,7 @@ export default function TargetModal({
   currentPlayer,
   cardPlayed,
   protectedPlayers = [],
+  nextTarget = null,
   onConfirm,
   onCancel,
 }) {
@@ -18,29 +19,44 @@ export default function TargetModal({
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
+  var canTargetSelfCardsIds = [5, 12, 13]; // Handmaid, Prince, Court Whisperer and Royal Confessor can target self
+  const canTargetSelf = canTargetSelfCardsIds.includes(cardPlayed);
+  if (canTargetSelf) {
+    validTargets.push([currentPlayer, players[currentPlayer]]);
+  }
+
+  // 🗣️ Court Whisperer: Check if targeting is forced
+  const isTargetingForced = nextTarget && nextTarget.used === true;
+  const forcedTargetNickname = isTargetingForced ? nextTarget.nickname : null;
+
+  // If targeting is forced, override validTargets to only include the forced target
+  const finalValidTargets = isTargetingForced
+    ? validTargets.filter(([name]) => name === forcedTargetNickname)
+    : validTargets;
+
+  console.log("valid targets:", validTargets);
+  console.log("Final valid targets:", finalValidTargets);
+
   const isGuard = cardPlayed === 1;
   const isPrince = cardPlayed === 5;
   const isPhantomKing = cardPlayed === 6;
   const isRegentQueen = cardPlayed === 11;
-  const hasNoTargets = validTargets.length === 0 && !isPrince; // Prince can always target self
+  const isCourtWhisperer = cardPlayed === 12;
+  const hasNoTargets = finalValidTargets.length === 0;
 
-  console.log(
-    "TargetModal has been called! / players: ",
-    players,
-    " / currentPlayer: ",
-    currentPlayer,
-    " / cardPlayed: ",
-    cardPlayed,
-    " / protectedPlayers: ",
-    protectedPlayers,
-    " / hasNoTargets: ",
-    hasNoTargets
-  );
+  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
+
+  console.log("TargetModal button state:", {
+    selectedTarget,
+    isConfirmDisabled,
+    hasNoTargets,
+    isTargetingForced,
+  });
 
   return (
     <div className="modal" style={cardOptionsContainerStyle}>
       <div className="modal-content" style={cardOptionsContentStyle}>
-        {hasNoTargets && !isPrince && (
+        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
           <p style={noTargetMessageStyle}>
             🫖 All other players are enjoying tea with the Princess' Handmaid
             and cannot be targeted.
@@ -63,26 +79,25 @@ export default function TargetModal({
           <div className="dropdown-section-label" style={dropdownSectionStyle}>
             Select a target for your card
           </div>
+
           <select
             className="royal-select"
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
           >
             <option value="">-- Choose a player --</option>
-            {isPhantomKing && (
+            {isPhantomKing && !isTargetingForced && (
               <option value="Nobody">👻 Nobody (skip effect)</option>
             )}
-            {validTargets.map(([name, p]) => (
+            {finalValidTargets.map(([name, p]) => (
               <option key={name} value={name}>
-                {p.name} ({p.realName})
+                {name === currentPlayer
+                  ? "YOURSELF"
+                  : `${p.name} (${p.realName})`}{" "}
+                {isTargetingForced ? "🎯" : ""}
               </option>
             ))}
-            {isPrince && (
-              <option value={currentPlayer}>
-                👑 Yourself ({players[currentPlayer]?.name || currentPlayer})
-              </option>
-            )}
-            {hasNoTargets && !isPrince && (
+            {hasNoTargets && (
               <option value="SKIP_TURN">
                 Skip turn (no available targets)
               </option>
@@ -90,7 +105,24 @@ export default function TargetModal({
           </select>
         </div>
 
-        {isGuard && (
+        {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
+        {isTargetingForced && !hasNoTargets && (
+          <p
+            style={{
+              fontSize: "1.1rem",
+              margin: "8px 0",
+              color: "rgb(245 170 242)",
+              fontStyle: "italic",
+              textAlign: "left",
+              fontFamily: "Lora, serif",
+              lineHeight: "1.4em",
+            }}
+          >
+            💅✨ The whole court can only talk about one name lately…
+          </p>
+        )}
+
+        {isGuard && !hasNoTargets && (
           <div className="dropdown-section-container">
             <div
               className="dropdown-section-label"
@@ -112,7 +144,7 @@ export default function TargetModal({
           </div>
         )}
 
-        {isRegentQueen && (
+        {isRegentQueen && !isTargetingForced && (
           <div style={RegentQueenMessageContainerStyle}>
             <em>
               <p style={RegentQueenMessageStyle}>
@@ -126,31 +158,41 @@ export default function TargetModal({
           </div>
         )}
 
+        {isCourtWhisperer && !isTargetingForced && (
+          <div style={RegentQueenMessageContainerStyle}>
+            <em>
+              <p style={CourtWhispererMessageStyle}>
+                "Some sway hearts with poetry — others with rumors."
+              </p>
+            </em>
+          </div>
+        )}
+
         <div className="buttons-container" style={buttonsContainerStyle}>
           <button
+            onClick={onCancel}
+            onMouseEnter={() => setIsBackHovered(true)}
+            onMouseLeave={() => setIsBackHovered(false)}
+            style={{
+              ...getButtonsStyle(isConfirmDisabled, false),
+              ...(isBackHovered ? backButtonHoverStyle : backButtonStyle),
+            }}
+          >
+            Back
+          </button>
+          <button
             onClick={() => onConfirm({ target: selectedTarget, guess })}
-            disabled={!selectedTarget}
+            disabled={isConfirmDisabled}
             onMouseEnter={() => setIsConfirmHovered(true)}
             onMouseLeave={() => setIsConfirmHovered(false)}
             style={{
-              ...buttonsStyle,
+              ...getButtonsStyle(isConfirmDisabled, true),
               ...(isConfirmHovered
                 ? confirmButtonHoverStyle
                 : confirmButtonStyle),
             }}
           >
             Confirm
-          </button>
-          <button
-            onClick={onCancel}
-            onMouseEnter={() => setIsBackHovered(true)}
-            onMouseLeave={() => setIsBackHovered(false)}
-            style={{
-              ...buttonsStyle,
-              ...(isBackHovered ? backButtonHoverStyle : backButtonStyle),
-            }}
-          >
-            Back
           </button>
         </div>
       </div>
@@ -201,13 +243,25 @@ const RegentQueenMessageStyle = {
   fontFamily: "Lora, serif",
 };
 
+const CourtWhispererMessageStyle = {
+  fontStyle: "italic",
+  fontFamily: "Lora, serif",
+  lineHeight: "1.4",
+  fontSize: "1.1rem",
+  color: "rgb(235 190 234)",
+  padding: "0.15em",
+  borderLeft: "3px solid rgb(235 190 234)",
+  paddingLeft: "1em",
+  textAlign: "left",
+};
+
 const buttonsContainerStyle = {
   marginTop: "1rem",
   display: "flex",
   justifyContent: "space-between",
 };
 
-const buttonsStyle = {
+const getButtonsStyle = (isConfirmDisabled, isConfirmButton) => ({
   padding: "0.5rem 1rem",
   width: "45%",
   fontSize: "1.2rem",
@@ -215,11 +269,11 @@ const buttonsStyle = {
   borderRadius: "8px",
   fontFamily: "Cinzel, serif",
   fontWeight: "bold",
-  cursor: "pointer",
+  cursor: isConfirmDisabled && isConfirmButton ? "not-allowed" : "pointer",
   transition: "all 0.3s ease",
   textTransform: "uppercase",
   letterSpacing: "0.5px",
-};
+});
 
 const confirmButtonStyle = {
   background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",

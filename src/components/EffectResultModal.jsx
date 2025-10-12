@@ -44,8 +44,8 @@ const effectTextStyles = `
   }
 
   .effect-description {
-    line-height: 1.4;
-    margin: 0.5em 0;
+    line-height: 1.5;
+    margin-bottom: 0.7em;
     font-size: 1.3rem;
   }
 
@@ -58,21 +58,47 @@ const effectTextStyles = `
     color: #44ff44;
     font-weight: bold;
   }
+
+.effect-technical {
+    border-top: 1px #dfdf73 dashed;
+    padding-top: 1rem;
+    margin-top: 1.2rem;
+    text-align: center;
+    color: #dfdf73;
+}
 `;
 
 export default function EffectResultModal({
   resultText,
   cardDetails = null,
+  selectedCardId = -1, // Should never be -1 if properly called - will help us catch bugs
+  role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
   onClose,
 }) {
-  // Log only when component mounts or resultText changes
+  // 🐛 DEBUG: Log props to ensure we never get invalid values
   useEffect(() => {
-    console.log(
-      "EffectResultModal mounted/updated with resultText: ",
-      resultText
-    );
-  }, [resultText]);
+    console.log("🎭 EffectResultModal mounted with props:", {
+      selectedCardId,
+      role,
+      resultText: resultText?.substring(0, 100) + "...", // Truncate for readability
+      hasCardDetails: !!cardDetails,
+    });
 
+    // 🚨 Alert us if we get invalid values
+    if (
+      selectedCardId === -1 ||
+      selectedCardId === null ||
+      selectedCardId === undefined
+    ) {
+      console.error(
+        "🚨 EffectResultModal: selectedCardId is invalid!",
+        selectedCardId
+      );
+    }
+    if (role === "unknown" || role === null || role === undefined) {
+      console.error("🚨 EffectResultModal: role is invalid!", role);
+    }
+  }, [selectedCardId, role, resultText, cardDetails]);
   // Helper function to render HTML text directly (no more markdown conversion needed)
   const formatText = (text) => {
     if (!text) return "";
@@ -91,32 +117,19 @@ export default function EffectResultModal({
     ));
   };
 
-  // Check if this is a Handmaid protection message
-  const isHandmaidProtection =
-    resultText?.includes("tea and biscuits") ||
-    resultText?.includes("protected from courtly intrigue");
-
-  // Check if this is a Jester effect (Fool's Favor)
-  const isJesterEffect =
-    resultText?.includes("Fool's Favor") ||
-    resultText?.includes("Jester dances before you");
-
-  // Check if this is a Priest effect (looking at someone's card)
+  // Effect detection based on selectedCardId (more reliable than text parsing)
+  const isHandmaidProtection = selectedCardId === 4;
+  const isJesterEffect = selectedCardId === 0;
   const isPriestEffect =
-    cardDetails &&
-    (resultText?.includes("divine light reveals") ||
-      cardDetails["Revealed Card"]) &&
-    !resultText?.includes("Inquisitor"); // Exclude Inquisitor
+    selectedCardId === 2 && cardDetails && cardDetails["Revealed Card"];
+  const isCourtWhispererEffect = selectedCardId === 12;
+  const isInquisitorEffect = selectedCardId === 9;
+  const isChamberlainEffect = selectedCardId === 10;
 
-  // Check if this is an Inquisitor effect
-  const isInquisitorEffect = resultText?.includes("Inquisitor");
-
-  // Check if this is a Chamberlain effect (golden influence or favor)
-  const isChamberlainEffect =
-    resultText?.includes("Royal Chamberlain") ||
-    resultText?.includes("Chamberlain's favor") ||
-    resultText?.includes("Chamberlain's influence") ||
-    resultText?.includes("golden influence");
+  // Court Whisperer: distinguish between attacker and target
+  const isCourtWhispererAttacker =
+    isCourtWhispererEffect && role === "attacker";
+  const isCourtWhispererTarget = isCourtWhispererEffect && role === "target";
 
   // Extract card information for Priest effect
   let revealedCard = null;
@@ -148,6 +161,7 @@ export default function EffectResultModal({
             ...(isHandmaidProtection ? handmaidModalStyle : {}),
             ...(isPriestEffect ? priestModalStyle : {}),
             ...(isJesterEffect ? jesterModalStyle : {}),
+            ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -161,6 +175,8 @@ export default function EffectResultModal({
                 ? "#6a4c93"
                 : isJesterEffect
                 ? "rgb(22 3 3)"
+                : isCourtWhispererEffect
+                ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -169,6 +185,8 @@ export default function EffectResultModal({
                   ? "#9b59b6"
                   : isJesterEffect
                   ? "#ff6b35"
+                  : isCourtWhispererEffect
+                  ? "#FF1493"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -190,6 +208,8 @@ export default function EffectResultModal({
               ? "🕵️"
               : isJesterEffect
               ? "🎭"
+              : isCourtWhispererEffect
+              ? "💅"
               : isChamberlainEffect
               ? "💰"
               : isHandmaidProtection
@@ -201,7 +221,8 @@ export default function EffectResultModal({
               isHandmaidProtection,
               isPriestEffect,
               isInquisitorEffect,
-              isJesterEffect
+              isJesterEffect,
+              isCourtWhispererEffect
             )}
           >
             {isPriestEffect
@@ -210,6 +231,12 @@ export default function EffectResultModal({
               ? "Inquisitor's Investigation"
               : isJesterEffect
               ? "🎪 Jester's Fool's Favor 🎭"
+              : isCourtWhispererAttacker
+              ? "🪄 A Little Word in the Right Ear…"
+              : isCourtWhispererTarget
+              ? "📜 Your Name's on Every Scroll!"
+              : isCourtWhispererEffect
+              ? "💅 Court Whisperer Effect 💅"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
@@ -278,72 +305,93 @@ export default function EffectResultModal({
               </div>
             </div>
           ) : (
-            <div style={messageStyle}>{formatText(resultText)}</div>
-          )}
-
-          {!isPriestEffect && (
-            <div
-              style={{
-                ...buttonContainerStyle,
-                ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
-              }}
-            >
-              <button
-                onClick={onClose}
+            <div style={getMessageStyle(isCourtWhispererEffect)}>
+              {formatText(resultText)}
+              <div
                 style={{
-                  ...buttonStyle,
-                  ...(isHandmaidProtection ? handmaidButtonStyle : {}),
-                  ...(isJesterEffect ? jesterButtonStyle : {}),
-                }}
-                onMouseEnter={(e) => {
-                  if (isJesterEffect) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)";
-                    e.target.style.transform = "translateY(-2px)";
-                    e.target.style.boxShadow =
-                      "0 6px 25px rgba(255, 107, 53, 0.6)";
-                    e.target.style.border = "2px solid rgb(45, 27, 27)";
-                  } else if (isHandmaidProtection) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
-                    e.target.style.transform = "translateY(-2px)";
-                    e.target.style.boxShadow =
-                      "0 6px 25px rgba(76, 175, 80, 0.5)";
-                  } else {
-                    e.target.style.background =
-                      "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
-                    e.target.style.transform = "translateY(-2px)";
-                    e.target.style.boxShadow =
-                      "0 6px 25px rgba(255, 215, 0, 0.5)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (isJesterEffect) {
-                    e.target.style.background = "rgb(22 3 3)";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow =
-                      "0 4px 15px rgba(255, 107, 53, 0.4)";
-                    e.target.style.color = "rgb(255, 215, 0)";
-                    e.target.style.border = "2px solid rgb(106 92 48)";
-                  } else if (isHandmaidProtection) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                  } else {
-                    e.target.style.background =
-                      "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.4)";
-                  }
+                  ...buttonContainerStyle,
+                  ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
                 }}
               >
-                {isJesterEffect
-                  ? "🎪✨ Marvelous! ✨🎭"
-                  : isHandmaidProtection
-                  ? "🍰✨ Very Well ✨🫖"
-                  : "Continue"}
-              </button>
+                <button
+                  onClick={onClose}
+                  style={{
+                    ...buttonStyle,
+                    ...(isHandmaidProtection ? handmaidButtonStyle : {}),
+                    ...(isJesterEffect ? jesterButtonStyle : {}),
+                    ...(isCourtWhispererEffect
+                      ? courtWhispererButtonStyle
+                      : {}),
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isJesterEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 107, 53, 0.6)";
+                      e.target.style.border = "2px solid rgb(45, 27, 27)";
+                    } else if (isCourtWhispererEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(255 205 212) 0%, rgb(202 75 139) 50%, rgb(99 9 57) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 20, 147, 0.6)";
+                      e.target.style.border = "2px solid #FF69B4";
+                    } else if (isHandmaidProtection) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(76, 175, 80, 0.5)";
+                    } else {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isJesterEffect) {
+                      e.target.style.background = "rgb(22 3 3)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(255, 107, 53, 0.4)";
+                      e.target.style.color = "rgb(255, 215, 0)";
+                      e.target.style.border = "2px solid rgb(106 92 48)";
+                    } else if (isCourtWhispererEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(255, 20, 147, 0.4)";
+                      e.target.style.color = "white";
+                      e.target.style.border = "2px solid #FF1493";
+                    } else if (isHandmaidProtection) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(0, 0, 0, 0.4)";
+                    } else {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(0, 0, 0, 0.4)";
+                    }
+                  }}
+                >
+                  {isJesterEffect
+                    ? "🎪✨ Marvelous! ✨🎭"
+                    : isCourtWhispererEffect
+                    ? "💅✨ Fabulous Gossip! ✨💋"
+                    : isHandmaidProtection
+                    ? "🍰✨ Very Well ✨🫖"
+                    : "Continue"}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -404,18 +452,21 @@ const getHeaderStyle = (
   isHandmaidProtection,
   isPriestEffect,
   isInquisitorEffect,
-  isJesterEffect
+  isJesterEffect,
+  isCourtWhispererEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
     : isJesterEffect
     ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
+    : isCourtWhispererEffect
+    ? "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)"
     : isHandmaidProtection
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
     : isInquisitorEffect
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-  color: "#ffd700",
+  color: isCourtWhispererEffect ? "rgb(242 242 242)" : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -423,10 +474,14 @@ const getHeaderStyle = (
   fontFamily: '"Cinzel", serif',
   textTransform: "uppercase",
   letterSpacing: "1px",
-  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+  textShadow: isCourtWhispererEffect
+    ? "2px 2px 4px rgba(139, 0, 0, 0.8)"
+    : "2px 2px 4px rgba(0, 0, 0, 0.8)",
   borderBottom: `2px solid ${
     isPriestEffect
       ? "#9b59b6"
+      : isCourtWhispererEffect
+      ? "#FF1493"
       : isHandmaidProtection
       ? "rgb(139, 195, 74)"
       : "#ffd700"
@@ -435,15 +490,22 @@ const getHeaderStyle = (
   position: "relative",
 });
 
-const messageStyle = {
+const getMessageStyle = (isCourtWhispererEffect) => ({
   fontSize: "1.3rem",
   textAlign: "justify",
   lineHeight: "1.6",
-  color: "white",
+  color: isCourtWhispererEffect ? "#faebd7" : "white",
   margin: "0",
   padding: "25px",
   background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
+});
+
+const classicResultTextContainer = {
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  height: "100%",
 };
 
 const cardDetailsStyle = {
@@ -456,16 +518,12 @@ const cardDetailsStyle = {
   fontFamily: '"Lora", serif',
 };
 
-const detailRowStyle = {
-  marginBottom: "0.5rem",
-  color: "#2c1810",
-  fontSize: "1rem",
-};
-
 const buttonContainerStyle = {
-  padding: "15px 25px 20px",
-  background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%)",
+  display: "flex",
+  padding: "15px 25px 0",
+  marginTop: "1rem",
   borderRadius: "0 0 20px 20px",
+  justifyContent: "center",
 };
 
 const buttonStyle = {
@@ -505,6 +563,25 @@ const jesterButtonStyle = {
   color: "rgb(255, 215, 0)",
   border: "2px solid rgb(106 92 48)",
   fontWeight: "700",
+};
+
+const courtWhispererButtonStyle = {
+  width: "60%",
+  background:
+    "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)",
+  color: "white",
+  border: "2px solid #FF1493",
+  fontWeight: "700",
+  textShadow: "1px 1px 2px rgba(139, 0, 0, 0.8)",
+};
+
+// 🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
+const courtWhispererModalStyle = {
+  background:
+    "linear-gradient(135deg, #FF69B4 0%, #FFB6C1 25%, #FFC0CB 50%, #FFEFD5 75%, #FF69B4 100%)",
+  border: "4px solid #FF1493",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 20, 147, 0.6), inset 0 1px 0 rgba(255, 105, 180, 0.4)",
 };
 
 // Priest-specific modal styles

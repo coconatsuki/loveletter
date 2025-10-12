@@ -17,6 +17,8 @@ export const CARD_MODAL_FLOW = {
   8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
   9: { advanceOnAttacker: true, advanceOnTarget: false }, // Inquisitor (target modal controls flow)
   10: { advanceOnAttacker: true, advanceOnTarget: false }, // Chamberlain
+  11: { advanceOnAttacker: true, advanceOnTarget: false }, // Regent Queen
+  12: { advanceOnAttacker: true, advanceOnTarget: false }, // Court Whisperer
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
   // Premium mode cards will be added as we implement them...
 };
@@ -1315,6 +1317,83 @@ export async function applyInquisitorEffect({
       result: "error",
       error: error.message,
       isCorrectGuess: false,
+    };
+  }
+}
+
+// 🗣️💅 COURT WHISPERER EFFECT 💅🗣️
+export async function applyCourtWhispererEffect({
+  roomCode,
+  attacker,
+  target,
+}) {
+  console.log(
+    "🗣️ COURT WHISPERER EFFECT: Spreading delicious gossip!",
+    attacker,
+    "targeting",
+    target
+  );
+
+  try {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const data = snapshot.val();
+
+    if (!data || !data.players[target]) {
+      return {
+        result: "error",
+        error: "Invalid target player",
+      };
+    }
+
+    const attackerPlayer = data.players[attacker];
+    const targetPlayer = data.players[target];
+
+    // DON'T set nextTarget here - it will be set in completeCourtWhispererTurn
+    // when the attacker clicks "Continue" on their EffectResultModal
+
+    // Generate gossip magazine style messages! 💅📰
+    const attackerMessage = `<div class="effect-description">
+        You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
+      </div>
+      <div class="effect-description">
+        A knowing smile spreads across their painted face. Within hours, every servant, scribe, and stable boy is whispering that name.
+      </div>
+      <div class="effect-description">
+        Your rival now glitters at the center of every scandal — a royal disaster in progress. ✨�
+      </div>
+      <div class="effect-technical">
+        🎯 Next player MUST target <span style="font-weight: bold;">${targetPlayer.name}</span> (if their card requires targeting)
+      </div>`;
+
+    const targetMessage = `<div class="effect-description">
+        You arrive at court and the air changes.
+      </div>
+      <div class="effect-description">
+        Eyes follow you, fans flutter, and every laugh seems to end in your name.
+      </div>
+      <div class="effect-description">
+        The Court Whisperer has clearly been busy — your reputation is now the court's favorite entertainment. 🎭✨
+      </div>
+      <div class="effect-technical">
+        🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)
+      </div>`;
+
+    const publicMessage = `<div class="effect-description">🗣️👂🏼 <span class="effect-player">${attackerPlayer.name}</span> whispers into the right ear...</div><div class="effect-description"> giving the ever-talkative Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
+
+    return {
+      result: "success",
+      attacker,
+      target,
+      targetPlayer,
+      attackerMessage,
+      targetMessage,
+      publicMessage,
+    };
+  } catch (error) {
+    console.error("🗣️ COURT WHISPERER ERROR:", error);
+    return {
+      result: "error",
+      error: error.message,
     };
   }
 }

@@ -122,6 +122,19 @@
   }
 }
 
+/* 🗣️ Court Whisperer: Gossip target indicator animation */
+@keyframes gossipPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 20, 147, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.8);
+  }
+}
+
 /* Players grid layout - Compact for up to 11 players */
 .players-game-grid {
   display: flex;
@@ -190,6 +203,25 @@
   top: -15px;
   left: -15px;
   font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px rgba(64, 224, 208, 0.8));
+}
+
+.royal-player-section.is-targeted {
+  border-color: #e45dd9;
+}
+
+.royal-player-section.is-targeted:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+  border-color: #e45dd9;
+}
+
+.royal-player-section.is-targeted::after {
+  content: "🎯";
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  font-size: 1.6rem;
   filter: drop-shadow(0 0 5px rgba(64, 224, 208, 0.8));
 }
 
