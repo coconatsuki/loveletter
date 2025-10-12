@@ -19,7 +19,7 @@ export default function TargetModal({
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name) // Use new protectedPlayers array
   );
 
-  var canTargetSelfCardsIds = [5, 12, 13]; // Prince, Court Whisperer and Royal Confessor can target self
+  var canTargetSelfCardsIds = [5, 12, 13]; // Handmaid, Prince, Court Whisperer and Royal Confessor can target self
   const canTargetSelf = canTargetSelfCardsIds.includes(cardPlayed);
   if (canTargetSelf) {
     validTargets.push([currentPlayer, players[currentPlayer]]);
@@ -34,6 +34,9 @@ export default function TargetModal({
     ? validTargets.filter(([name]) => name === forcedTargetNickname)
     : validTargets;
 
+  console.log("valid targets:", validTargets);
+  console.log("Final valid targets:", finalValidTargets);
+
   const isGuard = cardPlayed === 1;
   const isPrince = cardPlayed === 5;
   const isPhantomKing = cardPlayed === 6;
@@ -41,15 +44,7 @@ export default function TargetModal({
   const isCourtWhisperer = cardPlayed === 12;
   const hasNoTargets = finalValidTargets.length === 0;
 
-  // Auto-select forced target if targeting is forced
-  React.useEffect(() => {
-    if (isTargetingForced && forcedTargetNickname && !selectedTarget) {
-      setSelectedTarget(forcedTargetNickname);
-    }
-  }, [isTargetingForced, forcedTargetNickname, selectedTarget]);
-
-  const isConfirmDisabled =
-    !selectedTarget || selectedTarget === "" || selectedTarget === "SKIP_TURN";
+  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
   console.log("TargetModal button state:", {
     selectedTarget,
@@ -112,16 +107,6 @@ export default function TargetModal({
             className="royal-select"
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
-            disabled={isTargetingForced && !hasNoTargets} // Lock dropdown when targeting is forced
-            style={
-              isTargetingForced && !hasNoTargets
-                ? {
-                    opacity: 0.7,
-                    cursor: "not-allowed",
-                    background: "#f0f0f0",
-                  }
-                : {}
-            }
           >
             <option value="">-- Choose a player --</option>
             {isPhantomKing && !isTargetingForced && (
@@ -130,16 +115,11 @@ export default function TargetModal({
             {finalValidTargets.map(([name, p]) => (
               <option key={name} value={name}>
                 {name === currentPlayer
-                  ? "👑 YOURSELF ✨"
+                  ? "YOURSELF"
                   : `${p.name} (${p.realName})`}{" "}
                 {isTargetingForced ? "🎯" : ""}
               </option>
             ))}
-            {isPrince && !isTargetingForced && (
-              <option value={currentPlayer}>
-                👑 Yourself ({players[currentPlayer]?.name || currentPlayer})
-              </option>
-            )}
             {hasNoTargets && (
               <option value="SKIP_TURN">
                 Skip turn (no available targets)
@@ -200,7 +180,7 @@ export default function TargetModal({
             onMouseEnter={() => setIsBackHovered(true)}
             onMouseLeave={() => setIsBackHovered(false)}
             style={{
-              ...buttonsStyle,
+              ...getButtonsStyle(isConfirmDisabled, false),
               ...(isBackHovered ? backButtonHoverStyle : backButtonStyle),
             }}
           >
@@ -208,15 +188,11 @@ export default function TargetModal({
           </button>
           <button
             onClick={() => onConfirm({ target: selectedTarget, guess })}
-            disabled={
-              !selectedTarget ||
-              selectedTarget === "" ||
-              selectedTarget === "SKIP_TURN"
-            }
+            disabled={isConfirmDisabled}
             onMouseEnter={() => setIsConfirmHovered(true)}
             onMouseLeave={() => setIsConfirmHovered(false)}
             style={{
-              ...buttonsStyle,
+              ...getButtonsStyle(isConfirmDisabled, true),
               ...(isConfirmHovered
                 ? confirmButtonHoverStyle
                 : confirmButtonStyle),
@@ -291,7 +267,7 @@ const buttonsContainerStyle = {
   justifyContent: "space-between",
 };
 
-const buttonsStyle = {
+const getButtonsStyle = (isConfirmDisabled, isConfirmButton) => ({
   padding: "0.5rem 1rem",
   width: "45%",
   fontSize: "1.2rem",
@@ -299,11 +275,11 @@ const buttonsStyle = {
   borderRadius: "8px",
   fontFamily: "Cinzel, serif",
   fontWeight: "bold",
-  cursor: "pointer",
+  cursor: isConfirmDisabled && isConfirmButton ? "not-allowed" : "pointer",
   transition: "all 0.3s ease",
   textTransform: "uppercase",
   letterSpacing: "0.5px",
-};
+});
 
 const confirmButtonStyle = {
   background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
