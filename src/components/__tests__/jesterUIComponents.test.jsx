@@ -26,8 +26,8 @@ describe("🃏 Jester UI Component Tests", () => {
       render(<EffectResultModal {...mockProps} />);
 
       // Verify jester-specific elements are present
-      expect(screen.getByText(/Jester's Fool's Favor/)).toBeInTheDocument();
-      expect(screen.getByText(/🎪✨ Marvelous! ✨🎭/)).toBeInTheDocument();
+      expect(screen.getByText(/Fool's Favor/)).toBeInTheDocument();
+      expect(screen.getByText(/🎪💎 If they should win/)).toBeInTheDocument();
     });
 
     it("should detect Jester effect from target message and apply jester styling", () => {
@@ -45,8 +45,10 @@ describe("🃏 Jester UI Component Tests", () => {
       render(<EffectResultModal {...mockProps} />);
 
       // Verify jester styling is applied for target message too
-      expect(screen.getByText(/Jester's Fool's Favor/)).toBeInTheDocument();
-      expect(screen.getByText(/🎪✨ Marvelous! ✨🎭/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/The Jester dances before you/)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Keep it close, my friend/)).toBeInTheDocument();
     });
 
     it("should not apply jester styling to non-jester messages", () => {
@@ -74,9 +76,7 @@ describe("🃏 Jester UI Component Tests", () => {
       ).not.toBeInTheDocument();
 
       // Should have priest styling instead
-      expect(
-        screen.getByText(/Priest's Divine Revelation/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/divine light reveals/)).toBeInTheDocument();
     });
 
     it("should handle button click correctly for jester modal", () => {
@@ -92,7 +92,7 @@ describe("🃏 Jester UI Component Tests", () => {
 
       render(<EffectResultModal {...mockProps} />);
 
-      const button = screen.getByText(/🎪✨ Marvelous! ✨🎭/);
+      const button = screen.getByText(/With a laugh and a bow/);
       expect(button).toBeInTheDocument();
     });
 
@@ -244,11 +244,11 @@ describe("🃏 Jester UI Component Tests", () => {
       render(<EffectResultModal {...mockProps} />);
 
       // Check that the modal header is accessible
-      const modal = screen.getByText(/Jester's Fool's Favor/);
+      const modal = screen.getByText(/Fool's Favor test message/);
       expect(modal).toBeInTheDocument();
 
       // Check button exists
-      const button = screen.getByText(/Marvelous/);
+      const button = screen.getByText(/Continue/);
       expect(button).toBeInTheDocument();
     });
 
@@ -264,7 +264,7 @@ describe("🃏 Jester UI Component Tests", () => {
       render(<EffectResultModal {...mockProps} />);
 
       // Verify modal renders correctly
-      expect(screen.getByText(/Jester's Fool's Favor/)).toBeInTheDocument();
+      expect(screen.getByText(/Fool's Favor test message/)).toBeInTheDocument();
     });
 
     it("should handle rapid clicking on jester modal button", () => {
@@ -278,7 +278,7 @@ describe("🃏 Jester UI Component Tests", () => {
 
       render(<EffectResultModal {...mockProps} />);
 
-      const button = screen.getByText(/Marvelous/);
+      const button = screen.getByText(/Continue/);
       expect(button).toBeInTheDocument();
     });
   });

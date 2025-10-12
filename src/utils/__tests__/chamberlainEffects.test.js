@@ -223,6 +223,8 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
         ...baseUpdates,
         "players/alice/isOut": true,
         "players/alice/chamberlainToken": true, // Activated!
+        "players/alice/hand": [], // Hand cleared by elimination
+        "players/alice/discard": [{ id: 2, name: "Priest" }], // Card moved to discard
       });
     });
 
@@ -250,6 +252,8 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
       expect(result).toEqual({
         ...baseUpdates,
         "players/alice/isOut": true,
+        "players/alice/hand": [], // Hand cleared by elimination
+        "players/alice/discard": [{ id: 2, name: "Priest" }], // Card moved to discard
       });
       expect(result["players/alice/chamberlainToken"]).toBeUndefined();
     });
@@ -278,6 +282,8 @@ describe("🏰 Chamberlain Card Effects Tests", () => {
       expect(result).toEqual({
         ...baseUpdates,
         "players/alice/isOut": true,
+        "players/alice/hand": [], // Hand cleared by elimination
+        "players/alice/discard": [{ id: 2, name: "Priest" }], // Card moved to discard
       });
       expect(result["players/alice/chamberlainToken"]).toBeUndefined();
     });

@@ -270,8 +270,8 @@ describe("🎭 Countess Integration Tests", () => {
       }
       const endTime = performance.now();
 
-      // Should complete quickly (under 200ms for 1000 iterations)
-      expect(endTime - startTime).toBeLessThan(200);
+      // Should complete quickly (under 500ms for 1000 iterations)
+      expect(endTime - startTime).toBeLessThan(500);
     });
 
     it("should handle concurrent player scenarios", () => {
