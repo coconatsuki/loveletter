@@ -1201,7 +1201,7 @@ export default function Play() {
         });
 
         // Normal swap case - check if we have the required data
-        if (attackerCard || targetCard) {
+        if (!attackerCard || !targetCard) {
           console.error("👻 PHANTOM KING ERROR: Missing card data");
           setResultModalData({
             selectedCardId: 6,

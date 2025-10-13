@@ -918,64 +918,29 @@ export async function applyAssassinEffect({ roomCode, player }) {
   }
 }
 
-export async function applyPhantomKingEffect({
-  roomCode,
-  attacker,
-  target,
-  attackerCard,
-  targetCard,
-}) {
-  console.log("🎭 PHANTOM KING DEBUG: The ethereal sovereign awakens...", {
-    attacker,
-    target,
-  });
+export async function applyPhantomKingEffect({ attacker, target }) {
+  const returnValue = {
+    result: "success",
 
-  try {
-    const gameRef = ref(db, `rooms/${roomCode}`);
-    const snapshot = await get(gameRef);
-
-    if (!snapshot.exists()) {
-      console.error("🎭 PHANTOM KING ERROR: No snapshot data");
-      throw new Error(
-        "The royal chambers have vanished into the ethereal void..."
-      );
-    }
-
-    // NOTE: Hand swapping will be done in Play.jsx so we can pass the card details to the modal
-    // Return the cards that will be swapped so Play.jsx can handle both the modal and the Firebase update
-
-    const returnValue = {
-      result: "phantomKingSwap",
-      attacker,
-      target,
-      // Return the original cards that will be swapped
-      attackerCard: attackerCard, // Card the attacker is giving away
-      targetCard: targetCard, // Card the target is giving away
-      // New formatted messages
-      attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>
+    // New formatted messages
+    attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>
       <div class="effect-description phantom-king"><span class="quotation">'Ah! My favorite suitor!'</span> he says. <span class="quotation">'Let me fix this little love mess for you!'</span></div>
       <div class="effect-description phantom-king">He waves his cup, spilling ghost-wine everywhere — and suddenly, your standing in the court… changes.</div>
       <div class="effect-description phantom-king">Whether that's good or bad, only the future will tell.</div>`,
 
-      targetMessage: `<div class="effect-description phantom-king top">✨ A ghostly burp echoes through the hall. The Phantom King wobbles before you, trying to pat your shoulder but missing by several inches.</div>
-      <div class="effect-description phantom-king"><span class="quotation">'My daughter deserves the best!'</span> he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
+    targetMessage: `<div class="effect-description phantom-king top">✨ A ghostly burp echoes through the hall. The Phantom King wobbles before you, trying to pat your shoulder but missing by several inches.</div>
+      <div class="effect-description phantom-king"><span class="quotation">'Ha! I'd rather have ${attacker} sit on my throne than you!'</span> he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
       <div class="effect-description phantom-king">When the ghost fades, the only thing left is confusion… and the faint sound of laughter. 👻</div>`,
 
-      publicMessage: `<div class="effect-description">👻🍷 The Phantom King showed up again, 'helping' one suitor at the expense of another. No one's quite sure what changed — but the throne room smells faintly of brandy and regret. 🏰💀</div>`,
-    };
+    publicMessage: `<div class="effect-description">👻🍷 The Phantom King showed up again, 'helping' one suitor at the expense of another. No one's quite sure what changed — but the throne room smells faintly of brandy and regret. 🏰💀</div>`,
+  };
 
-    console.log("🎭 PHANTOM KING DEBUG: Returning result:", returnValue);
-    return returnValue;
-  } catch (error) {
-    console.error(
-      "🎭 PHANTOM KING ERROR: The shadows reject this exchange:",
-      error
-    );
-    return {
-      result: "error",
-      message: `💀 The Phantom King's power falters... ${error.message}`,
-    };
-  }
+  console.log(
+    "🎭 PHANTOM KING DEBUG (from applyPhantomKingEffect): Returning result:",
+    returnValue
+  );
+
+  return returnValue;
 }
 
 // 👑 Princess Card (ID: 8, Strength: 8)

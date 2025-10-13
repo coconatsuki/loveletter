@@ -365,7 +365,7 @@ export default function EffectResultModal({
                           : swappedCards.targetGave.effect}
                       </div>
                     </div>
-                    <p style={cardLabelStyle}>You Received</p>
+                    <p style={cardLabelStyle}>You Gave</p>
                   </div>
 
                   <div style={phantomKingArrowStyle}>↔️</div>
@@ -399,7 +399,7 @@ export default function EffectResultModal({
                           : swappedCards.targetReceived.effect}
                       </div>
                     </div>
-                    <p style={cardLabelStyle}>You Gave</p>
+                    <p style={cardLabelStyle}>You Received</p>
                   </div>
                 </div>
               </div>
