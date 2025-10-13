@@ -1407,9 +1407,39 @@ export default function Play() {
         attacker: nickname,
         target,
       });
+
+      // Apply the hand swap in Firebase (moved from cardEffects.js)
+      const updates = {
+        [`players/${nickname}/hand`]: [result.targetCard], // Attacker gets target's card
+        [`players/${target}/hand`]: [result.attackerCard], // Target gets attacker's card
+      };
+      await update(ref(db, `rooms/${roomCode}`), updates);
+
+      // Show target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        message: result.targetMessage,
+        swappedCards: {
+          attackerGave: result.attackerCard, // Card the attacker gave away
+          attackerReceived: result.targetCard, // Card the attacker received
+          targetGave: result.targetCard, // Card the target gave away
+          targetReceived: result.attackerCard, // Card the target received
+        },
+        timestamp: Date.now(),
+      });
+
       setResultModalData({
         resultText: result.attackerMessage,
         cardPlayed: 6, // Special flag for Phantom King
+        swappedCards: {
+          attackerGave: result.attackerCard, // Card the attacker gave away
+          attackerReceived: result.targetCard, // Card the attacker received
+          targetGave: result.targetCard, // Card the target gave away
+          targetReceived: result.attackerCard, // Card the target received
+        },
+        role: "attacker", // For the EffectResultModal to know which perspective
       });
       pushNotification(roomCode, result.publicMessage);
       return;
@@ -2771,6 +2801,7 @@ export default function Play() {
                 selectedCardId={targetMessageModalData.selectedCardId}
                 role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={targetMessageModalData.message}
+                swappedCards={targetMessageModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(
@@ -3345,9 +3376,13 @@ export default function Play() {
             {resultModalData && (
               <EffectResultModal
                 selectedCardId={resultModalData.selectedCardId}
-                role={currentPlayer === nickname ? "attacker" : "target"}
+                role={
+                  resultModalData.role ||
+                  (currentPlayer === nickname ? "attacker" : "target")
+                }
                 resultText={resultModalData.resultText || resultModalData}
                 cardDetails={resultModalData.cardDetails || null}
+                swappedCards={resultModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(

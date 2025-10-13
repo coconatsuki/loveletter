@@ -163,10 +163,10 @@ export default function TargetModal({
             <em>
               <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>
                 Even after death (and one too many drinks), the late King still
-                meddles in matters of his daughter’s heart
+                meddles in matters of his daughter’s heart.
               </p>
               <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>
-                — usually by making a glorious mess.
+                Usually by making a glorious mess.
               </p>
             </em>
           </div>
@@ -271,7 +271,7 @@ const CourtWhispererMessageStyle = {
 };
 
 const phantomKingMessageStyle = {
-  color: "rgb(235 190 234)",
+  color: "rgb(169 190 240)",
 };
 
 const buttonsContainerStyle = {

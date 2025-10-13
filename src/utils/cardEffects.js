@@ -980,77 +980,32 @@ You chose not to trade hands with anyone.
     const attackerCard = attackerData.hand[0]; // Attacker's remaining card
     const targetCard = targetData.hand[0]; // Target's card
 
-    console.log("🎭 PHANTOM KING: Weaving mystical exchange between:", {
+    console.log("🎭 PHANTOM KING: Preparing mystical exchange between:", {
       attackerCard: attackerCard.name,
       targetCard: targetCard.name,
     });
 
-    // Prepare the ethereal hand swap:
-    // Attacker gets target's card, target gets attacker's card
-    const updatedAttackerHand = [targetCard];
-    const updatedTargetHand = [attackerCard];
-
-    // Update Firebase with the spectral exchange
-    const updates = {
-      [`players/${attacker}/hand`]: updatedAttackerHand,
-      [`players/${target}/hand`]: updatedTargetHand,
-    };
-
-    await update(gameRef, updates);
-
-    console.log(
-      "🎭 PHANTOM KING: The mystical exchange is complete! Cards have crossed realms"
-    );
-
-    // Create atmospheric result messages
-    const attackerResultText = `🎭 PHANTOM KING'S MYSTICAL EXCHANGE! 👑
-
-**You surrendered: ** ${attackerCard.name} (Strength: ${attackerCard.strength})
-*"${attackerCard.effect || "A card of mysterious power"}"*
-
-**You received in return: ** ${targetCard.name} (Strength: ${
-      targetCard.strength
-    })  
-*"${targetCard.effect || "A card of mysterious power"}"*
-
-"Through shadow and mist, the cards have found new masters..."
-- His Phantom Majesty`;
-
-    const targetResultText = `👻 SUMMONED BY THE PHANTOM KING! 🎭
-
-The ethereal sovereign has commanded an exchange of fates!
-
-**Taken from your grasp:**
-${targetCard.name} (Strength: ${targetCard.strength})
-*"${targetCard.effect || "A card of mysterious power"}"*
-
-**Bestowed upon you:**
-${attackerCard.name} (Strength: ${attackerCard.strength})
-*"${attackerCard.effect || "A card of mysterious power"}"*
-
-"Your destiny intertwines with royal mystery... Accept this gift from beyond the veil."
-- By Royal Phantom Decree`;
+    // NOTE: Hand swapping will be done in Play.jsx so we can pass the card details to the modal
+    // Return the cards that will be swapped so Play.jsx can handle both the modal and the Firebase update
 
     return {
-      result: "success",
-      message: `👻 ${attacker} channeled the Phantom King's otherworldly power and exchanged destinies with ${target}! The cards have crossed between realms in a dance of shadows...`,
-      resultText: attackerResultText,
-      attackerMessage: {
-        cardName: "Phantom King",
-        from: attacker,
-        message: attackerResultText,
-        selectedCardIndex: 0, // Not used for Phantom King, but keep consistent
-        shouldAdvanceTurn: true,
-        visibleTo: attacker,
-      },
-      targetMessage: {
-        cardName: "Phantom King",
-        from: attacker,
-        message: targetResultText,
-        selectedCardIndex: 0,
-        shouldAdvanceTurn: false, // Target modal just closes
-        visibleTo: target,
-      },
+      result: "phantomKingSwap",
+      attacker,
+      target,
+      // Return the original cards that will be swapped
+      attackerCard: attackerCard, // Card the attacker is giving away
+      targetCard: targetCard, // Card the target is giving away
+      // New formatted messages
+      attackerMessage: `<div class="effect-description">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand.</div>
+      <div class="effect-description">'Ah! My favorite suitor!' he says. 'Let me fix this little love mess for you!'</div>
+      <div class="effect-description">He waves his cup, spilling ghost-wine everywhere — and suddenly, your standing in the court… changes.</div>
+      <div class="effect-description">Whether that's good or bad, only the future will tell. 👻🍷</div>`,
+
+      targetMessage: `<div class="effect-description">A ghostly burp echoes through the hall. The Phantom King wobbles before you, trying to pat your shoulder but missing by several inches.</div>
+      <div class="effect-description">'My daughter deserves the best!' he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
+      <div class="effect-description">When the ghost fades, the only thing left is confusion… and the faint sound of laughter. 👻✨</div>`,
+
+      publicMessage: `<div class="effect-description">👻🍷 The Phantom King showed up again, 'helping' one suitor at the expense of another. No one's quite sure what changed — but the throne room smells faintly of brandy and regret. 🏰💀</div>`,
     };
   } catch (error) {
     console.error(
