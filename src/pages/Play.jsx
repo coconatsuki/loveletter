@@ -597,7 +597,7 @@ export default function Play() {
     setShowTargetModal(false);
   };
 
-  const playCard = (index, actionData = null) => {
+  const playCard = (index) => {
     // Prevent playing card if round has ended
     if (roomData?.gameState === "roundScoring") {
       console.log("🛑 PLAY CARD blocked - Round has ended");
@@ -609,19 +609,6 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    // If actionData is provided, it means ActionModal already handled target selection
-    if (actionData) {
-      // Handle the action based on card type with target/guess data
-      if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
-        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
-        // Pass the card index directly to avoid state timing issues
-        handleTargetConfirmWithIndex(index, actionData);
-        return;
-      }
-    }
-
-    // Original logic for cards that don't need ActionModal target selection
-    // or when called from old system
     if ([0, 1, 2, 3, 6, 9, 11, 12].includes(card.id)) {
       // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
       setSelectedCardIndex(index);
@@ -782,7 +769,7 @@ export default function Play() {
       // Show a result modal explaining the skip
       setResultModalData({
         selectedCardId: cardPlayed.id,
-        resultText: `Your tour turn is skipped.`,
+        resultText: `Your chose to skip your turn. Your card will have no effect.`,
       });
 
       // Note: Turn will be completed when player closes the result modal
