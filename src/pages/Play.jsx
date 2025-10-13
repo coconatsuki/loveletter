@@ -1313,6 +1313,7 @@ export default function Play() {
   };
 
   // NEW: Handle target confirmation with direct card index (for ActionModal)
+  /*
   const handleTargetConfirmWithIndex = async (cardIndex, { target, guess }) => {
     const cardPlayed = player.hand[cardIndex];
     console.log(
@@ -1546,6 +1547,7 @@ export default function Play() {
       cardPlayed?.id
     );
   };
+  */
 
   /**
    * Completes the current player's turn for non-Guard effects

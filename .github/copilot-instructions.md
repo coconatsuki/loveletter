@@ -211,7 +211,9 @@ IMPORTANT NOTE 1: If the next card played doesn't involve targetting anyone, the
 IMPORTANT NOTE 2: The Court Whisperer effect vanishes at the end of the NEXT TURN, no matter what (end even if it had no effect at all)
 
 ID 13 → Royal Confessor (Strength: 2, Count: 2)
-→ Player chooses any two players (including themselves) and the chosen players trade hands. The player may then look at the chosen player's hand if they chose to trade hands themselves.
+→ Player chooses any two players (including themselves) and the chosen players trade hands. Once the 2 targeted players' hands ve been switched, the current player may then look at ONE of those players' new hand, without revealing it to any other
+players. If less than 2 players still in the round can be chosen, (eg.due
+to Handmaid or active Court Whisperer effect), this card is discarded without effect.
 
 ID 14 → Assassin (Strength: 0, Count: 1)
 → Does nothing when played, but if the player has this card in their hand, they can reveal it when another player targets them with the Guard; that player is eliminated from the round. Afterwards, this card is discarded and the player draws a new hand.
