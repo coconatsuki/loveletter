@@ -87,7 +87,7 @@ export default function TargetModal({
           >
             <option value="">-- Choose a player --</option>
             {isPhantomKing && !isTargetingForced && (
-              <option value="Nobody">👻 Nobody (skip effect)</option>
+              <option value="SKIP_TURN">👻 Nobody (skip effect)</option>
             )}
             {finalValidTargets.map(([name, p]) => (
               <option key={name} value={name}>
@@ -271,7 +271,7 @@ const CourtWhispererMessageStyle = {
 };
 
 const phantomKingMessageStyle = {
-  color: "rgb(169 190 240)",
+  color: "rgb(188 206 249)",
 };
 
 const buttonsContainerStyle = {

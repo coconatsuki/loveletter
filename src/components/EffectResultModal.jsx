@@ -49,6 +49,20 @@ const effectTextStyles = `
     font-size: 1.3rem;
   }
 
+  .effect-description.top {
+    margin-top: 0;
+  }
+
+  .effect-description.phantom-king {
+    font-size: 1.2rem;
+    text-align: justify;
+  }
+
+  .quotation {
+    font-style: italic;
+    color: rgb(247, 105, 166);
+  }
+
   .effect-warning {
     color: #ff4444;
     font-weight: bold;
@@ -193,7 +207,7 @@ export default function EffectResultModal({
                   : isCourtWhispererEffect
                   ? "#FF1493"
                   : isPhantomKingEffect
-                  ? "#4a90e2"
+                  ? "rgb(247 105 166)"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -231,7 +245,8 @@ export default function EffectResultModal({
               isPriestEffect,
               isInquisitorEffect,
               isJesterEffect,
-              isCourtWhispererEffect
+              isCourtWhispererEffect,
+              isPhantomKingEffect
             )}
           >
             {isPriestEffect
@@ -322,89 +337,77 @@ export default function EffectResultModal({
               <div style={phantomKingCardsContainerStyle}>
                 <div style={phantomKingCardRowStyle}>
                   {/* Card given away */}
-                  <div style={phantomKingCardStyle}>
-                    <div style={phantomKingCardStrengthStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerGave.strength
-                        : swappedCards.targetGave.strength}
+                  <div style={phantomCardContainerStyle}>
+                    <div style={phantomKingCardStyle}>
+                      <div style={phantomKingCardStrengthStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.strength
+                          : swappedCards.targetGave.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...phantomKingCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            role === "attacker"
+                              ? swappedCards.attackerGave.name
+                              : swappedCards.targetGave.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={phantomKingCardNameStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.name
+                          : swappedCards.targetGave.name}
+                      </div>
+                      <div style={phantomKingCardEffectStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.effect
+                          : swappedCards.targetGave.effect}
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        ...phantomKingCardImageStyle,
-                        backgroundImage: `url(/src/img/${getCardImage(
-                          role === "attacker"
-                            ? swappedCards.attackerGave.name
-                            : swappedCards.targetGave.name
-                        )})`,
-                      }}
-                    ></div>
-                    <div style={phantomKingCardNameStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerGave.name
-                        : swappedCards.targetGave.name}
-                    </div>
-                    <div style={phantomKingCardEffectStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerGave.effect
-                        : swappedCards.targetGave.effect}
-                    </div>
+                    <p style={cardLabelStyle}>You Received</p>
                   </div>
 
                   <div style={phantomKingArrowStyle}>↔️</div>
 
                   {/* Card received */}
-                  <div style={phantomKingCardStyle}>
-                    <div style={phantomKingCardStrengthStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerReceived.strength
-                        : swappedCards.targetReceived.strength}
+                  <div style={phantomCardContainerStyle}>
+                    <div style={phantomKingCardStyle}>
+                      <div style={phantomKingCardStrengthStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.strength
+                          : swappedCards.targetReceived.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...phantomKingCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            role === "attacker"
+                              ? swappedCards.attackerReceived.name
+                              : swappedCards.targetReceived.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={phantomKingCardNameStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.name
+                          : swappedCards.targetReceived.name}
+                      </div>
+                      <div style={phantomKingCardEffectStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.effect
+                          : swappedCards.targetReceived.effect}
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        ...phantomKingCardImageStyle,
-                        backgroundImage: `url(/src/img/${getCardImage(
-                          role === "attacker"
-                            ? swappedCards.attackerReceived.name
-                            : swappedCards.targetReceived.name
-                        )})`,
-                      }}
-                    ></div>
-                    <div style={phantomKingCardNameStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerReceived.name
-                        : swappedCards.targetReceived.name}
-                    </div>
-                    <div style={phantomKingCardEffectStyle}>
-                      {role === "attacker"
-                        ? swappedCards.attackerReceived.effect
-                        : swappedCards.targetReceived.effect}
-                    </div>
+                    <p style={cardLabelStyle}>You Gave</p>
                   </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    fontSize: "1rem",
-                    color: "#c2d9ff",
-                    fontFamily: '"Cinzel", serif',
-                    textAlign: "center",
-                  }}
-                >
-                  <span style={{ width: "45%" }}>You Gave</span>
-                  <span style={{ width: "45%" }}>You Received</span>
                 </div>
               </div>
 
               {/* Right side - The ghostly message */}
               <div style={phantomKingMessageContainerStyle}>
-                <div style={phantomKingMessageIconStyle}>
-                  <div style={phantomKingGhostIconStyle}>👻</div>
-                  <div style={phantomKingMessageStyle}>
-                    {formatText(resultText)}
-                  </div>
+                <div style={phantomKingMessageStyle}>
+                  {formatText(resultText)}
                 </div>
                 <div
                   style={{
@@ -586,7 +589,8 @@ const getHeaderStyle = (
   isPriestEffect,
   isInquisitorEffect,
   isJesterEffect,
-  isCourtWhispererEffect
+  isCourtWhispererEffect,
+  isPhantomKingEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -598,8 +602,14 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
     : isInquisitorEffect
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
+    : isPhantomKingEffect
+    ? "linear-gradient(135deg, rgb(0 0 14) 0%, rgb(10 23 39) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-  color: isCourtWhispererEffect ? "rgb(242 242 242)" : "#ffd700",
+  color: isCourtWhispererEffect
+    ? "rgb(242 242 242)"
+    : isPhantomKingEffect
+    ? "rgb(247 105 166)"
+    : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -617,6 +627,8 @@ const getHeaderStyle = (
       ? "#FF1493"
       : isHandmaidProtection
       ? "rgb(139, 195, 74)"
+      : isPhantomKingEffect
+      ? "rgb(247 105 166)"
       : "#ffd700"
   }`,
   borderRadius: "20px 20px 0 0",
@@ -878,21 +890,21 @@ const priestGlowAnimation = `
 
 // Phantom King-specific modal styles (ghostly atmosphere)
 const phantomKingModalStyle = {
-  width: "95%",
-  maxWidth: "900px",
+  width: "80%",
+  maxWidth: "80%",
   background:
     "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(30, 30, 60) 50%, rgb(15, 15, 35) 100%)",
-  border: "4px solid #4a90e2",
+  border: "4px solid rgb(247 105 166)",
   boxShadow:
     "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(74, 144, 226, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
 };
 
 const phantomKingLayoutStyle = {
   display: "flex",
-  gap: "25px",
+  gap: "2rem",
   alignItems: "flex-start",
-  margin: "3% 0",
-  justifyContent: "space-around",
+  padding: "2rem 1rem",
+  justifyContent: "space-between",
   height: "100%",
 };
 
@@ -900,16 +912,26 @@ const phantomKingCardsContainerStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  width: "45%",
-  gap: "20px",
+  maxWidth: "47%",
+  height: "-webkit-fill-available",
+  gap: "15px",
 };
 
 const phantomKingCardRowStyle = {
   display: "flex",
-  gap: "20px",
+  gap: "15px",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "space-between",
   width: "100%",
+  height: "-webkit-fill-available",
+};
+
+const phantomCardContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  height: "-webkit-fill-available",
+  justifyContent: "space-between",
 };
 
 const phantomKingCardStyle = {
@@ -928,8 +950,18 @@ const phantomKingCardStyle = {
   border: "2px solid rgba(74, 144, 226, 0.3)",
 };
 
+const cardLabelStyle = {
+  width: "100%",
+  textAlign: "center",
+  color: "rgba(255, 255, 255, 0.95)",
+  margin: "0",
+  marginTop: "0.7rem",
+  fontWeight: "500",
+  fontSize: "1.2rem",
+};
+
 const phantomKingArrowStyle = {
-  fontSize: "2.5rem",
+  fontSize: "2rem",
   color: "#4a90e2",
   filter:
     "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(74, 144, 226, 0.8))",
@@ -990,24 +1022,12 @@ const phantomKingCardEffectStyle = {
 };
 
 const phantomKingMessageContainerStyle = {
-  width: "50%",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "space-between",
   textAlign: "center",
-};
-
-const phantomKingMessageIconStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-};
-
-const phantomKingGhostIconStyle = {
-  fontSize: "4rem",
-  filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))",
-  animation: "ghostlyFloat 2s ease-in-out infinite alternate",
+  height: "-webkit-fill-available",
 };
 
 const phantomKingMessageStyle = {
