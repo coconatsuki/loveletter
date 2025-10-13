@@ -49,6 +49,20 @@ const effectTextStyles = `
     font-size: 1.3rem;
   }
 
+  .effect-description.top {
+    margin-top: 0;
+  }
+
+  .effect-description.phantom-king {
+    font-size: 1.2rem;
+    text-align: justify;
+  }
+
+  .quotation {
+    font-style: italic;
+    color: rgb(247, 105, 166);
+  }
+
   .effect-warning {
     color: #ff4444;
     font-weight: bold;
@@ -73,6 +87,7 @@ export default function EffectResultModal({
   cardDetails = null,
   selectedCardId = -1, // Should never be -1 if properly called - will help us catch bugs
   role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
+  swappedCards = null, // For Phantom King card swap details
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
@@ -125,6 +140,7 @@ export default function EffectResultModal({
   const isCourtWhispererEffect = selectedCardId === 12;
   const isInquisitorEffect = selectedCardId === 9;
   const isChamberlainEffect = selectedCardId === 10;
+  const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -162,6 +178,7 @@ export default function EffectResultModal({
             ...(isPriestEffect ? priestModalStyle : {}),
             ...(isJesterEffect ? jesterModalStyle : {}),
             ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
+            ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -177,6 +194,8 @@ export default function EffectResultModal({
                 ? "rgb(22 3 3)"
                 : isCourtWhispererEffect
                 ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
+                : isPhantomKingEffect
+                ? "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(74, 144, 226) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -187,6 +206,8 @@ export default function EffectResultModal({
                   ? "#ff6b35"
                   : isCourtWhispererEffect
                   ? "#FF1493"
+                  : isPhantomKingEffect
+                  ? "rgb(247 105 166)"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -210,6 +231,8 @@ export default function EffectResultModal({
               ? "🎭"
               : isCourtWhispererEffect
               ? "💅"
+              : isPhantomKingEffect
+              ? "👻"
               : isChamberlainEffect
               ? "💰"
               : isHandmaidProtection
@@ -222,7 +245,8 @@ export default function EffectResultModal({
               isPriestEffect,
               isInquisitorEffect,
               isJesterEffect,
-              isCourtWhispererEffect
+              isCourtWhispererEffect,
+              isPhantomKingEffect
             )}
           >
             {isPriestEffect
@@ -237,6 +261,8 @@ export default function EffectResultModal({
               ? "📜 Your Name's on Every Scroll!"
               : isCourtWhispererEffect
               ? "💅 Court Whisperer Effect 💅"
+              : isPhantomKingEffect
+              ? "🍷 The Boozy Benevolence"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
@@ -297,6 +323,116 @@ export default function EffectResultModal({
                       e.target.style.color = "#ffd700";
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : isPhantomKingEffect && swappedCards ? (
+            /* Special Phantom King Layout with Card Swap Display */
+            <div style={phantomKingLayoutStyle}>
+              {/* Left side - The swapped cards */}
+              <div style={phantomKingCardsContainerStyle}>
+                <div style={phantomKingCardRowStyle}>
+                  {/* Card given away */}
+                  <div style={phantomCardContainerStyle}>
+                    <div style={phantomKingCardStyle}>
+                      <div style={phantomKingCardStrengthStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.strength
+                          : swappedCards.targetGave.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...phantomKingCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            role === "attacker"
+                              ? swappedCards.attackerGave.name
+                              : swappedCards.targetGave.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={phantomKingCardNameStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.name
+                          : swappedCards.targetGave.name}
+                      </div>
+                      <div style={phantomKingCardEffectStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerGave.effect
+                          : swappedCards.targetGave.effect}
+                      </div>
+                    </div>
+                    <p style={cardLabelStyle}>You Gave</p>
+                  </div>
+
+                  <div style={phantomKingArrowStyle}>↔️</div>
+
+                  {/* Card received */}
+                  <div style={phantomCardContainerStyle}>
+                    <div style={phantomKingCardStyle}>
+                      <div style={phantomKingCardStrengthStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.strength
+                          : swappedCards.targetReceived.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...phantomKingCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            role === "attacker"
+                              ? swappedCards.attackerReceived.name
+                              : swappedCards.targetReceived.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={phantomKingCardNameStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.name
+                          : swappedCards.targetReceived.name}
+                      </div>
+                      <div style={phantomKingCardEffectStyle}>
+                        {role === "attacker"
+                          ? swappedCards.attackerReceived.effect
+                          : swappedCards.targetReceived.effect}
+                      </div>
+                    </div>
+                    <p style={cardLabelStyle}>You Received</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - The ghostly message */}
+              <div style={phantomKingMessageContainerStyle}>
+                <div style={phantomKingMessageStyle}>
+                  {formatText(resultText)}
+                </div>
+                <div
+                  style={{
+                    ...buttonContainerStyle,
+                    ...phantomKingButtonContainerStyle,
+                  }}
+                >
+                  <button
+                    onClick={onClose}
+                    style={{
+                      ...buttonStyle,
+                      ...phantomKingButtonStyle,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#1e3d59";
+                      e.target.style.background =
+                        "linear-gradient(135deg, #74b9ff 0%, #c2d9ff 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(74, 144, 226, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#c2d9ff";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(30, 30, 60) 0%, rgb(74, 144, 226) 100%)";
                     }}
                   >
                     Continue
@@ -453,7 +589,8 @@ const getHeaderStyle = (
   isPriestEffect,
   isInquisitorEffect,
   isJesterEffect,
-  isCourtWhispererEffect
+  isCourtWhispererEffect,
+  isPhantomKingEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -465,8 +602,14 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
     : isInquisitorEffect
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
+    : isPhantomKingEffect
+    ? "linear-gradient(135deg, rgb(0 0 14) 0%, rgb(10 23 39) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-  color: isCourtWhispererEffect ? "rgb(242 242 242)" : "#ffd700",
+  color: isCourtWhispererEffect
+    ? "rgb(242 242 242)"
+    : isPhantomKingEffect
+    ? "rgb(247 105 166)"
+    : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -484,6 +627,8 @@ const getHeaderStyle = (
       ? "#FF1493"
       : isHandmaidProtection
       ? "rgb(139, 195, 74)"
+      : isPhantomKingEffect
+      ? "rgb(247 105 166)"
       : "#ffd700"
   }`,
   borderRadius: "20px 20px 0 0",
@@ -743,9 +888,188 @@ const priestGlowAnimation = `
 }
 `;
 
+// Phantom King-specific modal styles (ghostly atmosphere)
+const phantomKingModalStyle = {
+  width: "80%",
+  maxWidth: "80%",
+  background:
+    "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(30, 30, 60) 50%, rgb(15, 15, 35) 100%)",
+  border: "4px solid rgb(247 105 166)",
+  boxShadow:
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(74, 144, 226, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+};
+
+const phantomKingLayoutStyle = {
+  display: "flex",
+  gap: "2rem",
+  alignItems: "flex-start",
+  padding: "2rem 1rem",
+  justifyContent: "space-between",
+  height: "100%",
+};
+
+const phantomKingCardsContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  maxWidth: "47%",
+  height: "-webkit-fill-available",
+  gap: "15px",
+};
+
+const phantomKingCardRowStyle = {
+  display: "flex",
+  gap: "15px",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  height: "-webkit-fill-available",
+};
+
+const phantomCardContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  height: "-webkit-fill-available",
+  justifyContent: "space-between",
+};
+
+const phantomKingCardStyle = {
+  position: "relative",
+  backgroundColor: "rgba(255, 255, 255, 0.95)",
+  borderRadius: "8px",
+  width: "180px",
+  height: "280px",
+  display: "flex",
+  flexDirection: "column",
+  cursor: "default",
+  boxShadow:
+    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(74, 144, 226, 0.4)",
+  transition: "all 0.3s ease",
+  transform: "perspective(1000px) rotateY(-2deg) rotateX(1deg)",
+  border: "2px solid rgba(74, 144, 226, 0.3)",
+};
+
+const cardLabelStyle = {
+  width: "100%",
+  textAlign: "center",
+  color: "rgba(255, 255, 255, 0.95)",
+  margin: "0",
+  marginTop: "0.7rem",
+  fontWeight: "500",
+  fontSize: "1.2rem",
+};
+
+const phantomKingArrowStyle = {
+  fontSize: "2rem",
+  color: "#4a90e2",
+  filter:
+    "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(74, 144, 226, 0.8))",
+  animation: "ghostlyFloat 3s ease-in-out infinite alternate",
+};
+
+const phantomKingCardStrengthStyle = {
+  position: "absolute",
+  top: "-10px",
+  left: "-10px",
+  background: "linear-gradient(135deg, #4a90e2 0%, #74b9ff 100%)",
+  color: "white",
+  borderRadius: "50%",
+  width: "30px",
+  height: "30px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: "bold",
+  fontSize: "1rem",
+  fontFamily: '"Cinzel", serif',
+  border: "3px solid #1e3d59",
+  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.5)",
+  zIndex: 10,
+};
+
+const phantomKingCardImageStyle = {
+  width: "100%",
+  height: "60%",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  border: "2px solid rgba(74, 144, 226, 0.4)",
+  borderRadius: "8px 8px 0 0",
+  boxShadow: "0 3px 8px rgba(0, 0, 0, 0.3)",
+};
+
+const phantomKingCardNameStyle = {
+  fontSize: "1.1rem",
+  fontWeight: "bold",
+  color: "#1e3d59",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
+  fontFamily: '"Cinzel", serif',
+  margin: "3% 0",
+  textTransform: "uppercase",
+  letterSpacing: "1px",
+};
+
+const phantomKingCardEffectStyle = {
+  padding: "0 4%",
+  fontWeight: "300",
+  fontSize: "0.9rem",
+  lineHeight: "1.3",
+  color: "#3a2a1a",
+  textAlign: "justify",
+  fontFamily: '"Lora", serif',
+  fontStyle: "italic",
+};
+
+const phantomKingMessageContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "space-between",
+  textAlign: "center",
+  height: "-webkit-fill-available",
+};
+
+const phantomKingMessageStyle = {
+  fontSize: "1.2rem",
+  color: "#c2d9ff",
+  lineHeight: "1.6",
+  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+  fontFamily: '"Lora", serif',
+};
+
+const phantomKingButtonContainerStyle = {
+  background: "initial",
+  width: "100%",
+  padding: "0",
+};
+
+const phantomKingButtonStyle = {
+  background:
+    "linear-gradient(135deg, rgb(30, 30, 60) 0%, rgb(74, 144, 226) 100%)",
+  color: "#c2d9ff",
+  transition: "all 0.3s ease",
+  width: "70%",
+  border: "2px solid rgba(74, 144, 226, 0.6)",
+};
+
+// Add ghostly float animation
+const ghostlyFloatAnimation = `
+@keyframes ghostlyFloat {
+  0% {
+    transform: translateY(0px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(74, 144, 226, 0.3));
+  }
+  100% {
+    transform: translateY(-8px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(74, 144, 226, 0.6));
+  }
+}
+`;
+
 // Inject the animation styles
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
-  style.textContent = priestGlowAnimation;
+  style.textContent = priestGlowAnimation + ghostlyFloatAnimation;
   document.head.appendChild(style);
 }

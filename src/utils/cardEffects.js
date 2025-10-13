@@ -918,150 +918,29 @@ export async function applyAssassinEffect({ roomCode, player }) {
   }
 }
 
-export async function applyPhantomKingEffect({ roomCode, attacker, target }) {
-  console.log("🎭 PHANTOM KING DEBUG: The ethereal sovereign awakens...", {
-    attacker,
-    target,
-  });
+export async function applyPhantomKingEffect({ attacker, target }) {
+  const returnValue = {
+    result: "success",
 
-  try {
-    const gameRef = ref(db, `rooms/${roomCode}`);
-    const snapshot = await get(gameRef);
+    // New formatted messages
+    attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>
+      <div class="effect-description phantom-king"><span class="quotation">'Ah! My favorite suitor!'</span> he says. <span class="quotation">'Let me fix this little love mess for you!'</span></div>
+      <div class="effect-description phantom-king">He waves his cup, spilling ghost-wine everywhere — and suddenly, your standing in the court… changes.</div>
+      <div class="effect-description phantom-king">Whether that's good or bad, only the future will tell.</div>`,
 
-    if (!snapshot.exists()) {
-      throw new Error(
-        "The royal chambers have vanished into the ethereal void..."
-      );
-    }
+    targetMessage: `<div class="effect-description phantom-king top">✨ A ghostly burp echoes through the hall. The Phantom King wobbles before you, trying to pat your shoulder but missing by several inches.</div>
+      <div class="effect-description phantom-king"><span class="quotation">'Ha! I'd rather have ${attacker} sit on my throne than you!'</span> he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
+      <div class="effect-description phantom-king">When the ghost fades, the only thing left is confusion… and the faint sound of laughter. 👻</div>`,
 
-    const gameData = snapshot.val();
-    const attackerData = gameData.players[attacker];
+    publicMessage: `<div class="effect-description">👻🍷 The Phantom King showed up again, 'helping' one suitor at the expense of another. No one's quite sure what changed — but the throne room smells faintly of brandy and regret. 🏰💀</div>`,
+  };
 
-    // Handle "Nobody" selection (skip effect)
-    if (target === "Nobody") {
-      console.log("🎭 PHANTOM KING: The king chooses discretion over action");
+  console.log(
+    "🎭 PHANTOM KING DEBUG (from applyPhantomKingEffect): Returning result:",
+    returnValue
+  );
 
-      return {
-        result: "skipped",
-        message: `👻 ${attacker} gazed into the shadows and chose to keep their royal secrets... The Phantom King's power remains dormant.`,
-        resultText: `🎭 ROYAL DISCRETION! 👑
-
-You chose not to trade hands with anyone.
-
-"Sometimes the greatest power is knowing when not to use it..."
-- The Phantom King
-
-*The shadows whisper of wisdom in restraint*`,
-        attackerMessage: null, // No additional modal needed
-        targetMessage: null,
-      };
-    }
-
-    const targetData = gameData.players[target];
-
-    if (!targetData || targetData.isOut) {
-      throw new Error(
-        "The chosen soul has already departed from this realm..."
-      );
-    }
-
-    // Get the cards to trade - at this point Phantom King should already be discarded
-    if (!attackerData.hand || attackerData.hand.length !== 1) {
-      throw new Error(
-        "The phantom requires exactly one card remaining after playing the Phantom King..."
-      );
-    }
-
-    if (!targetData.hand || targetData.hand.length !== 1) {
-      throw new Error("The target must have exactly one card to exchange...");
-    }
-
-    // Get the remaining cards
-    const attackerCard = attackerData.hand[0]; // Attacker's remaining card
-    const targetCard = targetData.hand[0]; // Target's card
-
-    console.log("🎭 PHANTOM KING: Weaving mystical exchange between:", {
-      attackerCard: attackerCard.name,
-      targetCard: targetCard.name,
-    });
-
-    // Prepare the ethereal hand swap:
-    // Attacker gets target's card, target gets attacker's card
-    const updatedAttackerHand = [targetCard];
-    const updatedTargetHand = [attackerCard];
-
-    // Update Firebase with the spectral exchange
-    const updates = {
-      [`players/${attacker}/hand`]: updatedAttackerHand,
-      [`players/${target}/hand`]: updatedTargetHand,
-    };
-
-    await update(gameRef, updates);
-
-    console.log(
-      "🎭 PHANTOM KING: The mystical exchange is complete! Cards have crossed realms"
-    );
-
-    // Create atmospheric result messages
-    const attackerResultText = `🎭 PHANTOM KING'S MYSTICAL EXCHANGE! 👑
-
-**You surrendered: ** ${attackerCard.name} (Strength: ${attackerCard.strength})
-*"${attackerCard.effect || "A card of mysterious power"}"*
-
-**You received in return: ** ${targetCard.name} (Strength: ${
-      targetCard.strength
-    })  
-*"${targetCard.effect || "A card of mysterious power"}"*
-
-"Through shadow and mist, the cards have found new masters..."
-- His Phantom Majesty`;
-
-    const targetResultText = `👻 SUMMONED BY THE PHANTOM KING! 🎭
-
-The ethereal sovereign has commanded an exchange of fates!
-
-**Taken from your grasp:**
-${targetCard.name} (Strength: ${targetCard.strength})
-*"${targetCard.effect || "A card of mysterious power"}"*
-
-**Bestowed upon you:**
-${attackerCard.name} (Strength: ${attackerCard.strength})
-*"${attackerCard.effect || "A card of mysterious power"}"*
-
-"Your destiny intertwines with royal mystery... Accept this gift from beyond the veil."
-- By Royal Phantom Decree`;
-
-    return {
-      result: "success",
-      message: `👻 ${attacker} channeled the Phantom King's otherworldly power and exchanged destinies with ${target}! The cards have crossed between realms in a dance of shadows...`,
-      resultText: attackerResultText,
-      attackerMessage: {
-        cardName: "Phantom King",
-        from: attacker,
-        message: attackerResultText,
-        selectedCardIndex: 0, // Not used for Phantom King, but keep consistent
-        shouldAdvanceTurn: true,
-        visibleTo: attacker,
-      },
-      targetMessage: {
-        cardName: "Phantom King",
-        from: attacker,
-        message: targetResultText,
-        selectedCardIndex: 0,
-        shouldAdvanceTurn: false, // Target modal just closes
-        visibleTo: target,
-      },
-    };
-  } catch (error) {
-    console.error(
-      "🎭 PHANTOM KING ERROR: The shadows reject this exchange:",
-      error
-    );
-    return {
-      result: "error",
-      message: `💀 The Phantom King's power falters... ${error.message}`,
-    };
-  }
+  return returnValue;
 }
 
 // 👑 Princess Card (ID: 8, Strength: 8)

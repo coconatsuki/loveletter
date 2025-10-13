@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
-import { ref, onValue, update, set } from "firebase/database";
+import { ref, onValue, update, set, get } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import InquisitorTargetModal from "../components/InquisitorTargetModal";
 import EffectResultModal from "../components/EffectResultModal";
@@ -23,7 +23,6 @@ import {
   applyRegentQueenEffect,
   applyHandmaidEffect,
   applyPrinceEffect,
-  applyKingEffect,
   applyPhantomKingEffect,
   applyCountessEffect,
   applyAssassinEffect,
@@ -35,7 +34,6 @@ import {
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
 import {
-  logRoundEndCheck,
   checkRoundEndConditions,
   triggerRoundEnd,
   triggerRoundEndIfNeeded,
@@ -306,14 +304,6 @@ export default function Play() {
     const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
     const unsubscribe = onValue(promptRef, (snapshot) => {
       const data = snapshot.val();
-      console.log(`🔍 GUARD PROMPT LISTENER DEBUG:`, {
-        data: data,
-        hasData: !!data,
-        targetMatches: data && data.target === nickname,
-        nickname: nickname,
-        dataTarget: data?.target,
-        fullData: data,
-      });
 
       if (data && data.target === nickname) {
         console.log(`🔍 SETTING GUARD TARGET PROMPT DATA:`, data);
@@ -607,7 +597,7 @@ export default function Play() {
     setShowTargetModal(false);
   };
 
-  const playCard = (index, actionData = null) => {
+  const playCard = (index) => {
     // Prevent playing card if round has ended
     if (roomData?.gameState === "roundScoring") {
       console.log("🛑 PLAY CARD blocked - Round has ended");
@@ -619,19 +609,6 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    // If actionData is provided, it means ActionModal already handled target selection
-    if (actionData) {
-      // Handle the action based on card type with target/guess data
-      if ([0, 1, 2, 3, 6, 9, 11].includes(card.id)) {
-        // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen)
-        // Pass the card index directly to avoid state timing issues
-        handleTargetConfirmWithIndex(index, actionData);
-        return;
-      }
-    }
-
-    // Original logic for cards that don't need ActionModal target selection
-    // or when called from old system
     if ([0, 1, 2, 3, 6, 9, 11, 12].includes(card.id)) {
       // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
       setSelectedCardIndex(index);
@@ -792,9 +769,7 @@ export default function Play() {
       // Show a result modal explaining the skip
       setResultModalData({
         selectedCardId: cardPlayed.id,
-        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
-          cardNames[cardPlayed.id]
-        } cannot find a target, so your turn is skipped.`,
+        resultText: `Your chose to skip your turn. Your card will have no effect.`,
       });
 
       // Note: Turn will be completed when player closes the result modal
@@ -1122,19 +1097,28 @@ export default function Play() {
     // === PHANTOM KING CARD LOGIC (ID: 6) ===
     else if (cardPlayed.id === 6) {
       console.log(
-        "🎭 PHANTOM KING DEBUG: The ethereal sovereign awakens, preparing mystical exchange with target:",
+        "👻 PHANTOM KING: GOING TO handleTargetConfirm / Starting effect with target:",
         target
       );
 
       try {
         // STEP 1: Discard Phantom King FIRST, before any effect processing
         console.log(
-          "🎭 PHANTOM KING STEP 1: Discarding the ethereal sovereign..."
+          "🎭 PHANTOM KING STEP 1: Discarding the ethereal sovereign... Player name: ",
+          player
         );
+
         const newHand = player.hand.filter(
           (_, index) => index !== selectedCardIndex
         );
         const newDiscard = [...(player.discard || []), cardPlayed];
+
+        console.log(
+          "🎭 PHANTOM KING STEP 1.5: newHand: ",
+          newHand[0],
+          " / newDiscard: ",
+          newDiscard[-1]
+        );
 
         // Apply the discard immediately to Firebase
         await update(ref(db, `rooms/${roomCode}`), {
@@ -1143,68 +1127,137 @@ export default function Play() {
         });
 
         console.log(
-          "🎭 PHANTOM KING STEP 1 COMPLETE: Phantom King banished to discard pile"
+          "🎭 PHANTOM KING STEP 1 COMPLETE: Phantom King banished to",
+          player,
+          "'s discard pile"
         );
 
         // STEP 2: Apply hand swap effect (now both players have exactly 1 card)
         console.log(
           "🎭 PHANTOM KING STEP 2: Weaving mystical hand exchange..."
         );
+
+        const gameRef = ref(db, `rooms/${roomCode}`);
+        const snapshot = await get(gameRef);
+
+        if (!snapshot.exists()) {
+          throw new Error(
+            "The royal chambers have vanished into the ethereal void..."
+          );
+        }
+
+        const gameData = snapshot.val();
+        const attackerData = gameData.players[nickname];
+
+        console.log("🎭 PHANTOM KING DEBUG: Game data loaded", {
+          hasGameData: !!gameData,
+          hasAttackerData: !!attackerData,
+          attackerHand: attackerData?.hand,
+        });
+
+        const targetData = gameData.players[target];
+
+        if (!targetData || targetData.isOut) {
+          throw new Error(
+            "The chosen soul has already departed from this realm..."
+          );
+        }
+
+        // Get the cards to trade - at this point Phantom King should already be discarded
+        if (!attackerData.hand || attackerData.hand.length !== 1) {
+          throw new Error(
+            "The phantom requires exactly one card remaining after playing the Phantom King..."
+          );
+        }
+
+        if (!targetData.hand || targetData.hand.length !== 1) {
+          throw new Error(
+            "The target must have exactly one card to exchange..."
+          );
+        }
+
+        // Get the remaining cards
+        const attackerCard = attackerData.hand[0]; // Attacker's remaining card
+        const targetCard = targetData.hand[0]; // Target's card
+
+        console.log("🎭 PHANTOM KING: Preparing mystical exchange between:", {
+          attackerCard: attackerCard.name,
+          targetCard: targetCard.name,
+        });
+
+        // Normal swap case - check if we have the required data
+        if (!attackerCard || !targetCard) {
+          console.error("👻 PHANTOM KING ERROR: Missing card data");
+          setResultModalData({
+            selectedCardId: 6,
+            resultText:
+              "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
+          });
+          return;
+        }
+
+        // Apply the hand swap in Firebase (moved from cardEffects.js)
+        console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
+        const updates = {
+          [`players/${nickname}/hand`]: [targetCard], // Attacker gets target's card
+          [`players/${target}/hand`]: [attackerCard], // Target gets attacker's card
+        };
+        await update(ref(db, `rooms/${roomCode}`), updates);
+        console.log("👻 PHANTOM KING: Hand swap completed");
+
+        const newAttackerCard = targetCard;
+        const newTargetCard = attackerCard;
+
         const result = await applyPhantomKingEffect({
           roomCode,
           attacker: nickname,
-          target: target,
+          target,
+          targetCard: newTargetCard,
+          attackerCard: newAttackerCard,
         });
 
-        if (result.result === "success") {
-          console.log(
-            "🎭 PHANTOM KING STEP 2 COMPLETE: Hands have been exchanged"
-          );
+        // Show target message to the target
+        console.log("👻 PHANTOM KING: Sending target message to:", target);
 
-          // Send target message if there's a target involved
-          if (result.targetMessage) {
-            console.log("🎭 PHANTOM KING: Sending ethereal message to target");
-            await update(
-              ref(db, `rooms/${roomCode}/targetMessage`),
-              result.targetMessage
-            );
-          }
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          message: result.targetMessage,
+          swappedCards: {
+            attackerGave: attackerCard, // Card the attacker gave away
+            attackerReceived: targetCard, // Card the attacker received
+            targetGave: targetCard, // Card the target gave away
+            targetReceived: attackerCard, // Card the target received
+          },
+          timestamp: Date.now(),
+        });
+        console.log("👻 PHANTOM KING: Target message sent successfully");
 
-          // Show attacker result modal (this will advance turn)
-          setResultModalData({
-            resultText: result.resultText,
-            isInfoOnly: false, // Phantom King attacker modal advances turn
-            cardPlayed: 6, // Phantom King ID
-          });
-
-          // Push notification to the royal court
-          await pushNotification(roomCode, result.message);
-
-          console.log(
-            "🎭 PHANTOM KING STEP 3 COMPLETE: All communications sent"
-          );
-        } else if (result.result === "skipped") {
-          // Handle the king's discretion
-          setResultModalData({
-            resultText: result.resultText,
-            isInfoOnly: false, // Still advance turn even when skipped
-            cardPlayed: 6, // Phantom King ID
-          });
-          await pushNotification(roomCode, result.message);
-        } else {
-          console.error("🎭 Phantom King exchange failed:", result.message);
-          setResultModalData({
-            resultText: `💀 The Phantom King's power falters... ${result.message}`,
-          });
-        }
-      } catch (error) {
-        console.error("🎭 Error invoking Phantom King magic:", error);
         setResultModalData({
-          resultText: `💀 The shadows reject this exchange: ${error.message}`,
+          selectedCardId: 6, // Phantom King card ID
+          resultText: result.attackerMessage,
+          cardPlayed: 6, // Special flag for Phantom King
+          swappedCards: {
+            attackerGave: attackerCard, // Card the attacker gave away
+            attackerReceived: targetCard, // Card the attacker received
+            targetGave: targetCard, // Card the target gave away
+            targetReceived: attackerCard, // Card the target received
+          },
+          role: "attacker", // For the EffectResultModal to know which perspective
         });
+        pushNotification(roomCode, result.publicMessage);
+        return;
+      } catch (error) {
+        console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
+        setResultModalData({
+          selectedCardId: 6,
+          resultText: `❌ The Phantom King's power faltered... ${
+            error.message || "Unknown error"
+          }`,
+        });
+        return;
       }
-
-      return;
     }
 
     // === INQUISITOR CARD LOGIC (ID: 9) ===
@@ -1402,17 +1455,88 @@ export default function Play() {
 
     // === PHANTOM KING CARD LOGIC (ID: 6) ===
     else if (cardPlayed.id === 6) {
-      const result = await applyPhantomKingEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-        cardPlayed: 6, // Special flag for Phantom King
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
+      console.log("👻 PHANTOM KING: Starting effect with target:", target);
+
+      try {
+        const result = await applyPhantomKingEffect({
+          roomCode,
+          attacker: nickname,
+          target,
+        });
+
+        console.log("👻 PHANTOM KING: Effect result:", result);
+
+        // Handle "Nobody" selection case
+        if (result.result === "skipped") {
+          setResultModalData({
+            selectedCardId: 6,
+            resultText: result.resultText,
+          });
+          pushNotification(roomCode, result.message);
+          return;
+        }
+
+        // Normal swap case - check if we have the required data
+        if (!result.attackerCard || !result.targetCard) {
+          console.error("👻 PHANTOM KING ERROR: Missing card data", result);
+          setResultModalData({
+            selectedCardId: 6,
+            resultText:
+              "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
+          });
+          return;
+        }
+
+        // Apply the hand swap in Firebase (moved from cardEffects.js)
+        console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
+        const updates = {
+          [`players/${nickname}/hand`]: [result.targetCard], // Attacker gets target's card
+          [`players/${target}/hand`]: [result.attackerCard], // Target gets attacker's card
+        };
+        await update(ref(db, `rooms/${roomCode}`), updates);
+        console.log("👻 PHANTOM KING: Hand swap completed");
+
+        // Show target message to the target
+        console.log("👻 PHANTOM KING: Sending target message to:", target);
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          message: result.targetMessage,
+          swappedCards: {
+            attackerGave: result.attackerCard, // Card the attacker gave away
+            attackerReceived: result.targetCard, // Card the attacker received
+            targetGave: result.targetCard, // Card the target gave away
+            targetReceived: result.attackerCard, // Card the target received
+          },
+          timestamp: Date.now(),
+        });
+        console.log("👻 PHANTOM KING: Target message sent successfully");
+
+        setResultModalData({
+          selectedCardId: 6, // Phantom King card ID
+          resultText: result.attackerMessage,
+          cardPlayed: 6, // Special flag for Phantom King
+          swappedCards: {
+            attackerGave: result.attackerCard, // Card the attacker gave away
+            attackerReceived: result.targetCard, // Card the attacker received
+            targetGave: result.targetCard, // Card the target gave away
+            targetReceived: result.attackerCard, // Card the target received
+          },
+          role: "attacker", // For the EffectResultModal to know which perspective
+        });
+        pushNotification(roomCode, result.publicMessage);
+        return;
+      } catch (error) {
+        console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
+        setResultModalData({
+          selectedCardId: 6,
+          resultText: `❌ The Phantom King's power faltered... ${
+            error.message || "Unknown error"
+          }`,
+        });
+        return;
+      }
     }
 
     // Fallback for unknown cards
@@ -2771,6 +2895,7 @@ export default function Play() {
                 selectedCardId={targetMessageModalData.selectedCardId}
                 role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={targetMessageModalData.message}
+                swappedCards={targetMessageModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(
@@ -3345,9 +3470,13 @@ export default function Play() {
             {resultModalData && (
               <EffectResultModal
                 selectedCardId={resultModalData.selectedCardId}
-                role={currentPlayer === nickname ? "attacker" : "target"}
+                role={
+                  resultModalData.role ||
+                  (currentPlayer === nickname ? "attacker" : "target")
+                }
                 resultText={resultModalData.resultText || resultModalData}
                 cardDetails={resultModalData.cardDetails || null}
+                swappedCards={resultModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(
