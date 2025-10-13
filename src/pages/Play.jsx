@@ -23,7 +23,6 @@ import {
   applyRegentQueenEffect,
   applyHandmaidEffect,
   applyPrinceEffect,
-  applyKingEffect,
   applyPhantomKingEffect,
   applyCountessEffect,
   applyAssassinEffect,
@@ -35,7 +34,6 @@ import {
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
 import {
-  logRoundEndCheck,
   checkRoundEndConditions,
   triggerRoundEnd,
   triggerRoundEndIfNeeded,
