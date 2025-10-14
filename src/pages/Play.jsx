@@ -30,6 +30,7 @@ import {
   applyPrincessEffect,
   applyInquisitorEffect,
   applyCourtWhispererEffect,
+  applyRoyalConfessorEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -102,6 +103,9 @@ export default function Play() {
   const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
   const [inquisitorResultModalData, setInquisitorResultModalData] =
     useState(null);
+  const [royalConfessorResultModalData, setRoyalConfessorResultModalData] =
+    useState(null);
+
   const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
@@ -127,6 +131,7 @@ export default function Play() {
     return !!(
       resultModalData ||
       inquisitorResultModalData ||
+      royalConfessorResultModalData ||
       priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
@@ -496,6 +501,7 @@ export default function Play() {
       baronResultModalData: !!baronResultModalData,
       targetMessageModalData: !!targetMessageModalData,
       inquisitorResultModalData: !!inquisitorResultModalData,
+      royalConfessorResultModalData: !!royalConfessorResultModalData,
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
@@ -753,7 +759,7 @@ export default function Play() {
     // Note: Turn will be completed when player closes the result modal
   };
 
-  const handleTargetConfirm = async ({ target, guess }) => {
+  const handleTargetConfirm = async ({ target, target2, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
     console.log(
@@ -1259,51 +1265,74 @@ export default function Play() {
     } else if (cardPlayed.id === 13) {
       const result = await applyRoyalConfessorEffect({
         roomCode,
-        target1,
+        target1: target,
         target2,
         attacker,
         selectedCardIndex,
         cardPlayed,
       });
 
-        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-          selectedCardId: cardPlayed.id,
-          visibleTo: target,
-          attacker: nickname,
-          message: result.targetMessage,
-          swappedCards: {
-            attackerGave: attackerCard, // Card the attacker gave away
-            attackerReceived: targetCard, // Card the attacker received
-            targetGave: targetCard, // Card the target gave away
-            targetReceived: attackerCard, // Card the target received
-          },
-          timestamp: Date.now(),
-        });
-        console.log("👻 PHANTOM KING: Target message sent successfully");
+      const attackerData = roomData.players[attacker];
+      const target1Data = roomData.players[target];
+      const target2Data = roomData.players[target2];
 
-        setResultModalData({
-          selectedCardId: 6, // Phantom King card ID
-          resultText: result.attackerMessage,
-          cardPlayed: 6, // Special flag for Phantom King
-          swappedCards: {
-            attackerGave: attackerCard, // Card the attacker gave away
-            attackerReceived: targetCard, // Card the attacker received
-            targetGave: targetCard, // Card the target gave away
-            targetReceived: attackerCard, // Card the target received
-          },
-          role: "attacker", // For the EffectResultModal to know which perspective
-        });
-        pushNotification(roomCode, result.publicMessage);
-        return;
+      // TO DO ARCHIE: check if attacker=target1 here.
+      // If so, we just have to display ONE EffectResultModal to target2,
+      // and the RoyalConfessorResultModal to the attacker
+      // If NOT, we'll have to display TWO EffectResultModals to both targets,
+      // and the RoyalConfessorResultModal to the attacker
 
+      // TO DO ARCHIE: here is what we need if attacker=target1
+      // Not sure how we can handle the case when both targets1 and 2 are different from attacker
+
+      if (!attackerData || !target1Data || !target2Data) {
         setResultModalData({
-          selectedCardId: 6,
-          resultText: `❌ The Phantom King's power faltered... ${
-            error.message || "Unknown error"
-          }`,
+          resultText: `❌ Error: One of the players involved does not exist.`,
         });
         return;
-      
+      }
+
+      // NOTE ARCHIE: this would be for Target2, in case attacker=target1:
+
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target2,
+        attacker: nickname,
+        message: result.target2Message,
+        confessorSwappedCards: {
+          target1Gave: target1Card, // Card the attacker gave away
+          target1Received: target2Card, // Card the attacker received
+          target2Gave: target2Card, // Card the target gave away
+          target2Received: target1Card, // Card the target received
+        },
+        timestamp: Date.now(),
+      });
+
+      console.log(
+        "ROYAL CONFESSOR: Target message sent successfully to target2"
+      );
+
+      // QUESTION ARCHIE: do we just need to add one more "await update(ref(db, `rooms/${roomCode}/targetMessage`)"
+      // if attacker != target1, to send a message to target1 as well? Is it as simple as that?
+      // If so, please do it :)
+
+      // Here is for the attacker, who could ALSO be target1:
+
+      setRoyalConfessorResultModalData({
+        selectedCardId: 13, // Royal Confessor card ID
+        resultText: result.attackerMessage,
+        cardPlayed: 13, // Special flag for Royal Confessor
+        swappedCards: {
+          target1Gave: target1Card, // Card the attacker gave away
+          target1Received: target2Card, // Card the attacker received
+          target2Gave: target2Card, // Card the target gave away
+          target2Received: target1Card, // Card the target received
+        },
+        role: "attacker", // For the EffectResultModal to know which perspective
+      });
+
+      pushNotification(roomCode, result.publicMessage);
+      return;
     }
 
     // === INQUISITOR CARD LOGIC (ID: 9) ===
@@ -2325,6 +2354,8 @@ export default function Play() {
                   !regentQueenResultModalData &&
                   !regentQueenTargetModalData &&
                   !targetMessageModalData &&
+                  !royalConfessorResultModalData &&
+                  !inquisitorResultModalData &&
                   !showGuardTargetPrompt &&
                   !roundEndModalData &&
                   !isModalTransitioning &&
@@ -3431,6 +3462,15 @@ export default function Play() {
                     }
                   })
                 }
+              />
+            )}
+
+            {/* === ROYAL CONFESSOR RESULT MODAL === */}
+            {/* === TO DO ARCHIE: let's complete what this component does and needs === */}
+            {royalConfessorResultModalData && (
+              <RoyalConfessorResultModal
+                data={royalConfessorResultModalData}
+                onClose={() => setRoyalConfessorResultModalData(null)}
               />
             )}
           </div>
