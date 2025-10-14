@@ -334,7 +334,13 @@ export default function InquisitorTargetModal({
             ↩️ Back
           </button>
           <button
-            onClick={() => onConfirm({ target: selectedTarget, guess })}
+            onClick={() =>
+              onConfirm({
+                target: selectedTarget,
+                target2: selectedTarget2,
+                guess,
+              })
+            }
             disabled={isConfirmDisabled}
             onMouseEnter={() => setIsConfirmHovered(true)}
             onMouseLeave={() => setIsConfirmHovered(false)}

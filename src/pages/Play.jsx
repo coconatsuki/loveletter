@@ -1256,6 +1256,54 @@ export default function Play() {
         });
         return;
       }
+    } else if (cardPlayed.id === 13) {
+      const result = await applyRoyalConfessorEffect({
+        roomCode,
+        target1,
+        target2,
+        attacker,
+        selectedCardIndex,
+        cardPlayed,
+      });
+
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          message: result.targetMessage,
+          swappedCards: {
+            attackerGave: attackerCard, // Card the attacker gave away
+            attackerReceived: targetCard, // Card the attacker received
+            targetGave: targetCard, // Card the target gave away
+            targetReceived: attackerCard, // Card the target received
+          },
+          timestamp: Date.now(),
+        });
+        console.log("👻 PHANTOM KING: Target message sent successfully");
+
+        setResultModalData({
+          selectedCardId: 6, // Phantom King card ID
+          resultText: result.attackerMessage,
+          cardPlayed: 6, // Special flag for Phantom King
+          swappedCards: {
+            attackerGave: attackerCard, // Card the attacker gave away
+            attackerReceived: targetCard, // Card the attacker received
+            targetGave: targetCard, // Card the target gave away
+            targetReceived: attackerCard, // Card the target received
+          },
+          role: "attacker", // For the EffectResultModal to know which perspective
+        });
+        pushNotification(roomCode, result.publicMessage);
+        return;
+
+        setResultModalData({
+          selectedCardId: 6,
+          resultText: `❌ The Phantom King's power faltered... ${
+            error.message || "Unknown error"
+          }`,
+        });
+        return;
+      
     }
 
     // === INQUISITOR CARD LOGIC (ID: 9) ===

@@ -943,6 +943,180 @@ export async function applyPhantomKingEffect({ attacker, target }) {
   return returnValue;
 }
 
+// Royal Confessor Card (ID: 13, Strength: 2)
+// Effect: If 2 valid targets are provided, their hands are switched.
+export async function applyRoyalConfessorEffect({
+  roomCode,
+  target1,
+  target2,
+  attacker,
+  selectedCardIndex,
+  cardPlayed,
+}) {
+  console.log(
+    "ROYAL CONFESSOR: GOING TO applyRoyalConfessorEffect. Target1: ",
+    target1,
+    " / Target2: ",
+    target2,
+    " / attacker: ",
+    attacker
+  );
+
+  try {
+    // STEP 1: Discard Royal Confessor FIRST, before any effect processing
+    console.log(
+      "🎭 ROYAL CONFESSOR STEP 1: Discarding the confessor... Player name: ",
+      attacker
+    );
+
+    const newHand = attacker.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(attacker.discard || []), cardPlayed];
+
+    console.log(
+      "ROYAL CONFESSOR STEP 1.5: newHand: ",
+      newHand[0],
+      " / newDiscard: ",
+      newDiscard[-1]
+    );
+
+    // Apply the discard immediately to Firebase
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+    });
+
+    console.log(
+      "🎭 ROYAL CONFESSOR STEP 1 COMPLETE: Phantom King banished to",
+      player,
+      "'s discard pile"
+    );
+
+    // STEP 2: Apply hand swap effect (now both players have exactly 1 card)
+    console.log("🎭 ROYAL CONFESSOR STEP 2: Weaving mystical hand exchange...");
+
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error(
+        "The royal chambers have vanished into the ethereal void..."
+      );
+    }
+
+    const gameData = snapshot.val();
+    const attackerData = gameData.players[nickname];
+
+    console.log("🎭 ROYAL CONFESSOR DEBUG: Game data loaded", {
+      hasGameData: !!gameData,
+      hasAttackerData: !!attackerData,
+      attackerHand: attackerData?.hand,
+    });
+
+    const targetData = gameData.players[target];
+
+    if (!targetData || targetData.isOut) {
+      throw new Error(
+        "The chosen soul has already departed from this realm..."
+      );
+    }
+
+    // Get the cards to trade - at this point Phantom King should already be discarded
+    if (!attackerData.hand || attackerData.hand.length !== 1) {
+      throw new Error(
+        "The royal confessor requires exactly one card remaining after playing the Royal Confessor..."
+      );
+    }
+
+    if (!targetData.hand || targetData.hand.length !== 1) {
+      throw new Error("The target must have exactly one card to exchange...");
+    }
+
+    // Get the remaining cards
+    const attackerCard = attackerData.hand[0]; // Attacker's remaining card
+    const targetCard = targetData.hand[0]; // Target's card
+
+    console.log("🎭 ROYAL CONFESSOR: Preparing mystical exchange between:", {
+      attackerCard: attackerCard.name,
+      targetCard: targetCard.name,
+    });
+
+    // Normal swap case - check if we have the required data
+    if (!attackerCard || !targetCard) {
+      console.error("👻 ROYAL CONFESSOR ERROR: Missing card data");
+      setResultModalData({
+        selectedCardId: 6,
+        resultText:
+          "❌ The Royal Confessor's power failed... Something went wrong with the card exchange.",
+      });
+      return;
+    }
+
+    // Apply the hand swap in Firebase (moved from cardEffects.js)
+    console.log("👻 ROYAL CONFESSOR: Applying hand swap to Firebase");
+    const updates = {
+      [`players/${nickname}/hand`]: [targetCard], // Attacker gets target's card
+      [`players/${target}/hand`]: [attackerCard], // Target gets attacker's card
+    };
+    await update(ref(db, `rooms/${roomCode}`), updates);
+    console.log("👻 ROYAL CONFESSOR: Hand swap completed");
+
+    const newAttackerCard = targetCard;
+    const newTargetCard = attackerCard;
+
+    const result = await applyPhantomKingEffect({
+      roomCode,
+      attacker: nickname,
+      target,
+      targetCard: newTargetCard,
+      attackerCard: newAttackerCard,
+    });
+
+    // Show target message to the target
+    console.log("👻 ROYAL CONFESSOR: Sending target message to:", target);
+
+    await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+      selectedCardId: cardPlayed.id,
+      visibleTo: target,
+      attacker: nickname,
+      message: result.targetMessage,
+      swappedCards: {
+        attackerGave: attackerCard, // Card the attacker gave away
+        attackerReceived: targetCard, // Card the attacker received
+        targetGave: targetCard, // Card the target gave away
+        targetReceived: attackerCard, // Card the target received
+      },
+      timestamp: Date.now(),
+    });
+    console.log("👻 ROYAL CONFESSOR: Target message sent successfully");
+
+    setResultModalData({
+      selectedCardId: 6, // Phantom King card ID
+      resultText: result.attackerMessage,
+      cardPlayed: 6, // Special flag for Phantom King
+      swappedCards: {
+        attackerGave: attackerCard, // Card the attacker gave away
+        attackerReceived: targetCard, // Card the attacker received
+        targetGave: targetCard, // Card the target gave away
+        targetReceived: attackerCard, // Card the target received
+      },
+      role: "attacker", // For the EffectResultModal to know which perspective
+    });
+    pushNotification(roomCode, result.publicMessage);
+    return;
+  } catch (error) {
+    console.error("👻 ROYAL CONFESSOR EXCHANGE ERROR:", error);
+    setResultModalData({
+      selectedCardId: 6,
+      resultText: `❌ The Royal Confessor's power faltered... ${
+        error.message || "Unknown error"
+      }`,
+    });
+    return;
+  }
+}
+
 // 👑 Princess Card (ID: 8, Strength: 8)
 // Effect: If the player plays or discards this card for any reason, they are eliminated from the round.
 export async function applyPrincessEffect({ roomCode, player }) {
