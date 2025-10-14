@@ -4,6 +4,7 @@ import { db } from "../utils/firebase";
 import { ref, onValue, update, set, get } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import InquisitorTargetModal from "../components/InquisitorTargetModal";
+import RoyalConfessorTargetModal from "../components/RoyalConfessorTargetModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
@@ -554,9 +555,6 @@ export default function Play() {
         [`players/${nickname}/hand`]: newHand,
       });
     }
-
-    // Keep ActionModal open for card selection after drawing
-    // The modal will stay open until the player plays a card
   };
 
   // 🎭 Countess Force-Play Detection
@@ -609,7 +607,7 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    if ([0, 1, 2, 3, 6, 9, 11, 12].includes(card.id)) {
+    if ([0, 1, 2, 3, 6, 9, 11, 12, 13].includes(card.id)) {
       // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
@@ -1311,243 +1309,6 @@ export default function Play() {
       return;
     }
   };
-
-  // NEW: Handle target confirmation with direct card index (for ActionModal)
-  /*
-  const handleTargetConfirmWithIndex = async (cardIndex, { target, guess }) => {
-    const cardPlayed = player.hand[cardIndex];
-    console.log(
-      "🎯 TARGET CONFIRM WITH INDEX: Setting isPlaying = true for card:",
-      cardPlayed?.name || cardPlayed?.id
-    );
-    setIsPlaying(true);
-
-    // Validation check: Ensure cardPlayed exists
-    if (!cardPlayed) {
-      console.error("❌ ERROR: cardPlayed is undefined. cardIndex:", cardIndex);
-      setIsPlaying(false);
-      return;
-    }
-
-    // === SKIP TURN CASE (All players protected by Handmaid) ===
-    if (target === "SKIP_TURN") {
-      setResultModalData({
-        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
-          cardNames[cardPlayed.id]
-        } cannot find a target, so your turn is skipped.`,
-      });
-      return;
-    }
-
-    // === JESTER CARD LOGIC (ID: 0) ===
-    if (cardPlayed.id === 0) {
-      const result = await applyJesterEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-      });
-
-      // Show the target message to the target
-      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-        selectedCardId: cardPlayed.id,
-        visibleTo: target,
-        attacker: nickname,
-        message: result.targetMessage,
-        timestamp: Date.now(),
-      });
-
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === CHAMBERLAIN CARD LOGIC (ID: 10) ===
-    if (cardPlayed.id === 10) {
-      const result = await applyChamberlainEffect({
-        roomCode,
-        attacker: nickname,
-      });
-
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === GUARD CARD LOGIC (ID: 1) ===
-    if (cardPlayed.id === 1) {
-      // Apply the Guard effect to determine the outcome
-      const result = await applyGuardEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        guess,
-      });
-
-      // Notify all players about the Guard action
-      pushNotification(
-        roomCode,
-        `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
-      );
-
-      // ALWAYS show AssassinPromptModal to target (good UX for both modes)
-      // In premium mode: target can choose to use Assassin or not
-      // In normal mode: target just acknowledges the attack
-      const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
-      await update(promptRef, {
-        ...result,
-        timestamp: Date.now(),
-        // Store card play info so we can complete the turn later
-        cardPlayInfo: {
-          playedCardIndex: cardIndex, // Use cardIndex instead of selectedCardIndex
-          playerNickname: nickname,
-        },
-      });
-      // Exit early - AssassinPromptModal will handle the rest for both modes
-      return;
-    }
-
-    // === PRIEST CARD LOGIC (ID: 2) ===
-    else if (cardPlayed.id === 2) {
-      const result = await applyPriestEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === BARON CARD LOGIC (ID: 3) ===
-    else if (cardPlayed.id === 3) {
-      const result = await applyBaronEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        playedCardIndex: cardIndex, // Pass the index of the played card
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
-    else if (cardPlayed.id === 11) {
-      const result = await applyRegentQueenEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        playedCardIndex: cardIndex, // Pass the index of the played card
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === PHANTOM KING CARD LOGIC (ID: 6) ===
-    else if (cardPlayed.id === 6) {
-      console.log("👻 PHANTOM KING: Starting effect with target:", target);
-
-      try {
-        const result = await applyPhantomKingEffect({
-          roomCode,
-          attacker: nickname,
-          target,
-        });
-
-        console.log("👻 PHANTOM KING: Effect result:", result);
-
-        // Handle "Nobody" selection case
-        if (result.result === "skipped") {
-          setResultModalData({
-            selectedCardId: 6,
-            resultText: result.resultText,
-          });
-          pushNotification(roomCode, result.message);
-          return;
-        }
-
-        // Normal swap case - check if we have the required data
-        if (!result.attackerCard || !result.targetCard) {
-          console.error("👻 PHANTOM KING ERROR: Missing card data", result);
-          setResultModalData({
-            selectedCardId: 6,
-            resultText:
-              "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
-          });
-          return;
-        }
-
-        // Apply the hand swap in Firebase (moved from cardEffects.js)
-        console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
-        const updates = {
-          [`players/${nickname}/hand`]: [result.targetCard], // Attacker gets target's card
-          [`players/${target}/hand`]: [result.attackerCard], // Target gets attacker's card
-        };
-        await update(ref(db, `rooms/${roomCode}`), updates);
-        console.log("👻 PHANTOM KING: Hand swap completed");
-
-        // Show target message to the target
-        console.log("👻 PHANTOM KING: Sending target message to:", target);
-        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-          selectedCardId: cardPlayed.id,
-          visibleTo: target,
-          attacker: nickname,
-          message: result.targetMessage,
-          swappedCards: {
-            attackerGave: result.attackerCard, // Card the attacker gave away
-            attackerReceived: result.targetCard, // Card the attacker received
-            targetGave: result.targetCard, // Card the target gave away
-            targetReceived: result.attackerCard, // Card the target received
-          },
-          timestamp: Date.now(),
-        });
-        console.log("👻 PHANTOM KING: Target message sent successfully");
-
-        setResultModalData({
-          selectedCardId: 6, // Phantom King card ID
-          resultText: result.attackerMessage,
-          cardPlayed: 6, // Special flag for Phantom King
-          swappedCards: {
-            attackerGave: result.attackerCard, // Card the attacker gave away
-            attackerReceived: result.targetCard, // Card the attacker received
-            targetGave: result.targetCard, // Card the target gave away
-            targetReceived: result.attackerCard, // Card the target received
-          },
-          role: "attacker", // For the EffectResultModal to know which perspective
-        });
-        pushNotification(roomCode, result.publicMessage);
-        return;
-      } catch (error) {
-        console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
-        setResultModalData({
-          selectedCardId: 6,
-          resultText: `❌ The Phantom King's power faltered... ${
-            error.message || "Unknown error"
-          }`,
-        });
-        return;
-      }
-    }
-
-    // Fallback for unknown cards
-    setIsPlaying(false);
-    console.error(
-      "❌ Unknown card ID in handleTargetConfirmWithIndex:",
-      cardPlayed?.id
-    );
-  };
-  */
 
   /**
    * Completes the current player's turn for non-Guard effects
@@ -2820,6 +2581,20 @@ export default function Play() {
                                           {player.hand[selectedCardIndex].id ===
                                           9 ? (
                                             <InquisitorTargetModal
+                                              players={players}
+                                              currentPlayer={nickname}
+                                              protectedPlayers={
+                                                roomData?.protectedPlayers || []
+                                              }
+                                              nextTarget={
+                                                roomData?.round?.nextTarget
+                                              }
+                                              onConfirm={handleTargetConfirm}
+                                              onCancel={handleCardBack}
+                                            />
+                                          ) : player.hand[selectedCardIndex]
+                                              .id === 13 ? (
+                                            <RoyalConfessorTargetModal
                                               players={players}
                                               currentPlayer={nickname}
                                               protectedPlayers={
