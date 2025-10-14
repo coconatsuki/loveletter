@@ -1299,7 +1299,7 @@ export default function Play() {
         visibleTo: target2,
         attacker: nickname,
         message: result.target2Message,
-        confessorSwappedCards: {
+        swappedCards: {
           target1Gave: target1Card, // Card the attacker gave away
           target1Received: target2Card, // Card the attacker received
           target2Gave: target2Card, // Card the target gave away
@@ -1321,6 +1321,9 @@ export default function Play() {
       setRoyalConfessorResultModalData({
         selectedCardId: 13, // Royal Confessor card ID
         resultText: result.attackerMessage,
+        attackerIsTarget1: attacker === target,
+        target1Name: target,
+        target2Name: target2,
         cardPlayed: 13, // Special flag for Royal Confessor
         swappedCards: {
           target1Gave: target1Card, // Card the attacker gave away

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-// Inquisitor Modal Styling Constants
-const INQUISITOR_STYLES = {
+// Confessor Modal Styling Constants
+const CONFESSOR_STYLES = {
   content: {
     display: "flex",
     flexDirection: "column",
@@ -11,7 +11,7 @@ const INQUISITOR_STYLES = {
     borderRadius: "15px",
     color: "#e8e6e3",
     fontFamily: "Cinzel, serif",
-    animation: "inquisitorSlideIn 0.5s ease-out",
+    animation: "confessorSlideIn 0.5s ease-out",
   },
 
   noTargetMessage: {
@@ -128,8 +128,9 @@ export default function InquisitorTargetModal({
   onConfirm,
   onCancel,
 }) {
-  const [selectedTarget, setSelectedTarget] = useState("");
-  const [guess, setGuess] = useState(2); // Default to 2
+  const [selectedTarget1, setSelectedTarget1] = useState("");
+  const [selectedTarget2, setSelectedTarget2] = useState("");
+
   const [isConfirmHovered, setIsConfirmHovered] = useState(false);
   const [isBackHovered, setIsBackHovered] = useState(false);
 
@@ -137,41 +138,53 @@ export default function InquisitorTargetModal({
   const isTargetingForced = nextTarget && nextTarget.used === true;
   const forcedTargetNickname = isTargetingForced ? nextTarget.nickname : null;
 
-  const validTargets = Object.entries(players).filter(
+  const validTargets1 = Object.entries(players).filter(
+    ([name, p]) => !p.isOut && !protectedPlayers.includes(name)
+  );
+
+  // The second target selector can NOT include the currentPlayer
+  const validTargets2 = Object.entries(players).filter(
     ([name, p]) =>
       name !== currentPlayer && !p.isOut && !protectedPlayers.includes(name)
   );
 
   // 🗣️ Court Whisperer: Filter targets based on gossip
-  const finalValidTargets = isTargetingForced
-    ? validTargets.filter(([name, p]) => name === forcedTargetNickname)
-    : validTargets;
+  // If targeting is forced, only show the forced target on the FIRST target selector (not on the second)
+  const finalValidTargets1 = isTargetingForced
+    ? validTargets1.filter(([name, p]) => name === forcedTargetNickname)
+    : validTargets1;
 
-  const hasNoTargets = finalValidTargets.length === 0;
+  const hasNoTargets1 = finalValidTargets1.length === 0;
+  const hasNoTargets2 = validTargets2.length === 0;
+  const hasLessThan2validTargets =
+    [...validTargets1, ...validTargets2].length < 2;
 
-  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
+  const missingTarget2 =
+    selectedTarget1 !== "SKIP_TURN" &&
+    (!selectedTarget2 || selectedTarget2 === "");
+  const sameTarget =
+    selectedTarget1 !== "" && selectedTarget1 === selectedTarget2;
 
-  // Don't auto-select forced targets - let user see the modal and make the choice
-  // This was causing issues in TargetModal and should be consistent here too
-
-  // Inquisitor can guess strengths: [0, 2, 3, 4, 5, 6, 7, 8]
-  const allowedStrengths = [0, 2, 3, 4, 5, 6, 7, 8];
+  const isConfirmDisabled =
+    !selectedTarget1 || selectedTarget1 === "" || missingTarget2 || sameTarget;
 
   // Log only once when component mounts or targets change
   useEffect(() => {
     console.log(
-      "🕵️ InquisitorTargetModal opened! validTargets:",
-      validTargets.length,
+      "🕵️ InquisitorTargetModal opened! validTargets1:",
+      validTargets1.length,
+      "validTargets2:",
+      validTargets2.length,
       "protectedPlayers:",
       protectedPlayers
     );
-  }, [validTargets.length, protectedPlayers.length]);
+  }, [validTargets1.length, validTargets2.length, protectedPlayers.length]);
 
   return (
     <>
       <style>
         {`
-          @keyframes inquisitorFadeIn {
+          @keyframes confessorFadeIn {
             from {
               opacity: 0;
               backdrop-filter: blur(0px);
@@ -182,7 +195,7 @@ export default function InquisitorTargetModal({
             }
           }
           
-          @keyframes inquisitorSlideIn {
+          @keyframes confessorSlideIn {
             from {
               opacity: 0;
               transform: translateY(-50px) scale(0.9);
@@ -195,71 +208,42 @@ export default function InquisitorTargetModal({
         `}
       </style>
 
-      <div style={INQUISITOR_STYLES.content}>
-        {hasNoTargets && !isTargetingForced && (
-          <div style={INQUISITOR_STYLES.noTargetMessage}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid
-            and cannot be investigated.
-          </div>
-        )}
-
-        <div style={INQUISITOR_STYLES.dropdownContainer}>
-          <div style={INQUISITOR_STYLES.dropdownSection}>
-            <label style={INQUISITOR_STYLES.dropdownLabel}>
-              🎯 Select Investigation Target
+      <div style={CONFESSOR_STYLES.content}>
+        <div style={CONFESSOR_STYLES.dropdownContainer}>
+          <div style={CONFESSOR_STYLES.dropdownSection}>
+            <label style={CONFESSOR_STYLES.dropdownLabel}>
+              Who should confess their sins?
             </label>
-
-            {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
-            {isTargetingForced && !hasNoTargets && (
-              <div
-                style={{
-                  background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
-                  border: "2px solid #FF1493",
-                  borderRadius: "10px",
-                  padding: "12px",
-                  margin: "8px 0",
-                  color: "#8B0000",
-                  fontSize: "0.9rem",
-                  fontStyle: "italic",
-                  textAlign: "center",
-                  fontFamily: "'Cinzel', serif",
-                }}
-              >
-                🔍✨ The whole court can only talk about one name lately…{" "}
-                <strong>{nextTarget.name}</strong>! <br />
-                And it's echoing in every corridor... 🗣️💋
-              </div>
-            )}
 
             <select
               style={{
-                ...INQUISITOR_STYLES.select,
+                ...CONFESSOR_STYLES.select,
               }}
-              value={selectedTarget}
-              onChange={(e) => setSelectedTarget(e.target.value)}
+              value={selectedTarget1}
+              onChange={(e) => setSelectedTarget1(e.target.value)}
               onFocus={(e) => {
-                if (!(isTargetingForced && !hasNoTargets)) {
+                if (!(isTargetingForced && !hasNoTargets1)) {
                   e.target.style.borderColor =
-                    INQUISITOR_STYLES.selectFocus.borderColor;
+                    CONFESSOR_STYLES.selectFocus.borderColor;
                   e.target.style.boxShadow =
-                    INQUISITOR_STYLES.selectFocus.boxShadow;
+                    CONFESSOR_STYLES.selectFocus.boxShadow;
                 }
               }}
               onBlur={(e) => {
-                if (!(isTargetingForced && !hasNoTargets)) {
+                if (!(isTargetingForced && !hasNoTargets1)) {
                   e.target.style.borderColor =
-                    INQUISITOR_STYLES.select.borderColor;
+                    CONFESSOR_STYLES.select.borderColor;
                   e.target.style.boxShadow = "none";
                 }
               }}
             >
-              <option value="">⚖️ Choose a suspect...</option>
-              {finalValidTargets.map(([name, p]) => (
+              <option value="">⚖️ Choose a sinner...</option>
+              {finalValidTargets1.map(([name, p]) => (
                 <option key={name} value={name}>
                   👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
                 </option>
               ))}
-              {hasNoTargets && (
+              {(hasNoTargets1 || hasLessThan2validTargets) && (
                 <option value="SKIP_TURN">
                   ⏭️ Skip turn (no available targets)
                 </option>
@@ -268,7 +252,7 @@ export default function InquisitorTargetModal({
           </div>
 
           {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
-          {isTargetingForced && !hasNoTargets && (
+          {isTargetingForced && !hasNoTargets1 && !hasLessThan2validTargets && (
             <p
               style={{
                 fontSize: "1.1rem",
@@ -284,31 +268,42 @@ export default function InquisitorTargetModal({
             </p>
           )}
 
-          {/* Only show strength dropdown when there are targets */}
-          {!hasNoTargets && (
-            <div style={INQUISITOR_STYLES.dropdownSection}>
-              <label style={INQUISITOR_STYLES.dropdownLabel}>
-                ⚔️ Who are they ploting with?
-              </label>
+          {hasLessThan2validTargets && !isTargetingForced && (
+            <div style={CONFESSOR_STYLES.noTargetMessage}>
+              🫖 All other players are enjoying tea with the Princess' Handmaid
+              and cannot confess right now.
+            </div>
+          )}
+
+          {!hasNoTargets2 && (
+            <div style={CONFESSOR_STYLES.dropdownSection}>
+              <label style={CONFESSOR_STYLES.dropdownLabel}>To whom?</label>
               <select
-                style={INQUISITOR_STYLES.select}
-                value={guess}
-                onChange={(e) => setGuess(Number(e.target.value))}
+                style={{
+                  ...CONFESSOR_STYLES.select,
+                }}
+                value={selectedTarget}
+                onChange={(e) => setSelectedTarget2(e.target.value)}
                 onFocus={(e) => {
-                  e.target.style.borderColor =
-                    INQUISITOR_STYLES.selectFocus.borderColor;
-                  e.target.style.boxShadow =
-                    INQUISITOR_STYLES.selectFocus.boxShadow;
+                  if (!(isTargetingForced && !hasNoTargets2)) {
+                    e.target.style.borderColor =
+                      CONFESSOR_STYLES.selectFocus.borderColor;
+                    e.target.style.boxShadow =
+                      CONFESSOR_STYLES.selectFocus.boxShadow;
+                  }
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor =
-                    INQUISITOR_STYLES.select.borderColor;
-                  e.target.style.boxShadow = "none";
+                  if (!(isTargetingForced && !hasNoTargets2)) {
+                    e.target.style.borderColor =
+                      CONFESSOR_STYLES.select.borderColor;
+                    e.target.style.boxShadow = "none";
+                  }
                 }}
               >
-                {allowedStrengths.map((str) => (
-                  <option key={str} value={str}>
-                    💪 Strength {str}
+                <option value="">⚖️ Choose a second sinner...</option>
+                {validTargets2.map(([name, p]) => (
+                  <option key={name} value={name}>
+                    👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
                   </option>
                 ))}
               </select>
@@ -316,19 +311,19 @@ export default function InquisitorTargetModal({
           )}
         </div>
 
-        <div style={INQUISITOR_STYLES.buttonsContainer}>
+        <div style={CONFESSOR_STYLES.buttonsContainer}>
           <button
             onClick={onCancel}
             onMouseEnter={() => setIsBackHovered(true)}
             onMouseLeave={() => setIsBackHovered(false)}
             style={{
-              ...INQUISITOR_STYLES.button,
+              ...CONFESSOR_STYLES.button,
               ...(isBackHovered
                 ? {
-                    ...INQUISITOR_STYLES.backButton,
-                    ...INQUISITOR_STYLES.backButtonHover,
+                    ...CONFESSOR_STYLES.backButton,
+                    ...CONFESSOR_STYLES.backButtonHover,
                   }
-                : INQUISITOR_STYLES.backButton),
+                : CONFESSOR_STYLES.backButton),
             }}
           >
             ↩️ Back
@@ -336,27 +331,26 @@ export default function InquisitorTargetModal({
           <button
             onClick={() =>
               onConfirm({
-                target: selectedTarget,
+                target: selectedTarget1,
                 target2: selectedTarget2,
-                guess,
               })
             }
             disabled={isConfirmDisabled}
             onMouseEnter={() => setIsConfirmHovered(true)}
             onMouseLeave={() => setIsConfirmHovered(false)}
             style={{
-              ...INQUISITOR_STYLES.button,
-              ...(selectedTarget && selectedTarget !== ""
+              ...CONFESSOR_STYLES.button,
+              ...(!isConfirmDisabled
                 ? isConfirmHovered
                   ? {
-                      ...INQUISITOR_STYLES.confirmButton,
-                      ...INQUISITOR_STYLES.confirmButtonHover,
+                      ...CONFESSOR_STYLES.confirmButton,
+                      ...CONFESSOR_STYLES.confirmButtonHover,
                     }
-                  : INQUISITOR_STYLES.confirmButton
-                : INQUISITOR_STYLES.confirmButtonDisabled),
+                  : CONFESSOR_STYLES.confirmButton
+                : CONFESSOR_STYLES.confirmButtonDisabled),
             }}
           >
-            {selectedTarget === "SKIP_TURN" ? "Skip Turn" : "Investigate"}
+            {selectedTarget1 === "SKIP_TURN" ? "Skip Turn" : "Confess!"}
           </button>
         </div>
       </div>

@@ -196,40 +196,11 @@ export default function InquisitorTargetModal({
       </style>
 
       <div style={INQUISITOR_STYLES.content}>
-        {hasNoTargets && !isTargetingForced && (
-          <div style={INQUISITOR_STYLES.noTargetMessage}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid
-            and cannot be investigated.
-          </div>
-        )}
-
         <div style={INQUISITOR_STYLES.dropdownContainer}>
           <div style={INQUISITOR_STYLES.dropdownSection}>
             <label style={INQUISITOR_STYLES.dropdownLabel}>
               🎯 Select Investigation Target
             </label>
-
-            {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
-            {isTargetingForced && !hasNoTargets && (
-              <div
-                style={{
-                  background: "linear-gradient(135deg, #FF69B4, #FFB6C1)",
-                  border: "2px solid #FF1493",
-                  borderRadius: "10px",
-                  padding: "12px",
-                  margin: "8px 0",
-                  color: "#8B0000",
-                  fontSize: "0.9rem",
-                  fontStyle: "italic",
-                  textAlign: "center",
-                  fontFamily: "'Cinzel', serif",
-                }}
-              >
-                🔍✨ The whole court can only talk about one name lately…{" "}
-                <strong>{nextTarget.name}</strong>! <br />
-                And it's echoing in every corridor... 🗣️💋
-              </div>
-            )}
 
             <select
               style={{
@@ -282,6 +253,13 @@ export default function InquisitorTargetModal({
             >
               💅✨ The whole court can only talk about one name lately…
             </p>
+          )}
+
+          {hasNoTargets && !isTargetingForced && (
+            <div style={INQUISITOR_STYLES.noTargetMessage}>
+              🫖 All other players are enjoying tea with the Princess' Handmaid
+              and cannot be investigated.
+            </div>
           )}
 
           {/* Only show strength dropdown when there are targets */}
