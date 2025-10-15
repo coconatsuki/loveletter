@@ -15,11 +15,12 @@ const CONFESSOR_STYLES = {
   },
 
   noTargetMessage: {
-    lineHeight: "2em",
-    textAlign: "left",
-    color: "rgb(228 177 182)",
-    fontWeight: "bold",
-    fontSize: "1.3rem",
+    lineHeight: "1.8em",
+    textAlign: "justify",
+    color: "rgb(197 201 220)",
+    fontSize: "1.1rem",
+    fontFamily: "Lora, serif",
+    fontStyle: "italic",
   },
 
   dropdownContainer: {
@@ -120,7 +121,7 @@ const CONFESSOR_STYLES = {
   },
 };
 
-export default function InquisitorTargetModal({
+export default function RoyalConfessorInquisitorTargetModal({
   players,
   currentPlayer,
   protectedPlayers = [],
@@ -237,12 +238,17 @@ export default function InquisitorTargetModal({
                 }
               }}
             >
-              <option value="">⚖️ Choose a sinner...</option>
-              {finalValidTargets1.map(([name, p]) => (
-                <option key={name} value={name}>
-                  👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
-                </option>
-              ))}
+              <option value="">🧎🏼‍➡️Choose a sinner...</option>
+              {!hasNoTargets1 &&
+                !hasLessThan2validTargets &&
+                finalValidTargets1.map(([name, p]) => (
+                  <option key={name} value={name}>
+                    {name === currentPlayer
+                      ? "🙏🏼 YOURSELF"
+                      : `🙏🏼 ${p.name} (${p.realName})`}{" "}
+                    {isTargetingForced ? "🎯" : ""}
+                  </option>
+                ))}
               {(hasNoTargets1 || hasLessThan2validTargets) && (
                 <option value="SKIP_TURN">
                   ⏭️ Skip turn (no available targets)
@@ -253,17 +259,7 @@ export default function InquisitorTargetModal({
 
           {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
           {isTargetingForced && !hasNoTargets1 && !hasLessThan2validTargets && (
-            <p
-              style={{
-                fontSize: "1.1rem",
-                margin: "8px 0",
-                color: "rgb(245 170 242)",
-                fontStyle: "italic",
-                textAlign: "left",
-                fontFamily: "Lora, serif",
-                lineHeight: "1.4em",
-              }}
-            >
+            <p style={CONFESSOR_STYLES.noTargetMessage}>
               💅✨ The whole court can only talk about one name lately…
             </p>
           )}
@@ -282,7 +278,7 @@ export default function InquisitorTargetModal({
                 style={{
                   ...CONFESSOR_STYLES.select,
                 }}
-                value={selectedTarget}
+                value={selectedTarget2}
                 onChange={(e) => setSelectedTarget2(e.target.value)}
                 onFocus={(e) => {
                   if (!(isTargetingForced && !hasNoTargets2)) {
@@ -300,13 +296,22 @@ export default function InquisitorTargetModal({
                   }
                 }}
               >
-                <option value="">⚖️ Choose a second sinner...</option>
+                <option value="">🧎🏼Choose a second sinner...</option>
                 {validTargets2.map(([name, p]) => (
                   <option key={name} value={name}>
-                    👤 {p.name || name} {isTargetingForced ? "🎯" : ""}
+                    🙏🏼 {p.name || name} {isTargetingForced ? "🎯" : ""}
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {!hasLessThan2validTargets && sameTarget && (
+            <div style={CONFESSOR_STYLES.noTargetMessage}>
+              You need 2 different sinners!{" "}
+              <span style={{ fontStyle: "normal", fontSize: "1.3rem" }}>
+                🧎🏼‍➡️🧎🏼
+              </span>
             </div>
           )}
         </div>

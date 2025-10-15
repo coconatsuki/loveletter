@@ -446,7 +446,6 @@ export default function EffectResultModal({
               <div
                 style={{
                   ...buttonContainerStyle,
-                  ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
                 }}
               >
                 <button
@@ -476,7 +475,7 @@ export default function EffectResultModal({
                       e.target.style.border = "2px solid #FF69B4";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
-                        "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                        "linear-gradient(135deg, rgb(46 116 50) 0%,rgb(11 28 11)  100%)";
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(76, 175, 80, 0.5)";
@@ -687,12 +686,6 @@ const buttonStyle = {
   boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
   minWidth: "140px",
   width: "55%",
-};
-
-// Handmaid-specific button styles
-const handmaidButtonContainerStyle = {
-  background:
-    "linear-gradient(135deg, rgb(26, 77, 26) 0%, rgb(46, 125, 50) 50%, rgb(76, 175, 80) 100%)",
 };
 
 const handmaidButtonStyle = {
