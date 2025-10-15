@@ -1272,25 +1272,27 @@ export default function Play() {
         cardPlayed,
       });
 
-      const attackerData = roomData.players[attacker];
-      const target1Data = roomData.players[target];
-      const target2Data = roomData.players[target2];
+      // What we get from result:
+      /*           return {
+      result: "confession",
+      isSelfTarget,
+      publicMessage,
+      externalAttackerMessage,
+      attackerSelfTargetMessage,
+      target2Message,
+      target1Message,
+      newTarget1Card,
+      newTarget2Card,
+    }; */
 
       // TO DO ARCHIE: check if attacker=target1 here.
-      // If so, we just have to display ONE EffectResultModal to target2,
+      // If so, we just have to display ONE EffectResultModal to target2 (and just use the usual /targetMessage for target2),
       // and the RoyalConfessorResultModal to the attacker
-      // If NOT, we'll have to display TWO EffectResultModals to both targets,
+      // If NOT, we'll have to display TWO EffectResultModals to both targets (maybe using /target2Message for target1?),
       // and the RoyalConfessorResultModal to the attacker
 
       // TO DO ARCHIE: here is what we need if attacker=target1
       // Not sure how we can handle the case when both targets1 and 2 are different from attacker
-
-      if (!attackerData || !target1Data || !target2Data) {
-        setResultModalData({
-          resultText: `❌ Error: One of the players involved does not exist.`,
-        });
-        return;
-      }
 
       // NOTE ARCHIE: this would be for Target2, in case attacker=target1:
 
@@ -1298,12 +1300,11 @@ export default function Play() {
         selectedCardId: cardPlayed.id,
         visibleTo: target2,
         attacker: nickname,
+        isSelfTarget: result.isSelfTarget,
         message: result.target2Message,
         swappedCards: {
-          target1Gave: target1Card, // Card the attacker gave away
-          target1Received: target2Card, // Card the attacker received
-          target2Gave: target2Card, // Card the target gave away
-          target2Received: target1Card, // Card the target received
+          target2Gave: result.newTarget1Card, // Card the target2 gave away
+          target2Received: result.newTarget2Card, // Card the target2 received
         },
         timestamp: Date.now(),
       });
@@ -1312,27 +1313,48 @@ export default function Play() {
         "ROYAL CONFESSOR: Target message sent successfully to target2"
       );
 
-      // QUESTION ARCHIE: do we just need to add one more "await update(ref(db, `rooms/${roomCode}/targetMessage`)"
-      // if attacker != target1, to send a message to target1 as well? Is it as simple as that?
-      // If so, please do it :)
-
       // Here is for the attacker, who could ALSO be target1:
 
       setRoyalConfessorResultModalData({
         selectedCardId: 13, // Royal Confessor card ID
-        resultText: result.attackerMessage,
-        attackerIsTarget1: attacker === target,
+        resultText: isSelfTarget
+          ? result.attackerSelfTargetMessage
+          : result.externalAttackerMessage,
         target1Name: target,
         target2Name: target2,
+        isSelfTarget: result.isSelfTarget,
         cardPlayed: 13, // Special flag for Royal Confessor
         swappedCards: {
-          target1Gave: target1Card, // Card the attacker gave away
-          target1Received: target2Card, // Card the attacker received
-          target2Gave: target2Card, // Card the target gave away
-          target2Received: target1Card, // Card the target received
+          attackerGave: result.newTarget2Card, // Card the attacker gave away
+          attackerReceived: result.newTarget1Card, // Card the attacker received
         },
         role: "attacker", // For the EffectResultModal to know which perspective
       });
+
+      // TO DO ARCHIE: this would be for Target1, in case attacker != target1:
+      // We'll probably need to set up some await update(ref(db, `rooms/${roomCode}/target2Message`), right?
+
+      // If so, it would need to contain:
+      /* 
+        await update(ref(db, `rooms/${roomCode}/target2Message`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        isSelfTarget: result.isSelfTarget,
+        message: result.target1Message,
+        swappedCards: {
+          target1Gave: result.newTarget2Card, // Card the target2 gave away
+          target1Received: result.newTarget1Card, // Card the target2 received
+        },
+        timestamp: Date.now(),
+      });
+ */
+
+      // Also, If my previous assumptions are correct, I guess we would also need an other useEffect (like the one listening for /targetMessage from line 438 to 466 in Play.jsx)
+      //  that would listen to /target2Message instead, and would set setTarget2MessageModalData (that we also need to put in place)?
+      // And maybe a new state variable target2MessageModalData, and make sure that we display the EffectResultModal if target2MessageModalData is set?
+
+      // End of TO DO ARCHIE
 
       pushNotification(roomCode, result.publicMessage);
       return;

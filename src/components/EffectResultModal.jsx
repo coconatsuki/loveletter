@@ -87,7 +87,8 @@ export default function EffectResultModal({
   cardDetails = null,
   selectedCardId = -1, // Should never be -1 if properly called - will help us catch bugs
   role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
-  swappedCards = null, // For Phantom King card swap details
+  swappedCards = null, // For Phantom King or Royal Confessor cards-swap details
+  isSelfTarget = false, // To identify self-targeting effects (for Royal Confessor)
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
