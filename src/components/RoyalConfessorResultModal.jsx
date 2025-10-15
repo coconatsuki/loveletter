@@ -82,38 +82,38 @@ const effectTextStyles = `
 }
 `;
 
-export default function EffectResultModal({
+export default function RoyalConfessorResultModal({
   resultText,
-  cardDetails = null,
-  selectedCardId = -1, // Should never be -1 if properly called - will help us catch bugs
-  role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
-  swappedCards = null, // For Phantom King card swap details
+  selectedCardId,
+  target1Name,
+  target2Name,
+  isSelfTarget,
+  cardPlayed,
+  swappedCards,
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
   useEffect(() => {
-    console.log("🎭 EffectResultModal mounted with props:", {
+    console.log("🎭 RoyalConfessorResultModal mounted with props:", {
       selectedCardId,
-      role,
       resultText: resultText?.substring(0, 100) + "...", // Truncate for readability
-      hasCardDetails: !!cardDetails,
+      target1Name,
+      target2Name,
+      isSelfTarget,
+      cardPlayed,
+      swappedCards,
     });
+  }, [
+    selectedCardId,
+    target1Name,
+    resultText,
+    target2Name,
+    isSelfTarget,
+    isSelfTarget,
+    cardPlayed,
+    swappedCards,
+  ]);
 
-    // 🚨 Alert us if we get invalid values
-    if (
-      selectedCardId === -1 ||
-      selectedCardId === null ||
-      selectedCardId === undefined
-    ) {
-      console.error(
-        "🚨 EffectResultModal: selectedCardId is invalid!",
-        selectedCardId
-      );
-    }
-    if (role === "unknown" || role === null || role === undefined) {
-      console.error("🚨 EffectResultModal: role is invalid!", role);
-    }
-  }, [selectedCardId, role, resultText, cardDetails]);
   // Helper function to render HTML text directly (no more markdown conversion needed)
   const formatText = (text) => {
     if (!text) return "";
@@ -132,39 +132,22 @@ export default function EffectResultModal({
     ));
   };
 
-  // Effect detection based on selectedCardId (more reliable than text parsing)
-  const isHandmaidProtection = selectedCardId === 4;
-  const isJesterEffect = selectedCardId === 0;
-  const isPriestEffect =
-    selectedCardId === 2 && cardDetails && cardDetails["Revealed Card"];
-  const isCourtWhispererEffect = selectedCardId === 12;
-  const isInquisitorEffect = selectedCardId === 9;
-  const isChamberlainEffect = selectedCardId === 10;
-  const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
+  const revealedCard = isSelfTarget ? swappedCards.attackerReceived : null;
 
-  // Court Whisperer: distinguish between attacker and target
-  const isCourtWhispererAttacker =
-    isCourtWhispererEffect && role === "attacker";
-  const isCourtWhispererTarget = isCourtWhispererEffect && role === "target";
+  //reminder of swappedCards structure:
+  // swappedCards = {
+  //   attackerReceived: { name, strength, effect },
+  //   targetReceived: { name, strength, effect }
+  // }
 
-  // Extract card information for Priest effect
-  let revealedCard = null;
-  if (isPriestEffect && cardDetails) {
-    const revealedCardText = cardDetails["Revealed Card"];
-    const cardEffect = cardDetails["Card Effect"];
-
-    if (revealedCardText) {
-      // Parse "Prince (Strength 5)" format
-      const match = revealedCardText.match(/^(.+?)\s*\(Strength\s*(\d+)\)$/);
-      if (match) {
-        revealedCard = {
-          name: match[1].trim(),
-          strength: parseInt(match[2]),
-          effect: cardEffect || "No effect description available",
-        };
-      }
-    }
-  }
+  // TO DO ARCHIE:
+  // 1. IF self-targeting, show the revealed card on the left side (like the Priest card effect modal)
+  // 2. IF the 2 targets are different players, show a div of the same size as the revealed card div, but that would contain both a dropdown (with target1Name and target2Name as options) with a "Which of these sinners' secrets do you want to know?" label above, and below the dropdown, add a "revealed card" button.
+  // Make sure that the button is disabled until the player selects a target in the dropdown.
+  // Once a target is selected and the button clicked, replace the dropdown and button with the revealed card of the selected target (like the Priest card effect modal).
+  // Restyle the entire modal below to correspond to the character of the Royal Confessor (colors, decorations, the "Continue" button style & text, etc...)
+  // Note: I just copy-pasted the PriestStyles & PriestLayout & HTML structure, so please feel free to modify anything you want to make it fit the Royal Confessor character b etter.
+  // Think Christianity, religion, piety, confession, etc...
 
   return (
     <>
@@ -174,362 +157,71 @@ export default function EffectResultModal({
           className="modal-content"
           style={{
             ...modalContentStyle,
-            ...(isHandmaidProtection ? handmaidModalStyle : {}),
-            ...(isPriestEffect ? priestModalStyle : {}),
-            ...(isJesterEffect ? jesterModalStyle : {}),
-            ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
-            ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
+            ...priestModalStyle,
           }}
         >
           {/* Crown decoration */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-30px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: isPriestEffect
-                ? "#6a4c93"
-                : isJesterEffect
-                ? "rgb(22 3 3)"
-                : isCourtWhispererEffect
-                ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
-                : isPhantomKingEffect
-                ? "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(74, 144, 226) 100%)"
-                : isHandmaidProtection
-                ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
-                : "#8b0000",
-              border: `3px solid ${
-                isPriestEffect
-                  ? "#9b59b6"
-                  : isJesterEffect
-                  ? "#ff6b35"
-                  : isCourtWhispererEffect
-                  ? "#FF1493"
-                  : isPhantomKingEffect
-                  ? "rgb(247 105 166)"
-                  : isHandmaidProtection
-                  ? "#8bc34a"
-                  : "#ffd700"
-              }`,
-              borderRadius: "50%",
-              width: "50px",
-              height: "50px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1.5rem",
-              boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
-              zIndex: 1001,
-            }}
-          >
-            {isPriestEffect
-              ? "🔍"
-              : isInquisitorEffect
-              ? "🕵️"
-              : isJesterEffect
-              ? "🎭"
-              : isCourtWhispererEffect
-              ? "💅"
-              : isPhantomKingEffect
-              ? "👻"
-              : isChamberlainEffect
-              ? "💰"
-              : isHandmaidProtection
-              ? "🛡️"
-              : "📜"}
-          </div>
-          <h3
-            style={getHeaderStyle(
-              isHandmaidProtection,
-              isPriestEffect,
-              isInquisitorEffect,
-              isJesterEffect,
-              isCourtWhispererEffect,
-              isPhantomKingEffect
-            )}
-          >
-            {isPriestEffect
-              ? "Priest's Divine Revelation"
-              : isInquisitorEffect
-              ? "Inquisitor's Investigation"
-              : isJesterEffect
-              ? "🎪 Jester's Fool's Favor 🎭"
-              : isCourtWhispererAttacker
-              ? "🪄 A Little Word in the Right Ear…"
-              : isCourtWhispererTarget
-              ? "📜 Your Name's on Every Scroll!"
-              : isCourtWhispererEffect
-              ? "💅 Court Whisperer Effect 💅"
-              : isPhantomKingEffect
-              ? "🍷 The Boozy Benevolence"
-              : isHandmaidProtection
-              ? "Protected by the Handmaid"
-              : "Effect Result"}
-          </h3>
-          {/* Special Priest Layout with Card Display */}
-          {isPriestEffect && revealedCard ? (
-            <div style={priestLayoutStyle}>
-              {/* Left side - The revealed card */}
-              <div style={priestCardContainerStyle}>
-                <div style={priestCardStyle}>
-                  <div style={priestCardStrengthStyle}>
-                    {revealedCard.strength}
-                  </div>
-                  <div
-                    style={{
-                      ...priestCardImageStyle,
-                      backgroundImage: `url('/src/img/${getCardImage(
-                        revealedCard.name
-                      )}')`,
-                    }}
-                  ></div>
-                  <div style={priestCardContentStyle}>
-                    <div style={priestCardNameStyle}>{revealedCard.name}</div>
-                    <div style={priestCardEffectStyle}>
-                      {revealedCard.effect}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right side - The spying message */}
-              <div style={priestMessageContainerStyle}>
-                <div style={priestMessageIconStyle}>
-                  <div style={priestSpyIconStyle}>👁️‍🗨️</div>
-                  <div style={priestMessageStyle}>{formatText(resultText)}</div>
+          <div style={crownDecorationStyle}>🙏🏼</div>
+          <h3 style={headerStyle}>The Mutual Confession ritual</h3>
+          <div style={priestLayoutStyle}>
+            {/* Left side - The revealed card */}
+            <div style={priestCardContainerStyle}>
+              <div style={priestCardStyle}>
+                <div style={priestCardStrengthStyle}>
+                  {revealedCard.strength}
                 </div>
                 <div
                   style={{
-                    ...buttonContainerStyle,
-                    ...priestButtonContainerStyle,
+                    ...priestCardImageStyle,
+                    backgroundImage: `url('/src/img/${getCardImage(
+                      revealedCard.name
+                    )}')`,
                   }}
-                >
-                  <button
-                    onClick={onClose}
-                    style={{
-                      ...buttonStyle,
-                      ...priestButtonStyle,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = "#8b0000";
-                      e.target.style.background =
-                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(255, 215, 0, 0.5)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = "#ffd700";
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
-                    }}
-                  >
-                    Continue
-                  </button>
+                ></div>
+                <div style={priestCardContentStyle}>
+                  <div style={priestCardNameStyle}>{revealedCard.name}</div>
+                  <div style={priestCardEffectStyle}>{revealedCard.effect}</div>
                 </div>
               </div>
             </div>
-          ) : isPhantomKingEffect && swappedCards ? (
-            /* Special Phantom King Layout with Card Swap Display */
-            <div style={phantomKingLayoutStyle}>
-              {/* Left side - The swapped cards */}
-              <div style={phantomKingCardsContainerStyle}>
-                <div style={phantomKingCardRowStyle}>
-                  {/* Card given away */}
-                  <div style={phantomCardContainerStyle}>
-                    <div style={phantomKingCardStyle}>
-                      <div style={phantomKingCardStrengthStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerGave.strength
-                          : swappedCards.targetGave.strength}
-                      </div>
-                      <div
-                        style={{
-                          ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
-                            role === "attacker"
-                              ? swappedCards.attackerGave.name
-                              : swappedCards.targetGave.name
-                          )})`,
-                        }}
-                      ></div>
-                      <div style={phantomKingCardNameStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerGave.name
-                          : swappedCards.targetGave.name}
-                      </div>
-                      <div style={phantomKingCardEffectStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerGave.effect
-                          : swappedCards.targetGave.effect}
-                      </div>
-                    </div>
-                    <p style={cardLabelStyle}>You Gave</p>
-                  </div>
 
-                  <div style={phantomKingArrowStyle}>↔️</div>
-
-                  {/* Card received */}
-                  <div style={phantomCardContainerStyle}>
-                    <div style={phantomKingCardStyle}>
-                      <div style={phantomKingCardStrengthStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerReceived.strength
-                          : swappedCards.targetReceived.strength}
-                      </div>
-                      <div
-                        style={{
-                          ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
-                            role === "attacker"
-                              ? swappedCards.attackerReceived.name
-                              : swappedCards.targetReceived.name
-                          )})`,
-                        }}
-                      ></div>
-                      <div style={phantomKingCardNameStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerReceived.name
-                          : swappedCards.targetReceived.name}
-                      </div>
-                      <div style={phantomKingCardEffectStyle}>
-                        {role === "attacker"
-                          ? swappedCards.attackerReceived.effect
-                          : swappedCards.targetReceived.effect}
-                      </div>
-                    </div>
-                    <p style={cardLabelStyle}>You Received</p>
-                  </div>
-                </div>
+            {/* Right side - The spying message */}
+            <div style={priestMessageContainerStyle}>
+              <div style={priestMessageIconStyle}>
+                <div style={priestSpyIconStyle}>👁️‍🗨️</div>
+                <div style={priestMessageStyle}>{formatText(resultText)}</div>
               </div>
-
-              {/* Right side - The ghostly message */}
-              <div style={phantomKingMessageContainerStyle}>
-                <div style={phantomKingMessageStyle}>
-                  {formatText(resultText)}
-                </div>
-                <div
-                  style={{
-                    ...buttonContainerStyle,
-                    ...phantomKingButtonContainerStyle,
-                  }}
-                >
-                  <button
-                    onClick={onClose}
-                    style={{
-                      ...buttonStyle,
-                      ...phantomKingButtonStyle,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = "#1e3d59";
-                      e.target.style.background =
-                        "linear-gradient(135deg, #74b9ff 0%, #c2d9ff 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(74, 144, 226, 0.5)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = "#c2d9ff";
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(30, 30, 60) 0%, rgb(74, 144, 226) 100%)";
-                    }}
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={getMessageStyle(isCourtWhispererEffect)}>
-              {formatText(resultText)}
               <div
                 style={{
                   ...buttonContainerStyle,
-                  ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
+                  ...priestButtonContainerStyle,
                 }}
               >
                 <button
                   onClick={onClose}
                   style={{
                     ...buttonStyle,
-                    ...(isHandmaidProtection ? handmaidButtonStyle : {}),
-                    ...(isJesterEffect ? jesterButtonStyle : {}),
-                    ...(isCourtWhispererEffect
-                      ? courtWhispererButtonStyle
-                      : {}),
+                    ...priestButtonStyle,
                   }}
                   onMouseEnter={(e) => {
-                    if (isJesterEffect) {
-                      e.target.style.background =
-                        "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(255, 107, 53, 0.6)";
-                      e.target.style.border = "2px solid rgb(45, 27, 27)";
-                    } else if (isCourtWhispererEffect) {
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(255 205 212) 0%, rgb(202 75 139) 50%, rgb(99 9 57) 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(255, 20, 147, 0.6)";
-                      e.target.style.border = "2px solid #FF69B4";
-                    } else if (isHandmaidProtection) {
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(76, 175, 80, 0.5)";
-                    } else {
-                      e.target.style.background =
-                        "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(255, 215, 0, 0.5)";
-                    }
+                    e.target.style.color = "#8b0000";
+                    e.target.style.background =
+                      "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(255, 215, 0, 0.5)";
                   }}
                   onMouseLeave={(e) => {
-                    if (isJesterEffect) {
-                      e.target.style.background = "rgb(22 3 3)";
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow =
-                        "0 4px 15px rgba(255, 107, 53, 0.4)";
-                      e.target.style.color = "rgb(255, 215, 0)";
-                      e.target.style.border = "2px solid rgb(106 92 48)";
-                    } else if (isCourtWhispererEffect) {
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)";
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow =
-                        "0 4px 15px rgba(255, 20, 147, 0.4)";
-                      e.target.style.color = "white";
-                      e.target.style.border = "2px solid #FF1493";
-                    } else if (isHandmaidProtection) {
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow =
-                        "0 4px 15px rgba(0, 0, 0, 0.4)";
-                    } else {
-                      e.target.style.background =
-                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow =
-                        "0 4px 15px rgba(0, 0, 0, 0.4)";
-                    }
+                    e.target.style.color = "#ffd700";
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
                   }}
                 >
-                  {isJesterEffect
-                    ? "🎪✨ Marvelous! ✨🎭"
-                    : isCourtWhispererEffect
-                    ? "💅✨ Fabulous Gossip! ✨💋"
-                    : isHandmaidProtection
-                    ? "🍰✨ Very Well ✨🫖"
-                    : "Continue"}
+                  Continue
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </>
@@ -552,6 +244,24 @@ const modalOverlayStyle = {
   animation: "effectModalFadeIn 0.3s ease-out",
 };
 
+const crownDecorationStyle = {
+  position: "absolute",
+  top: "-30px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  background: "#6a4c93",
+  border: `3px solid #9b59b6$`,
+  borderRadius: "50%",
+  width: "50px",
+  height: "50px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "1.5rem",
+  boxShadow: "0 5px 15px rgba(0, 0, 0, 0.6)",
+  zIndex: 1001,
+};
+
 const modalContentStyle = {
   background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 50%, #8b0000 100%)",
   padding: "0",
@@ -567,49 +277,10 @@ const modalContentStyle = {
   animation: "effectModalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
 };
 
-const handmaidModalStyle = {
-  background: "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)",
-  border: "4px solid #8bc34a",
-  boxShadow:
-    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(139, 195, 74, 0.4), inset 0 1px 0 rgba(139, 195, 74, 0.3)",
-};
-
-// 🎭 Jester Modal Style - Colorful and joyful! 🎪
-const jesterModalStyle = {
-  background:
-    "linear-gradient(135deg, #ff6b35 0%, #ffa500 30%, #ffcc00 70%, #ff6b35 100%)",
-  border: "4px solid #ff6b35",
-  boxShadow:
-    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 107, 53, 0.6), inset 0 1px 0 rgba(255, 204, 0, 0.4)",
-};
-
 // Define headerStyle as a function that takes parameters
-const getHeaderStyle = (
-  isHandmaidProtection,
-  isPriestEffect,
-  isInquisitorEffect,
-  isJesterEffect,
-  isCourtWhispererEffect,
-  isPhantomKingEffect
-) => ({
-  background: isPriestEffect
-    ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
-    : isJesterEffect
-    ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
-    : isCourtWhispererEffect
-    ? "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)"
-    : isHandmaidProtection
-    ? "linear-gradient(135deg, rgb(15 44 15) 0%, rgb(46, 125, 50) 100%)"
-    : isInquisitorEffect
-    ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
-    : isPhantomKingEffect
-    ? "linear-gradient(135deg, rgb(0 0 14) 0%, rgb(10 23 39) 100%)"
-    : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
-  color: isCourtWhispererEffect
-    ? "rgb(242 242 242)"
-    : isPhantomKingEffect
-    ? "rgb(247 105 166)"
-    : "#ffd700",
+const headerStyle = {
+  background: "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)",
+  color: "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -617,23 +288,11 @@ const getHeaderStyle = (
   fontFamily: '"Cinzel", serif',
   textTransform: "uppercase",
   letterSpacing: "1px",
-  textShadow: isCourtWhispererEffect
-    ? "2px 2px 4px rgba(139, 0, 0, 0.8)"
-    : "2px 2px 4px rgba(0, 0, 0, 0.8)",
-  borderBottom: `2px solid ${
-    isPriestEffect
-      ? "#9b59b6"
-      : isCourtWhispererEffect
-      ? "#FF1493"
-      : isHandmaidProtection
-      ? "rgb(139, 195, 74)"
-      : isPhantomKingEffect
-      ? "rgb(247 105 166)"
-      : "#ffd700"
-  }`,
+  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
+  borderBottom: `2px solid "#9b59b6"`,
   borderRadius: "20px 20px 0 0",
   position: "relative",
-});
+};
 
 const getMessageStyle = (isCourtWhispererEffect) => ({
   fontSize: "1.3rem",
@@ -645,23 +304,6 @@ const getMessageStyle = (isCourtWhispererEffect) => ({
   background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
 });
-
-const classicResultTextContainer = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  height: "100%",
-};
-
-const cardDetailsStyle = {
-  margin: "0",
-  padding: "20px 25px",
-  background: "linear-gradient(135deg, #f0ead6 0%, #e8dcc0 100%)",
-  textAlign: "left",
-  borderTop: "2px solid #d4af37",
-  borderBottom: "2px solid #d4af37",
-  fontFamily: '"Lora", serif',
-};
 
 const buttonContainerStyle = {
   display: "flex",
@@ -687,46 +329,6 @@ const buttonStyle = {
   boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
   minWidth: "140px",
   width: "55%",
-};
-
-// Handmaid-specific button styles
-const handmaidButtonContainerStyle = {
-  background:
-    "linear-gradient(135deg, rgb(26, 77, 26) 0%, rgb(46, 125, 50) 50%, rgb(76, 175, 80) 100%)",
-};
-
-const handmaidButtonStyle = {
-  width: "70%",
-  background: "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)",
-  color: "rgb(255, 215, 0)",
-  border: "2px solid #8bc34a",
-};
-
-const jesterButtonStyle = {
-  width: "55%",
-  background: "rgb(22 3 3)",
-  color: "rgb(255, 215, 0)",
-  border: "2px solid rgb(106 92 48)",
-  fontWeight: "700",
-};
-
-const courtWhispererButtonStyle = {
-  width: "60%",
-  background:
-    "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)",
-  color: "white",
-  border: "2px solid #FF1493",
-  fontWeight: "700",
-  textShadow: "1px 1px 2px rgba(139, 0, 0, 0.8)",
-};
-
-// 🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
-const courtWhispererModalStyle = {
-  background:
-    "linear-gradient(135deg, #FF69B4 0%, #FFB6C1 25%, #FFC0CB 50%, #FFEFD5 75%, #FF69B4 100%)",
-  border: "4px solid #FF1493",
-  boxShadow:
-    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 20, 147, 0.6), inset 0 1px 0 rgba(255, 105, 180, 0.4)",
 };
 
 // Priest-specific modal styles
@@ -888,188 +490,9 @@ const priestGlowAnimation = `
 }
 `;
 
-// Phantom King-specific modal styles (ghostly atmosphere)
-const phantomKingModalStyle = {
-  width: "80%",
-  maxWidth: "80%",
-  background:
-    "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(30, 30, 60) 50%, rgb(15, 15, 35) 100%)",
-  border: "4px solid rgb(247 105 166)",
-  boxShadow:
-    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(74, 144, 226, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-};
-
-const phantomKingLayoutStyle = {
-  display: "flex",
-  gap: "2rem",
-  alignItems: "flex-start",
-  padding: "2rem 1rem",
-  justifyContent: "space-between",
-  height: "100%",
-};
-
-const phantomKingCardsContainerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  maxWidth: "47%",
-  height: "-webkit-fill-available",
-  gap: "15px",
-};
-
-const phantomKingCardRowStyle = {
-  display: "flex",
-  gap: "15px",
-  alignItems: "center",
-  justifyContent: "space-between",
-  width: "100%",
-  height: "-webkit-fill-available",
-};
-
-const phantomCardContainerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  height: "-webkit-fill-available",
-  justifyContent: "space-between",
-};
-
-const phantomKingCardStyle = {
-  position: "relative",
-  backgroundColor: "rgba(255, 255, 255, 0.95)",
-  borderRadius: "8px",
-  width: "180px",
-  height: "280px",
-  display: "flex",
-  flexDirection: "column",
-  cursor: "default",
-  boxShadow:
-    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(74, 144, 226, 0.4)",
-  transition: "all 0.3s ease",
-  transform: "perspective(1000px) rotateY(-2deg) rotateX(1deg)",
-  border: "2px solid rgba(74, 144, 226, 0.3)",
-};
-
-const cardLabelStyle = {
-  width: "100%",
-  textAlign: "center",
-  color: "rgba(255, 255, 255, 0.95)",
-  margin: "0",
-  marginTop: "0.7rem",
-  fontWeight: "500",
-  fontSize: "1.2rem",
-};
-
-const phantomKingArrowStyle = {
-  fontSize: "2rem",
-  color: "#4a90e2",
-  filter:
-    "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(74, 144, 226, 0.8))",
-  animation: "ghostlyFloat 3s ease-in-out infinite alternate",
-};
-
-const phantomKingCardStrengthStyle = {
-  position: "absolute",
-  top: "-10px",
-  left: "-10px",
-  background: "linear-gradient(135deg, #4a90e2 0%, #74b9ff 100%)",
-  color: "white",
-  borderRadius: "50%",
-  width: "30px",
-  height: "30px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: "bold",
-  fontSize: "1rem",
-  fontFamily: '"Cinzel", serif',
-  border: "3px solid #1e3d59",
-  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.5)",
-  zIndex: 10,
-};
-
-const phantomKingCardImageStyle = {
-  width: "100%",
-  height: "60%",
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  border: "2px solid rgba(74, 144, 226, 0.4)",
-  borderRadius: "8px 8px 0 0",
-  boxShadow: "0 3px 8px rgba(0, 0, 0, 0.3)",
-};
-
-const phantomKingCardNameStyle = {
-  fontSize: "1.1rem",
-  fontWeight: "bold",
-  color: "#1e3d59",
-  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
-  fontFamily: '"Cinzel", serif',
-  margin: "3% 0",
-  textTransform: "uppercase",
-  letterSpacing: "1px",
-};
-
-const phantomKingCardEffectStyle = {
-  padding: "0 4%",
-  fontWeight: "300",
-  fontSize: "0.9rem",
-  lineHeight: "1.3",
-  color: "#3a2a1a",
-  textAlign: "justify",
-  fontFamily: '"Lora", serif',
-  fontStyle: "italic",
-};
-
-const phantomKingMessageContainerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "space-between",
-  textAlign: "center",
-  height: "-webkit-fill-available",
-};
-
-const phantomKingMessageStyle = {
-  fontSize: "1.2rem",
-  color: "#c2d9ff",
-  lineHeight: "1.6",
-  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
-  fontFamily: '"Lora", serif',
-};
-
-const phantomKingButtonContainerStyle = {
-  background: "initial",
-  width: "100%",
-  padding: "0",
-};
-
-const phantomKingButtonStyle = {
-  background:
-    "linear-gradient(135deg, rgb(30, 30, 60) 0%, rgb(74, 144, 226) 100%)",
-  color: "#c2d9ff",
-  transition: "all 0.3s ease",
-  width: "70%",
-  border: "2px solid rgba(74, 144, 226, 0.6)",
-};
-
-// Add ghostly float animation
-const ghostlyFloatAnimation = `
-@keyframes ghostlyFloat {
-  0% {
-    transform: translateY(0px);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(74, 144, 226, 0.3));
-  }
-  100% {
-    transform: translateY(-8px);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(74, 144, 226, 0.6));
-  }
-}
-`;
-
 // Inject the animation styles
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
-  style.textContent = priestGlowAnimation + ghostlyFloatAnimation;
+  style.textContent = priestGlowAnimation;
   document.head.appendChild(style);
 }

@@ -5,6 +5,7 @@ import { ref, onValue, update, set, get } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import InquisitorTargetModal from "../components/InquisitorTargetModal";
 import RoyalConfessorTargetModal from "../components/RoyalConfessorTargetModal";
+import RoyalConfessorResultModal from "../components/RoyalConfessorResultModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
@@ -107,7 +108,6 @@ export default function Play() {
     useState(null);
 
   const [priestTargetModalData, setPriestTargetModalData] = useState(null);
-  const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [regentQueenResultModalData, setRegentQueenResultModalData] =
@@ -1353,6 +1353,7 @@ export default function Play() {
       // Also, If my previous assumptions are correct, I guess we would also need an other useEffect (like the one listening for /targetMessage from line 438 to 466 in Play.jsx)
       //  that would listen to /target2Message instead, and would set setTarget2MessageModalData (that we also need to put in place)?
       // And maybe a new state variable target2MessageModalData, and make sure that we display the EffectResultModal if target2MessageModalData is set?
+      // Also, please make sure we clean both /target1Message and /target2Message when these targets close their EffectResultModal, to avoid any unwanted re-display of the modal.
 
       // End of TO DO ARCHIE
 
@@ -2776,6 +2777,7 @@ export default function Play() {
                 selectedCardId={targetMessageModalData.selectedCardId}
                 role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={targetMessageModalData.message}
+                isSelfTarget={targetMessageModalData.isSelfTarget || false}
                 swappedCards={targetMessageModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
@@ -3491,11 +3493,20 @@ export default function Play() {
             )}
 
             {/* === ROYAL CONFESSOR RESULT MODAL === */}
-            {/* === TO DO ARCHIE: let's complete what this component does and needs === */}
+            {/* === TO DO ARCHIE: let's complete what this component does and needs ===
+            For example, onClose, it should clean what needs to be clean (like RoyalConfessorResultModalData or setSelectedCardForUI, and maybe other things...) + it should advance the turn.
+            */}
+
             {royalConfessorResultModalData && (
               <RoyalConfessorResultModal
-                data={royalConfessorResultModalData}
-                onClose={() => setRoyalConfessorResultModalData(null)}
+                resultText={royalConfessorResultModalData.resultText}
+                selectedCardId={royalConfessorResultModalData.selectedCardId}
+                target1Name={royalConfessorResultModalData.target1Name}
+                target2Name={royalConfessorResultModalData.target2Name}
+                isSelfTarget={royalConfessorResultModalData.isSelfTarget}
+                cardPlayed={royalConfessorResultModalData.cardPlayed}
+                swappedCards={royalConfessorResultModalData.swappedCards}
+                /*onClose={() => { // TO DO ARCHIE: complete this onClose function \\}*/
               />
             )}
           </div>
