@@ -60,7 +60,7 @@ const effectTextStyles = `
 
   .quotation {
     font-style: italic;
-    color: rgb(247, 105, 166);
+    color: rgb(213, 182, 78);
   }
 
   .effect-warning {
@@ -173,18 +173,21 @@ export default function RoyalConfessorResultModal({
               {showDropdown ? (
                 // Show dropdown for external attacker to choose which target's card to reveal
                 <div style={confessorDropdownContainerStyle}>
-                  <div style={confessorDropdownLabelStyle}>
-                    Which of these sinners' secrets do you want to know?
+                  <div style={confessorDropdownContainerStyle2}>
+                    <div style={confessorDropdownLabelStyle}>
+                      Which of these sinners' secrets do you want to know?
+                    </div>
+                    <select
+                      value={selectedTarget}
+                      onChange={(e) => setSelectedTarget(e.target.value)}
+                      style={confessorDropdownStyle}
+                    >
+                      <option value="">Choose a confessor...</option>
+                      <option value={target1Name}>{target1Name}</option>
+                      <option value={target2Name}>{target2Name}</option>
+                    </select>
                   </div>
-                  <select
-                    value={selectedTarget}
-                    onChange={(e) => setSelectedTarget(e.target.value)}
-                    style={confessorDropdownStyle}
-                  >
-                    <option value="">Choose a confessor...</option>
-                    <option value={target1Name}>{target1Name}</option>
-                    <option value={target2Name}>{target2Name}</option>
-                  </select>
+
                   <button
                     onClick={handleRevealCard}
                     disabled={!selectedTarget}
@@ -389,19 +392,19 @@ const confessorModalStyle = {
 };
 
 const confessorLayoutStyle = {
-  padding: "0 1.5rem",
+  padding: "0 1.7rem",
   display: "flex",
   alignItems: "flex-start",
   margin: "2% 0px",
   justifyContent: "space-between",
   height: "100%",
+  gap: "1.5rem",
 };
 
 const confessorCardContainerStyle = {
   display: "flex",
   flexDirection: "column",
-  alignItems: "center",
-  width: "30%",
+  alignItems: "flex-start",
   height: "100%",
   minHeight: "330px",
   justifyContent: "center",
@@ -411,7 +414,7 @@ const confessorDropdownContainerStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "space-between",
   width: "200px",
   height: "330px",
   background:
@@ -423,14 +426,21 @@ const confessorDropdownContainerStyle = {
   border: "3px solid #8b4513",
 };
 
+const confessorDropdownContainerStyle2 = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "space-between",
+};
+
 const confessorDropdownLabelStyle = {
   color: "#2d1b1b",
   fontWeight: "bold",
-  fontSize: "1.1rem",
+  fontSize: "1.4rem",
   textAlign: "center",
-  marginBottom: "20px",
-  fontFamily: '"Cinzel", serif',
+  marginBottom: "2rem",
   lineHeight: "1.3",
+  fontFamily: '"Lora", serif',
 };
 
 const confessorDropdownStyle = {
@@ -541,7 +551,7 @@ const confessorCardEffectStyle = {
 };
 
 const confessorMessageContainerStyle = {
-  width: "65%",
+  width: "70%",
   height: "-webkit-fill-available",
   display: "flex",
   flexDirection: "column",

@@ -1079,7 +1079,7 @@ export async function applyRoyalConfessorEffect({
 
     const externalAttackerMessage = `<div class="effect-description">The Royal Confessor clasps his hands piously. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
 <div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense. Then he turns to you with a knowing grin:</div>
-<div class="effect-description">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
+<div class="effect-description quotation">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
 
     // Attacker message (when attacker = target1)
 
