@@ -15,18 +15,18 @@ const CONFESSOR_STYLES = {
   },
 
   noTargetMessage: {
-    lineHeight: "1.8em",
+    lineHeight: "1.6em",
     textAlign: "justify",
     color: "rgb(197 201 220)",
     fontSize: "1.1rem",
     fontFamily: "Lora, serif",
     fontStyle: "italic",
+    margin: "0.7rem 0 0",
   },
 
   dropdownContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: "2rem",
   },
 
   dropdownSection: {
@@ -37,7 +37,7 @@ const CONFESSOR_STYLES = {
     fontSize: "1.1rem",
     fontWeight: "bold",
     color: "#ffd700",
-    marginBottom: "0.8rem",
+    margin: "1rem 0",
     display: "block",
     textAlign: "left",
   },
@@ -277,6 +277,7 @@ export default function RoyalConfessorInquisitorTargetModal({
               <select
                 style={{
                   ...CONFESSOR_STYLES.select,
+                  marginBottom: "1.5rem",
                 }}
                 value={selectedTarget2}
                 onChange={(e) => setSelectedTarget2(e.target.value)}

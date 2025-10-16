@@ -305,7 +305,6 @@ export default function RoyalConfessorResultModal({
                       e.target.style.color = "#2d1b1b";
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)";
-                      e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(255, 215, 0, 0.5)";
                       e.target.style.border = "2px outset #4b032b";

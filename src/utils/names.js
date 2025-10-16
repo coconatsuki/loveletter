@@ -63,7 +63,6 @@ const names = [
   { name: "Duchess Dockeria", gender: "female" },
   { name: "The Herald of HotReload", gender: "neutral" },
   { name: "Master of CodeDisaster", gender: "male" },
-  { name: "Master of LockingEveryoneOut", gender: "male" },
   { name: "Lord TableQuery", gender: "male" },
   { name: "Lord of the BlueScreen of Death", gender: "male" },
   { name: "Dame Widgetonia", gender: "female" },
