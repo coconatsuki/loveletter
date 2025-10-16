@@ -115,6 +115,7 @@ export default function Play() {
   const [regentQueenTargetModalData, setRegentQueenTargetModalData] =
     useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
+  const [target2MessageModalData, setTarget2MessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
   const [hoveredPlayer, setHoveredPlayer] = useState(null);
@@ -138,6 +139,7 @@ export default function Play() {
       regentQueenResultModalData ||
       regentQueenTargetModalData ||
       targetMessageModalData ||
+      target2MessageModalData ||
       showGuardTargetPrompt ||
       roundEndModalData ||
       isModalTransitioning
@@ -460,6 +462,36 @@ export default function Play() {
           "🎯 TARGET MESSAGE LISTENER: Clearing target message modal data"
         );
         setTargetMessageModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
+  // Listen to target2 message modal data (for Royal Confessor external targeting)
+  useEffect(() => {
+    const refTarget2Message = ref(db, `rooms/${roomCode}/target2Message`);
+    const unsubscribe = onValue(refTarget2Message, (snapshot) => {
+      const data = snapshot.val();
+
+      console.log("🎭 TARGET2 MESSAGE LISTENER: Received data:", {
+        data,
+        nickname,
+        isVisibleToMe: data?.visibleTo === nickname,
+      });
+
+      if (data && data.visibleTo === nickname) {
+        // Show target2 message modal to the target player
+        console.log(
+          "🎭 TARGET2 MESSAGE LISTENER: Setting target2 message modal data:",
+          data
+        );
+        setTarget2MessageModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        console.log(
+          "🎭 TARGET2 MESSAGE LISTENER: Clearing target2 message modal data"
+        );
+        setTarget2MessageModalData(null);
       }
     });
     return () => unsubscribe();
@@ -1267,34 +1299,24 @@ export default function Play() {
         roomCode,
         target1: target,
         target2,
-        attacker,
+        attacker: nickname,
         selectedCardIndex,
         cardPlayed,
       });
 
-      // What we get from result:
-      /*           return {
-      result: "confession",
-      isSelfTarget,
-      publicMessage,
-      externalAttackerMessage,
-      attackerSelfTargetMessage,
-      target2Message,
-      target1Message,
-      newTarget1Card,
-      newTarget2Card,
-    }; */
+      // Handle different messaging scenarios based on whether attacker is one of the targets
+      const attackerIsTarget1 = result.isSelfTarget;
+      const attackerIsExternal = !attackerIsTarget1;
 
-      // TO DO ARCHIE: check if attacker=target1 here.
-      // If so, we just have to display ONE EffectResultModal to target2 (and just use the usual /targetMessage for target2),
-      // and the RoyalConfessorResultModal to the attacker
-      // If NOT, we'll have to display TWO EffectResultModals to both targets (maybe using /target2Message for target1?),
-      // and the RoyalConfessorResultModal to the attacker
+      console.log("🎭 ROYAL CONFESSOR: Target analysis:", {
+        attackerIsTarget1,
+        attackerIsExternal,
+        target1: target,
+        target2,
+        attacker: nickname,
+      });
 
-      // TO DO ARCHIE: here is what we need if attacker=target1
-      // Not sure how we can handle the case when both targets1 and 2 are different from attacker
-
-      // NOTE ARCHIE: this would be for Target2, in case attacker=target1:
+      // Send that to target2 IN ANY CASE
 
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
         selectedCardId: cardPlayed.id,
@@ -1303,21 +1325,41 @@ export default function Play() {
         isSelfTarget: result.isSelfTarget,
         message: result.target2Message,
         swappedCards: {
-          target2Gave: result.newTarget1Card, // Card the target2 gave away
-          target2Received: result.newTarget2Card, // Card the target2 received
+          targetGave: result.newTarget1Card, // Card target2 gave away (to attacker/target1)
+          targetReceived: result.newTarget2Card, // Card target2 received (from attacker/target1)
         },
         timestamp: Date.now(),
       });
 
-      console.log(
-        "ROYAL CONFESSOR: Target message sent successfully to target2"
-      );
+      if (attackerIsExternal) {
+        // Case 2: Attacker is external - need to send EffectResultModal to target1 as well
+        console.log(
+          "🎭 ROYAL CONFESSOR: Attacker is external - sending normal messages to target1 as well"
+        );
 
-      // Here is for the attacker, who could ALSO be target1:
+        // Send message to Target1 via target2Message
+        await update(ref(db, `rooms/${roomCode}/target2Message`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          isSelfTarget: false,
+          message: result.target1Message,
+          swappedCards: {
+            targetGave: result.newTarget2Card,
+            targetReceived: result.newTarget1Card,
+          },
+          timestamp: Date.now(),
+        });
 
+        console.log(
+          "🎭 ROYAL CONFESSOR: Messages sent to both Target1 and Target2"
+        );
+      }
+
+      // Set up the RoyalConfessorResultModal for the attacker
       setRoyalConfessorResultModalData({
         selectedCardId: 13, // Royal Confessor card ID
-        resultText: isSelfTarget
+        resultText: attackerIsTarget1
           ? result.attackerSelfTargetMessage
           : result.externalAttackerMessage,
         target1Name: target,
@@ -1325,37 +1367,15 @@ export default function Play() {
         isSelfTarget: result.isSelfTarget,
         cardPlayed: 13, // Special flag for Royal Confessor
         swappedCards: {
-          attackerGave: result.newTarget2Card, // Card the attacker gave away
-          attackerReceived: result.newTarget1Card, // Card the attacker received
+          target1Gave: result.newTarget2Card, // Card the attacker/target1 gave away
+          target1Received: result.newTarget1Card, // Card the attacker/target1 received
         },
-        role: "attacker", // For the EffectResultModal to know which perspective
+        role: "attacker",
       });
 
-      // TO DO ARCHIE: this would be for Target1, in case attacker != target1:
-      // We'll probably need to set up some await update(ref(db, `rooms/${roomCode}/target2Message`), right?
-
-      // If so, it would need to contain:
-      /* 
-        await update(ref(db, `rooms/${roomCode}/target2Message`), {
-        selectedCardId: cardPlayed.id,
-        visibleTo: target,
-        attacker: nickname,
-        isSelfTarget: result.isSelfTarget,
-        message: result.target1Message,
-        swappedCards: {
-          target1Gave: result.newTarget2Card, // Card the target2 gave away
-          target1Received: result.newTarget1Card, // Card the target2 received
-        },
-        timestamp: Date.now(),
-      });
- */
-
-      // Also, If my previous assumptions are correct, I guess we would also need an other useEffect (like the one listening for /targetMessage from line 438 to 466 in Play.jsx)
-      //  that would listen to /target2Message instead, and would set setTarget2MessageModalData (that we also need to put in place)?
-      // And maybe a new state variable target2MessageModalData, and make sure that we display the EffectResultModal if target2MessageModalData is set?
-      // Also, please make sure we clean both /target1Message and /target2Message when these targets close their EffectResultModal, to avoid any unwanted re-display of the modal.
-
-      // End of TO DO ARCHIE
+      console.log(
+        "🎭 ROYAL CONFESSOR: RoyalConfessorResultModal data set for attacker"
+      );
 
       pushNotification(roomCode, result.publicMessage);
       return;
@@ -2862,6 +2882,37 @@ export default function Play() {
               />
             )}
 
+            {/* === TARGET2 MESSAGE MODAL (Royal Confessor external targeting) === */}
+            {target2MessageModalData && (
+              <EffectResultModal
+                selectedCardId={target2MessageModalData.selectedCardId}
+                role="target"
+                resultText={target2MessageModalData.message}
+                isSelfTarget={target2MessageModalData.isSelfTarget || false}
+                swappedCards={target2MessageModalData.swappedCards || null}
+                onClose={() =>
+                  handleModalTransition(async () => {
+                    console.log(
+                      "🎭 TARGET2 MODAL DEBUG: Target2 modal closing with data:",
+                      target2MessageModalData
+                    );
+
+                    // Clear the target2 message when confirmed
+                    await set(
+                      ref(db, `rooms/${roomCode}/target2Message`),
+                      null
+                    );
+                    setTarget2MessageModalData(null);
+
+                    // Royal Confessor target2 modals are info-only, turn advancement is handled by attacker
+                    console.log(
+                      "🎭 TARGET2 MODAL DEBUG: Royal Confessor target2 modal closed (info-only)"
+                    );
+                  })
+                }
+              />
+            )}
+
             {/* === BARON RESULT MODAL === */}
             {baronResultModalData && (
               <BaronResultModal
@@ -3493,10 +3544,6 @@ export default function Play() {
             )}
 
             {/* === ROYAL CONFESSOR RESULT MODAL === */}
-            {/* === TO DO ARCHIE: let's complete what this component does and needs ===
-            For example, onClose, it should clean what needs to be clean (like RoyalConfessorResultModalData or setSelectedCardForUI, and maybe other things...) + it should advance the turn.
-            */}
-
             {royalConfessorResultModalData && (
               <RoyalConfessorResultModal
                 resultText={royalConfessorResultModalData.resultText}
@@ -3506,7 +3553,60 @@ export default function Play() {
                 isSelfTarget={royalConfessorResultModalData.isSelfTarget}
                 cardPlayed={royalConfessorResultModalData.cardPlayed}
                 swappedCards={royalConfessorResultModalData.swappedCards}
-                /*onClose={() => { // TO DO ARCHIE: complete this onClose function \\}*/
+                onClose={() =>
+                  handleModalTransition(async () => {
+                    console.log(
+                      "🎭 ROYAL CONFESSOR RESULT: Modal closing, completing turn"
+                    );
+
+                    // Clear all Royal Confessor related state
+                    setRoyalConfessorResultModalData(null);
+                    setSelectedCardForUI(null);
+                    setSelectedCardIndex(null);
+
+                    // Royal Confessor effect is already complete, just need to advance turn
+                    // The card has already been discarded and hands swapped by applyRoyalConfessorEffect
+                    // Calculate next player in turn order (skip eliminated players)
+                    const activePlayers = Object.keys(players).filter(
+                      (p) => !players[p].isOut
+                    );
+                    const currentIndex = activePlayers.indexOf(nickname);
+                    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+                    // Skip any players that got eliminated during this turn
+                    while (
+                      players[activePlayers[nextIndex]]?.isOut &&
+                      nextIndex !== currentIndex
+                    ) {
+                      nextIndex = (nextIndex + 1) % activePlayers.length;
+                    }
+
+                    const nextPlayer = activePlayers[nextIndex];
+
+                    // Clean up Handmaid protection for the next player
+                    const currentProtected = roomData?.protectedPlayers || [];
+                    const updatedProtected = currentProtected.filter(
+                      (player) => player !== nextPlayer
+                    );
+
+                    // Update only the current player and protection (hands and discard are already updated by the effect)
+                    await update(ref(db, `rooms/${roomCode}`), {
+                      [`round/currentPlayer`]: nextPlayer,
+                      protectedPlayers: updatedProtected,
+                    });
+
+                    // Notify all players about the turn change
+                    pushNotification(
+                      roomCode,
+                      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+                    );
+
+                    console.log(
+                      "🎭 ROYAL CONFESSOR RESULT: Turn completed, advanced to:",
+                      nextPlayer
+                    );
+                  })
+                }
               />
             )}
           </div>

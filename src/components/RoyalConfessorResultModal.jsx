@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getCardImage } from "../utils/cardsData";
 
 // CSS styles for card effect formatting
@@ -92,6 +92,12 @@ export default function RoyalConfessorResultModal({
   swappedCards,
   onClose,
 }) {
+  const [selectedTarget, setSelectedTarget] = useState("");
+  const [revealedCard, setRevealedCard] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(!isSelfTarget);
+  const newTarget1Card = swappedCards?.target1Received;
+  const newTarget2Card = swappedCards?.target2Received;
+
   // 🐛 DEBUG: Log props to ensure we never get invalid values
   useEffect(() => {
     console.log("🎭 RoyalConfessorResultModal mounted with props:", {
@@ -103,12 +109,17 @@ export default function RoyalConfessorResultModal({
       cardPlayed,
       swappedCards,
     });
+
+    // For self-targeting, show the card immediately
+    if (isSelfTarget) {
+      setRevealedCard(newTarget1Card);
+      setShowDropdown(false);
+    }
   }, [
     selectedCardId,
     target1Name,
     resultText,
     target2Name,
-    isSelfTarget,
     isSelfTarget,
     cardPlayed,
     swappedCards,
@@ -132,92 +143,127 @@ export default function RoyalConfessorResultModal({
     ));
   };
 
-  const revealedCard = isSelfTarget ? swappedCards.attackerReceived : null;
-
-  //reminder of swappedCards structure:
-  // swappedCards = {
-  //   attackerReceived: { name, strength, effect },
-  //   targetReceived: { name, strength, effect }
-  // }
-
-  // TO DO ARCHIE:
-  // 1. IF self-targeting, show the revealed card on the left side (like the Priest card effect modal)
-  // 2. IF the 2 targets are different players, show a div of the same size as the revealed card div, but that would contain both a dropdown (with target1Name and target2Name as options) with a "Which of these sinners' secrets do you want to know?" label above, and below the dropdown, add a "revealed card" button.
-  // Make sure that the button is disabled until the player selects a target in the dropdown.
-  // Once a target is selected and the button clicked, replace the dropdown and button with the revealed card of the selected target (like the Priest card effect modal).
-  // Restyle the entire modal below to correspond to the character of the Royal Confessor (colors, decorations, the "Continue" button style & text, etc...)
-  // Note: I just copy-pasted the PriestStyles & PriestLayout & HTML structure, so please feel free to modify anything you want to make it fit the Royal Confessor character b etter.
-  // Think Christianity, religion, piety, confession, etc...
+  const handleRevealCard = () => {
+    if (selectedTarget === target1Name) {
+      setRevealedCard(newTarget1Card);
+    } else if (selectedTarget === target2Name) {
+      setRevealedCard(newTarget2Card);
+    }
+    setShowDropdown(false);
+  };
 
   return (
     <>
       <style>{effectTextStyles}</style>
+      <style>{confessorGlowAnimation}</style>
       <div className="modal" style={modalOverlayStyle}>
         <div
           className="modal-content"
           style={{
             ...modalContentStyle,
-            ...priestModalStyle,
+            ...confessorModalStyle,
           }}
         >
           {/* Crown decoration */}
-          <div style={crownDecorationStyle}>🙏🏼</div>
-          <h3 style={headerStyle}>The Mutual Confession ritual</h3>
-          <div style={priestLayoutStyle}>
-            {/* Left side - The revealed card */}
-            <div style={priestCardContainerStyle}>
-              <div style={priestCardStyle}>
-                <div style={priestCardStrengthStyle}>
-                  {revealedCard.strength}
+          <div style={crownDecorationStyle}>✝️</div>
+          <h3 style={headerStyle}>Sacred Confession</h3>
+          <div style={confessorLayoutStyle}>
+            {/* Left side - The revealed card or dropdown selection */}
+            <div style={confessorCardContainerStyle}>
+              {showDropdown ? (
+                // Show dropdown for external attacker to choose which target's card to reveal
+                <div style={confessorDropdownContainerStyle}>
+                  <div style={confessorDropdownLabelStyle}>
+                    Which of these sinners' secrets do you want to know?
+                  </div>
+                  <select
+                    value={selectedTarget}
+                    onChange={(e) => setSelectedTarget(e.target.value)}
+                    style={confessorDropdownStyle}
+                  >
+                    <option value="">Choose a confessor...</option>
+                    <option value={target1Name}>{target1Name}</option>
+                    <option value={target2Name}>{target2Name}</option>
+                  </select>
+                  <button
+                    onClick={handleRevealCard}
+                    disabled={!selectedTarget}
+                    style={{
+                      ...confessorRevealButtonStyle,
+                      opacity: selectedTarget ? 1 : 0.5,
+                      cursor: selectedTarget ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Reveal
+                  </button>
                 </div>
-                <div
-                  style={{
-                    ...priestCardImageStyle,
-                    backgroundImage: `url('/src/img/${getCardImage(
-                      revealedCard.name
-                    )}')`,
-                  }}
-                ></div>
-                <div style={priestCardContentStyle}>
-                  <div style={priestCardNameStyle}>{revealedCard.name}</div>
-                  <div style={priestCardEffectStyle}>{revealedCard.effect}</div>
-                </div>
-              </div>
+              ) : (
+                // Show the revealed card
+                revealedCard && (
+                  <div style={confessorCardStyle}>
+                    <div style={confessorCardStrengthStyle}>
+                      {revealedCard.strength}
+                    </div>
+                    <div
+                      style={{
+                        ...confessorCardImageStyle,
+                        backgroundImage: `url('/src/img/${getCardImage(
+                          revealedCard.name
+                        )}')`,
+                      }}
+                    ></div>
+                    <div style={confessorCardContentStyle}>
+                      <div style={confessorCardNameStyle}>
+                        {revealedCard.name}
+                      </div>
+                      <div style={confessorCardEffectStyle}>
+                        {revealedCard.effect}
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
 
-            {/* Right side - The spying message */}
-            <div style={priestMessageContainerStyle}>
-              <div style={priestMessageIconStyle}>
-                <div style={priestSpyIconStyle}>👁️‍🗨️</div>
-                <div style={priestMessageStyle}>{formatText(resultText)}</div>
+            {/* Right side - The confession message */}
+            <div style={confessorMessageContainerStyle}>
+              <div style={confessorMessageIconStyle}>
+                <div style={confessorMessageStyle}>
+                  {formatText(resultText)}
+                </div>
               </div>
               <div
                 style={{
                   ...buttonContainerStyle,
-                  ...priestButtonContainerStyle,
+                  ...confessorButtonContainerStyle,
                 }}
               >
                 <button
                   onClick={onClose}
                   style={{
                     ...buttonStyle,
-                    ...priestButtonStyle,
+                    ...confessorButtonStyle,
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.color = "#8b0000";
+                    e.target.style.color = "#2d1b1b";
                     e.target.style.background =
-                      "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+                      "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)";
                     e.target.style.transform = "translateY(-2px)";
                     e.target.style.boxShadow =
                       "0 6px 25px rgba(255, 215, 0, 0.5)";
+                    e.target.style.border = "2px outset #4b032b";
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.color = "#ffd700";
                     e.target.style.background =
-                      "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                      "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)";
                   }}
                 >
-                  Continue
+                  {isSelfTarget
+                    ? "Amen"
+                    : revealedCard
+                    ? "Blessed be"
+                    : "Continue"}
                 </button>
               </div>
             </div>
@@ -249,8 +295,9 @@ const crownDecorationStyle = {
   top: "-30px",
   left: "50%",
   transform: "translateX(-50%)",
-  background: "#6a4c93",
-  border: `3px solid #9b59b6$`,
+  background:
+    "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)",
+  border: "2px solid #4b032b",
   borderRadius: "50%",
   width: "50px",
   height: "50px",
@@ -280,7 +327,7 @@ const modalContentStyle = {
 // Define headerStyle as a function that takes parameters
 const headerStyle = {
   background: "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)",
-  color: "#ffd700",
+  color: "rgb(216, 166, 18)",
   margin: "0",
   padding: "35px 25px 15px",
   fontSize: "1.5rem",
@@ -331,35 +378,91 @@ const buttonStyle = {
   width: "55%",
 };
 
-// Priest-specific modal styles
-const priestModalStyle = {
-  width: "90%",
-  maxWidth: "800px",
-  background:
-    "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 50%, rgb(139, 0, 0) 100%)",
-  border: "4px solid #9b59b6",
+// Royal Confessor-specific modal styles
+const confessorModalStyle = {
+  width: "75%",
+  maxWidth: "90%",
+  background: "linear-gradient(135deg, #2d1b1b 0%, #4a0028 50%, #6a4c93 100%)",
+  border: "4px solid #daa520",
   boxShadow:
-    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(155, 89, 182, 0.4)",
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(218, 165, 32, 0.4)",
 };
 
-const priestLayoutStyle = {
+const confessorLayoutStyle = {
+  padding: "0 1.5rem",
   display: "flex",
-  gap: "30px",
   alignItems: "flex-start",
-  margin: "3% 0",
-  justifyContent: "space-around",
+  margin: "2% 0px",
+  justifyContent: "space-between",
   height: "100%",
 };
 
-const priestCardContainerStyle = {
+const confessorCardContainerStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   width: "30%",
   height: "100%",
+  minHeight: "330px",
+  justifyContent: "center",
 };
 
-const priestCardStyle = {
+const confessorDropdownContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "200px",
+  height: "330px",
+  background:
+    "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)",
+  borderRadius: "8px",
+  padding: "20px",
+  boxShadow:
+    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4)",
+  border: "3px solid #8b4513",
+};
+
+const confessorDropdownLabelStyle = {
+  color: "#2d1b1b",
+  fontWeight: "bold",
+  fontSize: "1.1rem",
+  textAlign: "center",
+  marginBottom: "20px",
+  fontFamily: '"Cinzel", serif',
+  lineHeight: "1.3",
+};
+
+const confessorDropdownStyle = {
+  width: "100%",
+  padding: "8px 12px",
+  fontSize: "1rem",
+  borderRadius: "5px",
+  border: "2px solid #8b4513",
+  background: "#fff",
+  color: "#2d1b1b",
+  fontFamily: '"Lora", serif',
+  marginBottom: "15px",
+  cursor: "pointer",
+};
+
+const confessorRevealButtonStyle = {
+  padding: "10px 20px",
+  fontSize: "1rem",
+  background: "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)",
+  color: "#ffd700",
+  border: "2px solid #daa520",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  fontFamily: '"Cinzel", serif',
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  transition: "all 0.3s ease",
+  boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
+};
+
+const confessorCardStyle = {
   position: "relative",
   backgroundColor: "white",
   borderRadius: "8px",
@@ -369,17 +472,18 @@ const priestCardStyle = {
   flexDirection: "column",
   cursor: "default",
   boxShadow:
-    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(255, 215, 0, 0.4)",
+    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4)",
   transition: "all 0.2s ease",
   transform: "perspective(1000px) rotateY(-3deg) rotateX(2deg)",
+  border: "3px solid #8b4513",
 };
 
-const priestCardStrengthStyle = {
+const confessorCardStrengthStyle = {
   position: "absolute",
   top: "-10px",
   left: "-10px",
-  background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
-  color: "#007bff",
+  background: "linear-gradient(135deg, #ffd700 0%, #daa520 100%)",
+  color: "#2d1b1b",
   borderRadius: "50%",
   width: "32px",
   height: "32px",
@@ -395,28 +499,29 @@ const priestCardStrengthStyle = {
   margin: "0",
 };
 
-const priestCardImageStyle = {
-  width: "initial%",
+const confessorCardImageStyle = {
+  boxSizing: "border-box",
+  width: "100%",
   height: "60%",
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
   margin: "0",
-  border: "2px solid #d4af37",
+  border: "2px solid #daa520",
   borderRadius: "8px 8px 0 0",
   boxShadow: "0 3px 8px rgba(0, 0, 0, 0.3)",
 };
 
-const priestCardContentStyle = {
+const confessorCardContentStyle = {
   display: "flex",
   flexDirection: "column",
   textAlign: "center",
 };
 
-const priestCardNameStyle = {
+const confessorCardNameStyle = {
   fontSize: "1.3rem",
   fontWeight: "bold",
-  color: "#8b0000",
+  color: "#4a0028",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
   fontFamily: '"Cinzel", serif',
   margin: "3% 0",
@@ -424,39 +529,33 @@ const priestCardNameStyle = {
   letterSpacing: "1px",
 };
 
-const priestCardEffectStyle = {
+const confessorCardEffectStyle = {
   padding: "0 4%",
   fontWeight: "300",
   fontSize: "1rem",
   lineHeight: "1.3",
-  color: "#3a2a1a",
+  color: "#2d1b1b",
   textAlign: "justify",
   fontFamily: '"Lora", serif',
   fontStyle: "italic",
 };
 
-const priestMessageContainerStyle = {
-  width: "55%",
+const confessorMessageContainerStyle = {
+  width: "65%",
   height: "-webkit-fill-available",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "space-between",
-  textAlign: "center",
+  textAlign: "justify",
 };
 
-const priestMessageIconStyle = {
+const confessorMessageIconStyle = {
   display: "flex",
   flexDirection: "column",
 };
 
-const priestSpyIconStyle = {
-  fontSize: "4rem",
-  filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))",
-  animation: "priestGlow 2s ease-in-out infinite alternate",
-};
-
-const priestMessageStyle = {
+const confessorMessageStyle = {
   fontSize: "1.2rem",
   color: "#e6d7b0",
   lineHeight: "1.6",
@@ -464,28 +563,28 @@ const priestMessageStyle = {
   fontFamily: '"Lora", serif',
 };
 
-const priestButtonContainerStyle = {
+const confessorButtonContainerStyle = {
   background: "initial",
   width: "100%",
   padding: "0",
 };
 
-const priestButtonStyle = {
-  background:
-    "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)",
-  color: "#ffd700",
+const confessorButtonStyle = {
+  background: "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)",
+  color: "rgb(216, 166, 18)",
   transition: "all 0.3s ease",
   width: "70%",
+  border: "none",
 };
 
-// Add the animation CSS (this would normally be in a CSS file)
-const priestGlowAnimation = `
-@keyframes priestGlow {
+// Add the animation CSS for Royal Confessor
+const confessorGlowAnimation = `
+@keyframes confessorGlow {
   0% {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(155, 89, 182, 0.3));
+    filter: drop-shadow(0 4px 8px rgba(218, 165, 32, 0.6));
   }
   100% {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(155, 89, 182, 0.6));
+    filter: drop-shadow(0 6px 15px rgba(218, 165, 32, 0.9));
   }
 }
 `;
@@ -493,6 +592,6 @@ const priestGlowAnimation = `
 // Inject the animation styles
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
-  style.textContent = priestGlowAnimation;
+  style.textContent = confessorGlowAnimation;
   document.head.appendChild(style);
 }

@@ -1077,24 +1077,24 @@ export async function applyRoyalConfessorEffect({
     const newTarget1Card = target2Card;
     const newTarget2Card = target1Card;
 
-    const externalAttackerMessage = `<div class="effect-description">The Royal Confessor clasps his hands piously. “Sin festers when left alone,” he declares. “Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</div>
-<div class="effect-description">While they whisper, he listens — not so discreetly — eyes twinkling through the incense. Then he turns to you with a knowing grin:</div>
+    const externalAttackerMessage = `<div class="effect-description">The Royal Confessor clasps his hands piously. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
+<div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense. Then he turns to you with a knowing grin:</div>
 <div class="effect-description">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
 
     // Attacker message (when attacker = target1)
 
     const attackerSelfTargetMessage = `<div class="effect-description">Seeking divine favor, you step forth before the Royal Confessor.</div>
-<div class="effect-description">“Such humility warms the heavens,” he proclaims. “<span class="effect-player">${target}</span> shall join you — for nothing cleanses the soul like mutual confession.”</div>
+<div class="effect-description"><span class="quotation">“Such humility warms the heavens,”</span> he proclaims. <span class="quotation">“<span class="effect-player">${target2}</span> shall join you — for nothing cleanses the soul like mutual confession.”</span></div>
 <div class="effect-description">As your whispers fade, he leans closer, smirking beneath his hood:</div>
-<div class="effect-description">“A brave act, my child. And between us… their secret was well worth the effort, don’t you think?”</div>`;
+<div class="effect-description quotation">“A brave act, my child. And between us… their secret was well worth the effort, don’t you think?”</div>`;
 
-    const target2Message = `<div class="effect-description">The Royal Confessor’s voice booms through the chapel: “By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${
+    const target2Message = `<div class="effect-description">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${
       isSelfTarget ? "them" : target1
-    }</span> shall purify your hearts before the light!”</div>
+    }</span> shall purify your hearts before the light!”</span></div>
 <div class="effect-description">You kneel beside <span class="effect-player">${target1}</span>, exchanging your hidden sins as incense clouds the air.</div>
 <div class="effect-description">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets.</div>`;
 
-    const target1Message = `<div class="effect-description">The Royal Confessor’s voice booms through the chapel: “By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${target2}</span> shall purify your hearts before the light!”</div>
+    const target1Message = `<div class="effect-description">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${target2}</span> shall purify your hearts before the light!”</span></div>
 <div class="effect-description">You kneel beside <span class="effect-player">${target2}</span>, exchanging your hidden sins as incense clouds the air.</div>
 <div class="effect-description">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets.</div>`;
 
@@ -1113,12 +1113,6 @@ export async function applyRoyalConfessorEffect({
     };
   } catch (error) {
     console.error("👻 ROYAL CONFESSOR EXCHANGE ERROR:", error);
-    setResultModalData({
-      selectedCardId: 6,
-      resultText: `❌ The Mutual Confession ritual failed... ${
-        error.message || "Unknown error"
-      }`,
-    });
     return;
   }
 }
