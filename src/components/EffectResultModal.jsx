@@ -53,7 +53,7 @@ const effectTextStyles = `
     margin-top: 0;
   }
 
-  .effect-description.phantom-king {
+  .effect-description.phantom-king, .effect-description.confessor {
     font-size: 1.2rem;
     text-align: justify;
   }
@@ -87,7 +87,8 @@ export default function EffectResultModal({
   cardDetails = null,
   selectedCardId = -1, // Should never be -1 if properly called - will help us catch bugs
   role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
-  swappedCards = null, // For Phantom King card swap details
+  swappedCards = null, // For Phantom King or Royal Confessor cards-swap details
+  isSelfTarget = false, // To identify self-targeting effects (for Royal Confessor)
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
@@ -141,6 +142,7 @@ export default function EffectResultModal({
   const isInquisitorEffect = selectedCardId === 9;
   const isChamberlainEffect = selectedCardId === 10;
   const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
+  const isRoyalConfessorEffect = selectedCardId === 13 && swappedCards;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -179,6 +181,7 @@ export default function EffectResultModal({
             ...(isJesterEffect ? jesterModalStyle : {}),
             ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
             ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
+            ...(isRoyalConfessorEffect ? royalConfessorModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -196,6 +199,8 @@ export default function EffectResultModal({
                 ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
                 : isPhantomKingEffect
                 ? "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(74, 144, 226) 100%)"
+                : isRoyalConfessorEffect
+                ? "linear-gradient(135deg, rgb(101, 67, 33) 0%, rgb(139, 69, 19) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -208,6 +213,8 @@ export default function EffectResultModal({
                   ? "#FF1493"
                   : isPhantomKingEffect
                   ? "rgb(247 105 166)"
+                  : isRoyalConfessorEffect
+                  ? "#d4af37"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -233,6 +240,8 @@ export default function EffectResultModal({
               ? "💅"
               : isPhantomKingEffect
               ? "👻"
+              : isRoyalConfessorEffect
+              ? "🕯️"
               : isChamberlainEffect
               ? "💰"
               : isHandmaidProtection
@@ -246,7 +255,8 @@ export default function EffectResultModal({
               isInquisitorEffect,
               isJesterEffect,
               isCourtWhispererEffect,
-              isPhantomKingEffect
+              isPhantomKingEffect,
+              isRoyalConfessorEffect
             )}
           >
             {isPriestEffect
@@ -263,6 +273,8 @@ export default function EffectResultModal({
               ? "💅 Court Whisperer Effect 💅"
               : isPhantomKingEffect
               ? "🍷 The Boozy Benevolence"
+              : isRoyalConfessorEffect
+              ? "🕯️ The Mutual Confession Ritual"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
@@ -440,13 +452,106 @@ export default function EffectResultModal({
                 </div>
               </div>
             </div>
+          ) : isRoyalConfessorEffect && swappedCards ? (
+            /* Special Royal Confessor Layout with Card Swap Display */
+            <div style={royalConfessorLayoutStyle}>
+              {/* Left side - The swapped cards */}
+              <div style={royalConfessorCardsContainerStyle}>
+                <div style={royalConfessorCardRowStyle}>
+                  {/* Card given away */}
+                  <div style={royalConfessorCardContainerStyle}>
+                    <div style={royalConfessorCardStyle}>
+                      <div style={royalConfessorCardStrengthStyle}>
+                        {swappedCards.targetGave.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...royalConfessorCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            swappedCards.targetGave.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={royalConfessorCardNameStyle}>
+                        {swappedCards.targetGave.name}
+                      </div>
+                      <div style={royalConfessorCardEffectStyle}>
+                        {swappedCards.targetGave.effect}
+                      </div>
+                    </div>
+                    <p style={royalConfessorCardLabelStyle}>You Gave</p>
+                  </div>
+
+                  <div style={royalConfessorArrowStyle}>⇄</div>
+
+                  {/* Card received */}
+                  <div style={royalConfessorCardContainerStyle}>
+                    <div style={royalConfessorCardStyle}>
+                      <div style={royalConfessorCardStrengthStyle}>
+                        {swappedCards.targetReceived.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...royalConfessorCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            swappedCards.targetReceived.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={royalConfessorCardNameStyle}>
+                        {swappedCards.targetReceived.name}
+                      </div>
+                      <div style={royalConfessorCardEffectStyle}>
+                        {swappedCards.targetReceived.effect}
+                      </div>
+                    </div>
+                    <p style={royalConfessorCardLabelStyle}>You Received</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - The confession message */}
+              <div style={royalConfessorMessageContainerStyle}>
+                <div style={royalConfessorMessageStyle}>
+                  {formatText(resultText)}
+                </div>
+                <div
+                  style={{
+                    ...buttonContainerStyle,
+                    ...royalConfessorButtonContainerStyle,
+                  }}
+                >
+                  <button
+                    onClick={onClose}
+                    style={{
+                      ...buttonStyle,
+                      ...royalConfessorButtonStyle,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#2a1a0a";
+                      e.target.style.background =
+                        "linear-gradient(135deg, #f4e5c2 0%, #d4af37 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(212, 175, 55, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#f4e5c2";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(139, 69, 19) 100%)";
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <div style={getMessageStyle(isCourtWhispererEffect)}>
               {formatText(resultText)}
               <div
                 style={{
                   ...buttonContainerStyle,
-                  ...(isHandmaidProtection ? handmaidButtonContainerStyle : {}),
                 }}
               >
                 <button
@@ -476,7 +581,7 @@ export default function EffectResultModal({
                       e.target.style.border = "2px solid #FF69B4";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
-                        "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)";
+                        "linear-gradient(135deg, rgb(46 116 50) 0%,rgb(11 28 11)  100%)";
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(76, 175, 80, 0.5)";
@@ -590,7 +695,8 @@ const getHeaderStyle = (
   isInquisitorEffect,
   isJesterEffect,
   isCourtWhispererEffect,
-  isPhantomKingEffect
+  isPhantomKingEffect,
+  isRoyalConfessorEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -604,11 +710,15 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)"
     : isPhantomKingEffect
     ? "linear-gradient(135deg, rgb(0 0 14) 0%, rgb(10 23 39) 100%)"
+    : isRoyalConfessorEffect
+    ? "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(101, 67, 33) 50%, rgb(139, 69, 19) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: isCourtWhispererEffect
     ? "rgb(242 242 242)"
     : isPhantomKingEffect
     ? "rgb(247 105 166)"
+    : isRoyalConfessorEffect
+    ? "#f4e5c2"
     : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
@@ -687,12 +797,6 @@ const buttonStyle = {
   boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
   minWidth: "140px",
   width: "55%",
-};
-
-// Handmaid-specific button styles
-const handmaidButtonContainerStyle = {
-  background:
-    "linear-gradient(135deg, rgb(26, 77, 26) 0%, rgb(46, 125, 50) 50%, rgb(76, 175, 80) 100%)",
 };
 
 const handmaidButtonStyle = {
@@ -1053,6 +1157,178 @@ const phantomKingButtonStyle = {
   border: "2px solid rgba(74, 144, 226, 0.6)",
 };
 
+// Royal Confessor-specific modal styles (religious/church atmosphere)
+const royalConfessorModalStyle = {
+  width: "85%",
+  maxWidth: "85%",
+  background:
+    "linear-gradient(135deg, rgb(20, 10, 5) 0%, rgb(42, 20, 8) 50%, rgb(65, 35, 15) 100%)",
+  border: "4px solid #d4af37",
+  boxShadow:
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(244, 229, 194, 0.1)",
+};
+
+const royalConfessorLayoutStyle = {
+  display: "flex",
+  gap: "2rem",
+  alignItems: "flex-start",
+  padding: "2rem 1rem",
+  justifyContent: "space-between",
+  height: "100%",
+};
+
+const royalConfessorCardsContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  maxWidth: "47%",
+  height: "-webkit-fill-available",
+  gap: "15px",
+};
+
+const royalConfessorCardRowStyle = {
+  display: "flex",
+  gap: "15px",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  height: "-webkit-fill-available",
+};
+
+const royalConfessorCardContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  height: "-webkit-fill-available",
+  justifyContent: "space-between",
+};
+
+const royalConfessorCardStyle = {
+  position: "relative",
+  backgroundColor: "rgba(244, 229, 194, 0.95)",
+  borderRadius: "8px",
+  width: "180px",
+  height: "280px",
+  display: "flex",
+  flexDirection: "column",
+  cursor: "default",
+  boxShadow:
+    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(139, 69, 19, 0.6)",
+  transition: "all 0.3s ease",
+  transform: "perspective(1000px) rotateY(-2deg) rotateX(1deg)",
+  border: "2px solid rgba(212, 175, 55, 0.5)",
+};
+
+const royalConfessorCardLabelStyle = {
+  width: "100%",
+  textAlign: "center",
+  color: "rgba(244, 229, 194, 0.95)",
+  margin: "0",
+  marginTop: "0.7rem",
+  fontWeight: "500",
+  fontSize: "1.2rem",
+  textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
+};
+
+const royalConfessorArrowStyle = {
+  fontSize: "2rem",
+  color: "#d4af37",
+  filter:
+    "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(212, 175, 55, 0.8))",
+  animation: "candleFlicker 2s ease-in-out infinite alternate",
+};
+
+const royalConfessorCardStrengthStyle = {
+  position: "absolute",
+  top: "-10px",
+  left: "-10px",
+  background: "linear-gradient(135deg, #d4af37 0%, #f4e5c2 100%)",
+  color: "#2a1a0a",
+  borderRadius: "50%",
+  width: "30px",
+  height: "30px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: "bold",
+  fontSize: "1rem",
+  fontFamily: '"Cinzel", serif',
+  border: "3px solid #8b4513",
+  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.5)",
+  zIndex: 10,
+};
+
+const royalConfessorCardImageStyle = {
+  width: "100%",
+  height: "60%",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  border: "2px solid rgba(139, 69, 19, 0.4)",
+  borderRadius: "8px 8px 0 0",
+  boxShadow: "0 3px 8px rgba(0, 0, 0, 0.3)",
+};
+
+const royalConfessorCardNameStyle = {
+  fontSize: "1.1rem",
+  fontWeight: "bold",
+  color: "#2a1a0a",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
+  textAlign: "center",
+  padding: "0.5rem",
+  fontFamily: '"Cinzel", serif',
+};
+
+const royalConfessorCardEffectStyle = {
+  fontSize: "0.9rem",
+  color: "#5d4037",
+  padding: "0 4%",
+  lineHeight: "1.3",
+  fontWeight: "300",
+  display: "flex",
+  alignItems: "center",
+  fontStyle: "italic",
+  fontFamily: '"Lora", serif',
+  textAlign: "justify",
+};
+
+const royalConfessorMessageContainerStyle = {
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  height: "100%",
+  paddingLeft: "1rem",
+};
+
+const royalConfessorMessageStyle = {
+  fontSize: "1.2rem",
+  lineHeight: "1.6",
+  color: "#f4e5c2",
+  textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
+  fontFamily: '"Lora", serif',
+  flexGrow: 1,
+  display: "flex",
+  alignItems: "center",
+  textAlign: "justify",
+};
+
+const royalConfessorButtonContainerStyle = {
+  display: "flex",
+  justifyContent: "center",
+  marginTop: "1rem",
+};
+
+const royalConfessorButtonStyle = {
+  background:
+    "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(139, 69, 19) 100%)",
+  color: "#f4e5c2",
+  transition: "all 0.3s ease",
+  width: "70%",
+  border: "2px solid rgba(212, 175, 55, 0.6)",
+  fontFamily: '"Cinzel", serif',
+};
+
 // Add ghostly float animation
 const ghostlyFloatAnimation = `
 @keyframes ghostlyFloat {
@@ -1067,9 +1343,28 @@ const ghostlyFloatAnimation = `
 }
 `;
 
+// Add candle flicker animation for Royal Confessor
+const candleFlickerAnimation = `
+@keyframes candleFlicker {
+  0% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 25px rgba(212, 175, 55, 0.8));
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
+    transform: translateY(-1px) scale(1.02);
+  }
+}
+`;
+
 // Inject the animation styles
 if (typeof document !== "undefined") {
   const style = document.createElement("style");
-  style.textContent = priestGlowAnimation + ghostlyFloatAnimation;
+  style.textContent =
+    priestGlowAnimation + ghostlyFloatAnimation + candleFlickerAnimation;
   document.head.appendChild(style);
 }

@@ -1,7 +1,6 @@
 import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 import { cards } from "./cardsData";
-import { logRoundEndCheck } from "./roundEndDetection";
 import { handleCardDiscard, handlePlayerElimination } from "./gamehelpers";
 
 // Turn advancement control for modal system
@@ -941,6 +940,174 @@ export async function applyPhantomKingEffect({ attacker, target }) {
   );
 
   return returnValue;
+}
+
+// Royal Confessor Card (ID: 13, Strength: 2)
+// Effect: If 2 valid targets are provided, their hands are switched.
+export async function applyRoyalConfessorEffect({
+  roomCode,
+  target1,
+  target2,
+  attacker,
+  selectedCardIndex,
+  cardPlayed,
+}) {
+  const isSelfTarget = target1 === attacker;
+
+  console.log(
+    "ROYAL CONFESSOR: GOING TO applyRoyalConfessorEffect. Target1: ",
+    target1,
+    " / Target2: ",
+    target2,
+    " / attacker: ",
+    attacker,
+    "isSelfTarget: ",
+    isSelfTarget
+  );
+
+  try {
+    // STEP 1: Discard Royal Confessor FIRST, before any effect processing
+    console.log(
+      "🎭 ROYAL CONFESSOR STEP 1: Discarding the confessor... Player name: ",
+      attacker
+    );
+
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error(
+        "The royal chambers have vanished into the ethereal void..."
+      );
+    }
+
+    const gameData = snapshot.val();
+    const attackerData = gameData.players[attacker];
+
+    const newHand = attackerData.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(attackerData.discard || []), cardPlayed];
+
+    console.log(
+      "ROYAL CONFESSOR STEP 1.5: newHand: ",
+      newHand[0],
+      " / newDiscard: ",
+      newDiscard[-1]
+    );
+
+    // Apply the discard immediately to Firebase
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${attacker}/hand`]: newHand,
+      [`players/${attacker}/discard`]: newDiscard,
+    });
+
+    console.log(
+      "🎭 ROYAL CONFESSOR STEP 1 COMPLETE: Royal Confessor card banished to",
+      attacker,
+      "'s discard pile"
+    );
+
+    // STEP 2: Apply hand swap effect (now both players have exactly 1 card)
+    console.log(
+      "🎭 ROYAL CONFESSOR STEP 2: Before confession (cards swapping)..."
+    );
+
+    const target1Hand = isSelfTarget ? newHand : gameData.players[target1].hand;
+    const target2Hand = gameData.players[target2].hand;
+
+    console.log("🎭 ROYAL CONFESSOR DEBUG: Game data loaded", {
+      hasGameData: !!gameData,
+      hasAttackerData: !!attackerData,
+      attackerHand: newHand,
+      target1Hand,
+      target2Hand,
+    });
+
+    // Get the remaining cards
+    const target1Card = target1Hand[0]; // external target1 or attacker's new hand
+    const target2Card = target2Hand[0]; // Target's card
+
+    // Get the cards to trade - at this point Phantom King should already be discarded
+    if (
+      !target1Card ||
+      target1Hand.length !== 1 ||
+      !target2Card ||
+      target2Hand.length !== 1
+    ) {
+      throw new Error(
+        "The royal confessor requires sinners to have exactly one card remaining, in order to proceed with the confession...",
+        target1Card,
+        target2Card
+      );
+    }
+
+    console.log("🎭 ROYAL CONFESSOR: Preparing mutual confession between:", {
+      target1Card: target1Card.name,
+      target2Card: target2Card.name,
+    });
+
+    // Normal swap case - check if we have the required data
+    if (!target1Card || !target2Card) {
+      console.error("👻 ROYAL CONFESSOR ERROR: Missing card data");
+      setResultModalData({
+        selectedCardId: 6,
+        resultText:
+          "❌ The Mutual Confession ritual failed... Something went wrong with the card exchange.",
+      });
+      return;
+    }
+
+    // Apply the hand swap in Firebase (moved from cardEffects.js)
+    console.log("👻 ROYAL CONFESSOR: Applying hand swap to Firebase");
+    const updates = {
+      [`players/${target1}/hand`]: [target2Card], // Attacker gets target's card
+      [`players/${target2}/hand`]: [target1Card], // Target gets attacker's card
+    };
+    await update(ref(db, `rooms/${roomCode}`), updates);
+    console.log("👻 ROYAL CONFESSOR: Hand swap completed");
+
+    const newTarget1Card = target2Card;
+    const newTarget2Card = target1Card;
+
+    const externalAttackerMessage = `<div class="effect-description">The Royal Confessor clasps his hands piously. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
+<div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense. Then he turns to you with a knowing grin:</div>
+<div class="effect-description quotation">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
+
+    // Attacker message (when attacker = target1)
+
+    const attackerSelfTargetMessage = `<div class="effect-description">Seeking divine favor, you step forth before the Royal Confessor.</div>
+<div class="effect-description"><span class="quotation">“Such humility warms the heavens,”</span> he proclaims. <span class="quotation">“<span class="effect-player">${target2}</span> shall join you — for nothing cleanses the soul like mutual confession.”</span></div>
+<div class="effect-description">As your whispers fade, he leans closer, smirking beneath his hood:</div>
+<div class="effect-description quotation">“A brave act, my child. And between us… their secret was well worth the effort, don’t you think?”</div>`;
+
+    const target2Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${
+      isSelfTarget ? "them" : target1
+    }</span> shall purify your hearts before the light!”</span></div>
+<div class="effect-description confessor">You kneel beside <span class="effect-player">${target1}</span>, exchanging your hidden sins as incense clouds the air.</div>
+<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets.</div>`;
+
+    const target1Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${target2}</span> shall purify your hearts before the light!”</span></div>
+<div class="effect-description confessor">You kneel beside <span class="effect-player">${target2}</span>, exchanging your hidden sins as incense clouds the air.</div>
+<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets.</div>`;
+
+    const publicMessage = `<div class="effect-description">✝️ The Royal Confessor summoned <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> to share their sins in a holy rite. The court applauded the piety — though few missed the sparkle of curiosity in the Confessor’s eyes.</div>`;
+
+    return {
+      result: "confession",
+      isSelfTarget,
+      publicMessage,
+      externalAttackerMessage,
+      attackerSelfTargetMessage,
+      target2Message,
+      target1Message,
+      newTarget1Card,
+      newTarget2Card,
+    };
+  } catch (error) {
+    console.error("👻 ROYAL CONFESSOR EXCHANGE ERROR:", error);
+    return;
+  }
 }
 
 // 👑 Princess Card (ID: 8, Strength: 8)

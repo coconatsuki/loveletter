@@ -4,6 +4,8 @@ import { db } from "../utils/firebase";
 import { ref, onValue, update, set, get } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import InquisitorTargetModal from "../components/InquisitorTargetModal";
+import RoyalConfessorTargetModal from "../components/RoyalConfessorTargetModal";
+import RoyalConfessorResultModal from "../components/RoyalConfessorResultModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
 import PriestTargetModal from "../components/PriestTargetModal";
@@ -29,6 +31,7 @@ import {
   applyPrincessEffect,
   applyInquisitorEffect,
   applyCourtWhispererEffect,
+  applyRoyalConfessorEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -101,8 +104,10 @@ export default function Play() {
   const [showGuardTargetPrompt, setShowGuardTargetPrompt] = useState(false);
   const [inquisitorResultModalData, setInquisitorResultModalData] =
     useState(null);
+  const [royalConfessorResultModalData, setRoyalConfessorResultModalData] =
+    useState(null);
+
   const [priestTargetModalData, setPriestTargetModalData] = useState(null);
-  const [resultContent, setResultContent] = useState("");
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [regentQueenResultModalData, setRegentQueenResultModalData] =
@@ -110,6 +115,7 @@ export default function Play() {
   const [regentQueenTargetModalData, setRegentQueenTargetModalData] =
     useState(null);
   const [targetMessageModalData, setTargetMessageModalData] = useState(null);
+  const [target2MessageModalData, setTarget2MessageModalData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [roundEndModalData, setRoundEndModalData] = useState(null);
   const [hoveredPlayer, setHoveredPlayer] = useState(null);
@@ -126,12 +132,14 @@ export default function Play() {
     return !!(
       resultModalData ||
       inquisitorResultModalData ||
+      royalConfessorResultModalData ||
       priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
       regentQueenResultModalData ||
       regentQueenTargetModalData ||
       targetMessageModalData ||
+      target2MessageModalData ||
       showGuardTargetPrompt ||
       roundEndModalData ||
       isModalTransitioning
@@ -459,6 +467,36 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
+  // Listen to target2 message modal data (for Royal Confessor external targeting)
+  useEffect(() => {
+    const refTarget2Message = ref(db, `rooms/${roomCode}/target2Message`);
+    const unsubscribe = onValue(refTarget2Message, (snapshot) => {
+      const data = snapshot.val();
+
+      console.log("🎭 TARGET2 MESSAGE LISTENER: Received data:", {
+        data,
+        nickname,
+        isVisibleToMe: data?.visibleTo === nickname,
+      });
+
+      if (data && data.visibleTo === nickname) {
+        // Show target2 message modal to the target player
+        console.log(
+          "🎭 TARGET2 MESSAGE LISTENER: Setting target2 message modal data:",
+          data
+        );
+        setTarget2MessageModalData(data);
+      } else if (!data) {
+        // Clear the modal when data is cleared
+        console.log(
+          "🎭 TARGET2 MESSAGE LISTENER: Clearing target2 message modal data"
+        );
+        setTarget2MessageModalData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
   const { round, players } = roomData || {};
   const currentPlayer = round?.currentPlayer;
   const isMyTurn = nickname === currentPlayer;
@@ -495,6 +533,7 @@ export default function Play() {
       baronResultModalData: !!baronResultModalData,
       targetMessageModalData: !!targetMessageModalData,
       inquisitorResultModalData: !!inquisitorResultModalData,
+      royalConfessorResultModalData: !!royalConfessorResultModalData,
     });
 
     if (!isMyTurn || player.hand?.length !== 1 || isPlaying) return;
@@ -554,9 +593,6 @@ export default function Play() {
         [`players/${nickname}/hand`]: newHand,
       });
     }
-
-    // Keep ActionModal open for card selection after drawing
-    // The modal will stay open until the player plays a card
   };
 
   // 🎭 Countess Force-Play Detection
@@ -609,7 +645,7 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    if ([0, 1, 2, 3, 6, 9, 11, 12].includes(card.id)) {
+    if ([0, 1, 2, 3, 6, 9, 11, 12, 13].includes(card.id)) {
       // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
@@ -755,7 +791,7 @@ export default function Play() {
     // Note: Turn will be completed when player closes the result modal
   };
 
-  const handleTargetConfirm = async ({ target, guess }) => {
+  const handleTargetConfirm = async ({ target, target2, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     setShowTargetModal(false);
     console.log(
@@ -1258,6 +1294,91 @@ export default function Play() {
         });
         return;
       }
+    } else if (cardPlayed.id === 13) {
+      const result = await applyRoyalConfessorEffect({
+        roomCode,
+        target1: target,
+        target2,
+        attacker: nickname,
+        selectedCardIndex,
+        cardPlayed,
+      });
+
+      // Handle different messaging scenarios based on whether attacker is one of the targets
+      const attackerIsTarget1 = result.isSelfTarget;
+      const attackerIsExternal = !attackerIsTarget1;
+
+      console.log("🎭 ROYAL CONFESSOR: Target analysis:", {
+        attackerIsTarget1,
+        attackerIsExternal,
+        target1: target,
+        target2,
+        attacker: nickname,
+      });
+
+      // Send that to target2 IN ANY CASE
+
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target2,
+        attacker: nickname,
+        isSelfTarget: result.isSelfTarget,
+        message: result.target2Message,
+        swappedCards: {
+          targetGave: result.newTarget1Card, // Card target2 gave away (to attacker/target1)
+          targetReceived: result.newTarget2Card, // Card target2 received (from attacker/target1)
+        },
+        timestamp: Date.now(),
+      });
+
+      if (attackerIsExternal) {
+        // Case 2: Attacker is external - need to send EffectResultModal to target1 as well
+        console.log(
+          "🎭 ROYAL CONFESSOR: Attacker is external - sending normal messages to target1 as well"
+        );
+
+        // Send message to Target1 via target2Message
+        await update(ref(db, `rooms/${roomCode}/target2Message`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          isSelfTarget: false,
+          message: result.target1Message,
+          swappedCards: {
+            targetGave: result.newTarget2Card,
+            targetReceived: result.newTarget1Card,
+          },
+          timestamp: Date.now(),
+        });
+
+        console.log(
+          "🎭 ROYAL CONFESSOR: Messages sent to both Target1 and Target2"
+        );
+      }
+
+      // Set up the RoyalConfessorResultModal for the attacker
+      setRoyalConfessorResultModalData({
+        selectedCardId: 13, // Royal Confessor card ID
+        resultText: attackerIsTarget1
+          ? result.attackerSelfTargetMessage
+          : result.externalAttackerMessage,
+        target1Name: target,
+        target2Name: target2,
+        isSelfTarget: result.isSelfTarget,
+        cardPlayed: 13, // Special flag for Royal Confessor
+        swappedCards: {
+          target1Gave: result.newTarget2Card, // Card the attacker/target1 gave away
+          target1Received: result.newTarget1Card, // Card the attacker/target1 received
+        },
+        role: "attacker",
+      });
+
+      console.log(
+        "🎭 ROYAL CONFESSOR: RoyalConfessorResultModal data set for attacker"
+      );
+
+      pushNotification(roomCode, result.publicMessage);
+      return;
     }
 
     // === INQUISITOR CARD LOGIC (ID: 9) ===
@@ -1310,241 +1431,6 @@ export default function Play() {
 
       return;
     }
-  };
-
-  // NEW: Handle target confirmation with direct card index (for ActionModal)
-  const handleTargetConfirmWithIndex = async (cardIndex, { target, guess }) => {
-    const cardPlayed = player.hand[cardIndex];
-    console.log(
-      "🎯 TARGET CONFIRM WITH INDEX: Setting isPlaying = true for card:",
-      cardPlayed?.name || cardPlayed?.id
-    );
-    setIsPlaying(true);
-
-    // Validation check: Ensure cardPlayed exists
-    if (!cardPlayed) {
-      console.error("❌ ERROR: cardPlayed is undefined. cardIndex:", cardIndex);
-      setIsPlaying(false);
-      return;
-    }
-
-    // === SKIP TURN CASE (All players protected by Handmaid) ===
-    if (target === "SKIP_TURN") {
-      setResultModalData({
-        resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your ${
-          cardNames[cardPlayed.id]
-        } cannot find a target, so your turn is skipped.`,
-      });
-      return;
-    }
-
-    // === JESTER CARD LOGIC (ID: 0) ===
-    if (cardPlayed.id === 0) {
-      const result = await applyJesterEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-      });
-
-      // Show the target message to the target
-      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-        selectedCardId: cardPlayed.id,
-        visibleTo: target,
-        attacker: nickname,
-        message: result.targetMessage,
-        timestamp: Date.now(),
-      });
-
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === CHAMBERLAIN CARD LOGIC (ID: 10) ===
-    if (cardPlayed.id === 10) {
-      const result = await applyChamberlainEffect({
-        roomCode,
-        attacker: nickname,
-      });
-
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === GUARD CARD LOGIC (ID: 1) ===
-    if (cardPlayed.id === 1) {
-      // Apply the Guard effect to determine the outcome
-      const result = await applyGuardEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        guess,
-      });
-
-      // Notify all players about the Guard action
-      pushNotification(
-        roomCode,
-        `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
-      );
-
-      // ALWAYS show AssassinPromptModal to target (good UX for both modes)
-      // In premium mode: target can choose to use Assassin or not
-      // In normal mode: target just acknowledges the attack
-      const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
-      await update(promptRef, {
-        ...result,
-        timestamp: Date.now(),
-        // Store card play info so we can complete the turn later
-        cardPlayInfo: {
-          playedCardIndex: cardIndex, // Use cardIndex instead of selectedCardIndex
-          playerNickname: nickname,
-        },
-      });
-      // Exit early - AssassinPromptModal will handle the rest for both modes
-      return;
-    }
-
-    // === PRIEST CARD LOGIC (ID: 2) ===
-    else if (cardPlayed.id === 2) {
-      const result = await applyPriestEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === BARON CARD LOGIC (ID: 3) ===
-    else if (cardPlayed.id === 3) {
-      const result = await applyBaronEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        playedCardIndex: cardIndex, // Pass the index of the played card
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === REGENT QUEEN CARD LOGIC (ID: 11) ===
-    else if (cardPlayed.id === 11) {
-      const result = await applyRegentQueenEffect({
-        roomCode,
-        attacker: nickname,
-        target,
-        playedCardIndex: cardIndex, // Pass the index of the played card
-      });
-      setResultModalData({
-        resultText: result.attackerMessage,
-      });
-      pushNotification(roomCode, result.publicMessage);
-      return;
-    }
-
-    // === PHANTOM KING CARD LOGIC (ID: 6) ===
-    else if (cardPlayed.id === 6) {
-      console.log("👻 PHANTOM KING: Starting effect with target:", target);
-
-      try {
-        const result = await applyPhantomKingEffect({
-          roomCode,
-          attacker: nickname,
-          target,
-        });
-
-        console.log("👻 PHANTOM KING: Effect result:", result);
-
-        // Handle "Nobody" selection case
-        if (result.result === "skipped") {
-          setResultModalData({
-            selectedCardId: 6,
-            resultText: result.resultText,
-          });
-          pushNotification(roomCode, result.message);
-          return;
-        }
-
-        // Normal swap case - check if we have the required data
-        if (!result.attackerCard || !result.targetCard) {
-          console.error("👻 PHANTOM KING ERROR: Missing card data", result);
-          setResultModalData({
-            selectedCardId: 6,
-            resultText:
-              "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
-          });
-          return;
-        }
-
-        // Apply the hand swap in Firebase (moved from cardEffects.js)
-        console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
-        const updates = {
-          [`players/${nickname}/hand`]: [result.targetCard], // Attacker gets target's card
-          [`players/${target}/hand`]: [result.attackerCard], // Target gets attacker's card
-        };
-        await update(ref(db, `rooms/${roomCode}`), updates);
-        console.log("👻 PHANTOM KING: Hand swap completed");
-
-        // Show target message to the target
-        console.log("👻 PHANTOM KING: Sending target message to:", target);
-        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-          selectedCardId: cardPlayed.id,
-          visibleTo: target,
-          attacker: nickname,
-          message: result.targetMessage,
-          swappedCards: {
-            attackerGave: result.attackerCard, // Card the attacker gave away
-            attackerReceived: result.targetCard, // Card the attacker received
-            targetGave: result.targetCard, // Card the target gave away
-            targetReceived: result.attackerCard, // Card the target received
-          },
-          timestamp: Date.now(),
-        });
-        console.log("👻 PHANTOM KING: Target message sent successfully");
-
-        setResultModalData({
-          selectedCardId: 6, // Phantom King card ID
-          resultText: result.attackerMessage,
-          cardPlayed: 6, // Special flag for Phantom King
-          swappedCards: {
-            attackerGave: result.attackerCard, // Card the attacker gave away
-            attackerReceived: result.targetCard, // Card the attacker received
-            targetGave: result.targetCard, // Card the target gave away
-            targetReceived: result.attackerCard, // Card the target received
-          },
-          role: "attacker", // For the EffectResultModal to know which perspective
-        });
-        pushNotification(roomCode, result.publicMessage);
-        return;
-      } catch (error) {
-        console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
-        setResultModalData({
-          selectedCardId: 6,
-          resultText: `❌ The Phantom King's power faltered... ${
-            error.message || "Unknown error"
-          }`,
-        });
-        return;
-      }
-    }
-
-    // Fallback for unknown cards
-    setIsPlaying(false);
-    console.error(
-      "❌ Unknown card ID in handleTargetConfirmWithIndex:",
-      cardPlayed?.id
-    );
   };
 
   /**
@@ -2514,6 +2400,8 @@ export default function Play() {
                   !regentQueenResultModalData &&
                   !regentQueenTargetModalData &&
                   !targetMessageModalData &&
+                  !royalConfessorResultModalData &&
+                  !inquisitorResultModalData &&
                   !showGuardTargetPrompt &&
                   !roundEndModalData &&
                   !isModalTransitioning &&
@@ -2829,6 +2717,20 @@ export default function Play() {
                                               onConfirm={handleTargetConfirm}
                                               onCancel={handleCardBack}
                                             />
+                                          ) : player.hand[selectedCardIndex]
+                                              .id === 13 ? (
+                                            <RoyalConfessorTargetModal
+                                              players={players}
+                                              currentPlayer={nickname}
+                                              protectedPlayers={
+                                                roomData?.protectedPlayers || []
+                                              }
+                                              nextTarget={
+                                                roomData?.round?.nextTarget
+                                              }
+                                              onConfirm={handleTargetConfirm}
+                                              onCancel={handleCardBack}
+                                            />
                                           ) : (
                                             <TargetModal
                                               players={players}
@@ -2895,6 +2797,7 @@ export default function Play() {
                 selectedCardId={targetMessageModalData.selectedCardId}
                 role={currentPlayer === nickname ? "attacker" : "target"}
                 resultText={targetMessageModalData.message}
+                isSelfTarget={targetMessageModalData.isSelfTarget || false}
                 swappedCards={targetMessageModalData.swappedCards || null}
                 onClose={() =>
                   handleModalTransition(async () => {
@@ -2974,6 +2877,37 @@ export default function Play() {
                         }
                       );
                     }
+                  })
+                }
+              />
+            )}
+
+            {/* === TARGET2 MESSAGE MODAL (Royal Confessor external targeting) === */}
+            {target2MessageModalData && (
+              <EffectResultModal
+                selectedCardId={target2MessageModalData.selectedCardId}
+                role="target"
+                resultText={target2MessageModalData.message}
+                isSelfTarget={target2MessageModalData.isSelfTarget || false}
+                swappedCards={target2MessageModalData.swappedCards || null}
+                onClose={() =>
+                  handleModalTransition(async () => {
+                    console.log(
+                      "🎭 TARGET2 MODAL DEBUG: Target2 modal closing with data:",
+                      target2MessageModalData
+                    );
+
+                    // Clear the target2 message when confirmed
+                    await set(
+                      ref(db, `rooms/${roomCode}/target2Message`),
+                      null
+                    );
+                    setTarget2MessageModalData(null);
+
+                    // Royal Confessor target2 modals are info-only, turn advancement is handled by attacker
+                    console.log(
+                      "🎭 TARGET2 MODAL DEBUG: Royal Confessor target2 modal closed (info-only)"
+                    );
                   })
                 }
               />
@@ -3604,6 +3538,73 @@ export default function Play() {
                         "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
                       );
                     }
+                  })
+                }
+              />
+            )}
+
+            {/* === ROYAL CONFESSOR RESULT MODAL === */}
+            {royalConfessorResultModalData && (
+              <RoyalConfessorResultModal
+                resultText={royalConfessorResultModalData.resultText}
+                selectedCardId={royalConfessorResultModalData.selectedCardId}
+                target1Name={royalConfessorResultModalData.target1Name}
+                target2Name={royalConfessorResultModalData.target2Name}
+                isSelfTarget={royalConfessorResultModalData.isSelfTarget}
+                cardPlayed={royalConfessorResultModalData.cardPlayed}
+                swappedCards={royalConfessorResultModalData.swappedCards}
+                onClose={() =>
+                  handleModalTransition(async () => {
+                    console.log(
+                      "🎭 ROYAL CONFESSOR RESULT: Modal closing, completing turn"
+                    );
+
+                    // Clear all Royal Confessor related state
+                    setRoyalConfessorResultModalData(null);
+                    setSelectedCardForUI(null);
+                    setSelectedCardIndex(null);
+
+                    // Royal Confessor effect is already complete, just need to advance turn
+                    // The card has already been discarded and hands swapped by applyRoyalConfessorEffect
+                    // Calculate next player in turn order (skip eliminated players)
+                    const activePlayers = Object.keys(players).filter(
+                      (p) => !players[p].isOut
+                    );
+                    const currentIndex = activePlayers.indexOf(nickname);
+                    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+                    // Skip any players that got eliminated during this turn
+                    while (
+                      players[activePlayers[nextIndex]]?.isOut &&
+                      nextIndex !== currentIndex
+                    ) {
+                      nextIndex = (nextIndex + 1) % activePlayers.length;
+                    }
+
+                    const nextPlayer = activePlayers[nextIndex];
+
+                    // Clean up Handmaid protection for the next player
+                    const currentProtected = roomData?.protectedPlayers || [];
+                    const updatedProtected = currentProtected.filter(
+                      (player) => player !== nextPlayer
+                    );
+
+                    // Update only the current player and protection (hands and discard are already updated by the effect)
+                    await update(ref(db, `rooms/${roomCode}`), {
+                      [`round/currentPlayer`]: nextPlayer,
+                      protectedPlayers: updatedProtected,
+                    });
+
+                    // Notify all players about the turn change
+                    pushNotification(
+                      roomCode,
+                      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+                    );
+
+                    console.log(
+                      "🎭 ROYAL CONFESSOR RESULT: Turn completed, advanced to:",
+                      nextPlayer
+                    );
                   })
                 }
               />
