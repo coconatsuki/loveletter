@@ -181,8 +181,34 @@ export default function RoyalConfessorResultModal({
                       value={selectedTarget}
                       onChange={(e) => setSelectedTarget(e.target.value)}
                       style={confessorDropdownStyle}
+                      onMouseEnter={(e) => {
+                        e.target.style.background =
+                          "linear-gradient(135deg, #fff 0%, #f0e68c 100%)";
+                        e.target.style.boxShadow =
+                          "inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 6px 18px rgba(139, 69, 19, 0.4)";
+                        e.target.style.border = "3px solid #daa520";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background =
+                          "linear-gradient(135deg, #fff 0%, #f8f5e4 100%)";
+                        e.target.style.boxShadow =
+                          "inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(139, 69, 19, 0.3)";
+                        e.target.style.border = "3px solid #8b4513";
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.border = "3px solid #ffd700";
+                        e.target.style.outline = "none";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.border = "3px solid #8b4513";
+                      }}
                     >
-                      <option value="">Choose a confessor...</option>
+                      <option
+                        value=""
+                        style={{ fontStyle: "italic", color: "#666" }}
+                      >
+                        Choose a confessor...
+                      </option>
                       <option value={target1Name}>{target1Name}</option>
                       <option value={target2Name}>{target2Name}</option>
                     </select>
@@ -196,8 +222,29 @@ export default function RoyalConfessorResultModal({
                       opacity: selectedTarget ? 1 : 0.5,
                       cursor: selectedTarget ? "pointer" : "not-allowed",
                     }}
+                    onMouseEnter={(e) => {
+                      if (selectedTarget) {
+                        e.target.style.background =
+                          "linear-gradient(135deg, #6a4c93 0%, #4a0028 100%)";
+                        e.target.style.boxShadow =
+                          "0 8px 25px rgba(218, 165, 32, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4)";
+                        e.target.style.border = "3px inset #daa520";
+                        e.target.style.textShadow =
+                          "1px 1px 2px rgba(0, 0, 0, 0.3)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedTarget) {
+                        e.target.style.background =
+                          "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)";
+                        e.target.style.boxShadow =
+                          "0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)";
+                        e.target.style.border = "3px outset #daa520";
+                        e.target.style.textShadow = "none";
+                      }
+                    }}
                   >
-                    Reveal
+                    ✨ Reveal ✨
                   </button>
                 </div>
               ) : (
@@ -243,29 +290,39 @@ export default function RoyalConfessorResultModal({
               >
                 <button
                   onClick={onClose}
+                  disabled={!isSelfTarget && !revealedCard}
                   style={{
                     ...buttonStyle,
                     ...confessorButtonStyle,
+                    opacity: !isSelfTarget && !revealedCard ? 0.5 : 1,
+                    cursor:
+                      !isSelfTarget && !revealedCard
+                        ? "not-allowed"
+                        : "pointer",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.color = "#2d1b1b";
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)";
-                    e.target.style.transform = "translateY(-2px)";
-                    e.target.style.boxShadow =
-                      "0 6px 25px rgba(255, 215, 0, 0.5)";
-                    e.target.style.border = "2px outset #4b032b";
+                    if (!(!isSelfTarget && !revealedCard)) {
+                      e.target.style.color = "#2d1b1b";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
+                      e.target.style.border = "2px outset #4b032b";
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.color = "#ffd700";
-                    e.target.style.background =
-                      "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)";
+                    if (!(!isSelfTarget && !revealedCard)) {
+                      e.target.style.color = "#ffd700";
+                      e.target.style.background =
+                        "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)";
+                    }
                   }}
                 >
                   {isSelfTarget
                     ? "Amen"
                     : revealedCard
-                    ? "Blessed be"
+                    ? "Thanks, Father!"
                     : "Continue"}
                 </button>
               </div>
@@ -402,6 +459,7 @@ const confessorLayoutStyle = {
 };
 
 const confessorCardContainerStyle = {
+  width: "30%",
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
@@ -419,11 +477,12 @@ const confessorDropdownContainerStyle = {
   height: "330px",
   background:
     "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)",
-  borderRadius: "8px",
+  borderRadius: "12px",
   padding: "20px",
   boxShadow:
-    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4)",
+    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
   border: "3px solid #8b4513",
+  animation: "confessorContainerGlow 3s ease-in-out infinite alternate",
 };
 
 const confessorDropdownContainerStyle2 = {
@@ -445,31 +504,41 @@ const confessorDropdownLabelStyle = {
 
 const confessorDropdownStyle = {
   width: "100%",
-  padding: "8px 12px",
+  padding: "0.7rem",
   fontSize: "1rem",
-  borderRadius: "5px",
-  border: "2px solid #8b4513",
-  background: "#fff",
+  borderRadius: "10px",
+  border: "3px solid #8b4513",
+  background: "linear-gradient(135deg, #fff 0%, #f8f5e4 100%)",
   color: "#2d1b1b",
   fontFamily: '"Lora", serif',
+  fontWeight: "600",
   marginBottom: "15px",
   cursor: "pointer",
+  boxShadow:
+    "inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(139, 69, 19, 0.3)",
+  transition: "all 0.3s ease",
+  textAlign: "left",
+  textTransform: "capitalize",
+  letterSpacing: "0.5px",
 };
 
 const confessorRevealButtonStyle = {
-  padding: "10px 20px",
-  fontSize: "1rem",
+  padding: "12px 24px",
+  fontSize: "1.1rem",
   background: "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)",
   color: "#ffd700",
-  border: "2px solid #daa520",
-  borderRadius: "8px",
+  border: "3px outset #daa520",
+  borderRadius: "12px",
   cursor: "pointer",
   fontWeight: "bold",
   fontFamily: '"Cinzel", serif',
   textTransform: "uppercase",
-  letterSpacing: "0.5px",
-  transition: "all 0.3s ease",
-  boxShadow: "0 4px 15px rgba(0, 0, 0, 0.4)",
+  letterSpacing: "1px",
+  transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+  boxShadow:
+    "0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
+  position: "relative",
+  overflow: "hidden",
 };
 
 const confessorCardStyle = {
@@ -595,6 +664,15 @@ const confessorGlowAnimation = `
   }
   100% {
     filter: drop-shadow(0 6px 15px rgba(218, 165, 32, 0.9));
+  }
+}
+
+@keyframes confessorContainerGlow {
+  0% {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 8px 25px rgba(218, 165, 32, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 }
 `;
