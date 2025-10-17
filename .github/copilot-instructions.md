@@ -223,3 +223,20 @@ ID 15 → Baroness (Strength: 3, Count: 2)
 
 ID 16 → Duke (Strength: 5, Count: 2)
 → If the player has played or discarded this card and remains in play until the end of the round, they add one to the strength of the card in their hand.
+
+##baroness narratives
+
+const attackerMessage = `
+
+`;
+
+const targetMessage = `
+
+<div class="effect-description">The Baroness’ soirée hums with laughter when she takes your arm. <span class="quotation">“Darling <span class="effect-player">${targetOther}</span>, you and I need a little talk of love,”</span> she says with a playful smile.</div>
+<div class="effect-description">Moments later, you find yourself across from <span class="effect-player">${targetOther}</span>, your every word flowing far too freely.</div>
+<div class="effect-description">You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness’s favorite suitor — who now knows more than they should.</div>`;
+
+const publicMessage = `
+
+<div class="effect-description"><span class="quotation">💋 At her grand soirée,</span> the Baroness — ever eager to aid her dear patron <span class="effect-player">${attacker}</span> — drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation.</div>
+<div class="effect-description">By dawn, secrets of the heart were spilled, and the Baroness was positively glowing with satisfaction.</div>`;

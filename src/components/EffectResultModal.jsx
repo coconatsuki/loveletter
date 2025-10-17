@@ -143,6 +143,8 @@ export default function EffectResultModal({
   const isChamberlainEffect = selectedCardId === 10;
   const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
   const isRoyalConfessorEffect = selectedCardId === 13 && swappedCards;
+  const isBaronessEffect =
+    selectedCardId === 15 && cardDetails && role === "attacker";
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -182,6 +184,7 @@ export default function EffectResultModal({
             ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
             ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
             ...(isRoyalConfessorEffect ? royalConfessorModalStyle : {}),
+            ...(isBaronessEffect ? baronessModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -201,6 +204,8 @@ export default function EffectResultModal({
                 ? "linear-gradient(135deg, rgb(25, 25, 45) 0%, rgb(74, 144, 226) 100%)"
                 : isRoyalConfessorEffect
                 ? "linear-gradient(135deg, rgb(101, 67, 33) 0%, rgb(139, 69, 19) 100%)"
+                : isBaronessEffect
+                ? "linear-gradient(135deg, #4a1625 0%, #2d0e18 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -215,6 +220,8 @@ export default function EffectResultModal({
                   ? "rgb(247 105 166)"
                   : isRoyalConfessorEffect
                   ? "#d4af37"
+                  : isBaronessEffect
+                  ? "#ff69b4"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -242,6 +249,8 @@ export default function EffectResultModal({
               ? "👻"
               : isRoyalConfessorEffect
               ? "🕯️"
+              : isBaronessEffect
+              ? "💄"
               : isChamberlainEffect
               ? "💰"
               : isHandmaidProtection
@@ -256,7 +265,8 @@ export default function EffectResultModal({
               isJesterEffect,
               isCourtWhispererEffect,
               isPhantomKingEffect,
-              isRoyalConfessorEffect
+              isRoyalConfessorEffect,
+              isBaronessEffect
             )}
           >
             {isPriestEffect
@@ -275,6 +285,8 @@ export default function EffectResultModal({
               ? "🍷 The Boozy Benevolence"
               : isRoyalConfessorEffect
               ? "🕯️ The Mutual Confession Ritual"
+              : isBaronessEffect
+              ? "💄 The Court's Matchmaker"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
@@ -546,6 +558,108 @@ export default function EffectResultModal({
                 </div>
               </div>
             </div>
+          ) : isBaronessEffect && cardDetails ? (
+            /* Special Baroness Layout with Revealed Cards Display */
+            <div style={baronessLayoutStyle}>
+              {/* Left side - The revealed cards */}
+              <div style={baronessCardsContainerStyle}>
+                <div style={baronessCardRowStyle}>
+                  {/* Target 1's card */}
+                  <div style={baronessCardContainerStyle}>
+                    <div style={baronessCardStyle}>
+                      <div style={phantomKingCardStrengthStyle}>
+                        {cardDetails.target1Card.strength}
+                      </div>
+                      <div
+                        style={{
+                          ...phantomKingCardImageStyle,
+                          backgroundImage: `url(/src/img/${getCardImage(
+                            cardDetails.target1Card.name
+                          )})`,
+                        }}
+                      ></div>
+                      <div style={phantomKingCardNameStyle}>
+                        {cardDetails.target1Card.name}
+                      </div>
+                      <div style={phantomKingCardEffectStyle}>
+                        {cardDetails.target1Card.effect}
+                      </div>
+                    </div>
+                    <p style={baronessCardLabelStyle}>
+                      {cardDetails.target1Name}'s ally
+                    </p>
+                  </div>
+
+                  {/* Target 2's card (if exists) */}
+                  {cardDetails.target2Card && (
+                    <div style={baronessCardContainerStyle}>
+                      <div style={baronessCardStyle}>
+                        <div style={phantomKingCardStrengthStyle}>
+                          {cardDetails.target2Card.strength}
+                        </div>
+                        <div
+                          style={{
+                            ...phantomKingCardImageStyle,
+                            backgroundImage: `url(/src/img/${getCardImage(
+                              cardDetails.target2Card.name
+                            )})`,
+                          }}
+                        ></div>
+                        <div style={phantomKingCardNameStyle}>
+                          {cardDetails.target2Card.name}
+                        </div>
+                        <div style={phantomKingCardEffectStyle}>
+                          {cardDetails.target2Card.effect}
+                        </div>
+                      </div>
+                      <p style={baronessCardLabelStyle}>
+                        {cardDetails.target2Name}'s ally
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right side - The romantic message */}
+              <div style={baronessMessageContainerStyle}>
+                <div style={{ fontSize: "1.1rem", lineHeight: "1.6" }}>
+                  {formatText(resultText)}
+                </div>
+                <div style={buttonContainerStyle}>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      ...buttonStyle,
+                      background:
+                        "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)",
+                      color: "#fff",
+                      border: "2px solid #ff69b4",
+                      boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #e91e63 0%, #f06292 100%)";
+                      e.target.style.color = "#fff";
+                      e.target.style.borderColor = "#ffb6c1";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 18px rgba(233, 30, 99, 0.6)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)";
+                      e.target.style.color = "#fff";
+                      e.target.style.borderColor = "#ff69b4";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 12px rgba(233, 30, 99, 0.4)";
+                    }}
+                  >
+                    ☕ Continue
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <div style={getMessageStyle(isCourtWhispererEffect)}>
               {formatText(resultText)}
@@ -696,7 +810,8 @@ const getHeaderStyle = (
   isJesterEffect,
   isCourtWhispererEffect,
   isPhantomKingEffect,
-  isRoyalConfessorEffect
+  isRoyalConfessorEffect,
+  isBaronessEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -712,6 +827,8 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, rgb(0 0 14) 0%, rgb(10 23 39) 100%)"
     : isRoyalConfessorEffect
     ? "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(101, 67, 33) 50%, rgb(139, 69, 19) 100%)"
+    : isBaronessEffect
+    ? "linear-gradient(135deg, #4a1625 0%, #2d0e18 50%, #1a0a10 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: isCourtWhispererEffect
     ? "rgb(242 242 242)"
@@ -719,6 +836,8 @@ const getHeaderStyle = (
     ? "rgb(247 105 166)"
     : isRoyalConfessorEffect
     ? "#f4e5c2"
+    : isBaronessEffect
+    ? "#ffe4e6"
     : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
@@ -1360,6 +1479,86 @@ const candleFlickerAnimation = `
   }
 }
 `;
+
+// Baroness-specific modal styles (romantic matchmaker theme)
+const baronessModalStyle = {
+  width: "80%",
+  maxWidth: "80%",
+  background: "linear-gradient(145deg, #4a1625 0%, #2d0e18 50%, #1a0a10 100%)",
+  border: "4px solid #ff69b4",
+  boxShadow:
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(255, 105, 180, 0.6), inset 0 1px 0 rgba(255, 182, 193, 0.1)",
+};
+
+const baronessLayoutStyle = {
+  display: "flex",
+  gap: "2rem",
+  alignItems: "flex-start",
+  padding: "2rem 1rem",
+  justifyContent: "space-between",
+  height: "100%",
+};
+
+const baronessCardsContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  maxWidth: "47%",
+  height: "-webkit-fill-available",
+  gap: "15px",
+};
+
+const baronessCardRowStyle = {
+  display: "flex",
+  gap: "15px",
+  alignItems: "flex-start",
+  justifyContent: "center",
+  width: "100%",
+  flexWrap: "wrap",
+};
+
+const baronessCardContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  marginBottom: "1rem",
+};
+
+const baronessCardStyle = {
+  position: "relative",
+  backgroundColor: "rgba(255, 255, 255, 0.95)",
+  borderRadius: "8px",
+  width: "180px",
+  height: "280px",
+  display: "flex",
+  flexDirection: "column",
+  cursor: "default",
+  border: "3px solid #ff69b4",
+  boxShadow: "0 8px 25px rgba(255, 105, 180, 0.4)",
+  transition: "all 0.3s ease",
+};
+
+const baronessCardLabelStyle = {
+  color: "#ffb6c1",
+  fontSize: "0.9rem",
+  fontFamily: "Cinzel, serif",
+  fontWeight: "bold",
+  textAlign: "center",
+  marginTop: "0.5rem",
+  textShadow: "0 1px 2px rgba(0, 0, 0, 0.8)",
+};
+
+const baronessMessageContainerStyle = {
+  maxWidth: "48%",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  height: "100%",
+  color: "#ffe4e6",
+  fontFamily: "Lora, serif",
+  fontSize: "1.1rem",
+  lineHeight: "1.6",
+};
 
 // Inject the animation styles
 if (typeof document !== "undefined") {
