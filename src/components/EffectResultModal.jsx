@@ -1566,7 +1566,7 @@ const baronessCardsContainerStyle = {
 const baronessCardRowStyle = {
   display: "flex",
   flexDirection: "row",
-  gap: "15px",
+  gap: "2rem",
   alignItems: "flex-start",
   justifyContent: "center",
   width: "100%",
@@ -1576,7 +1576,8 @@ const baronessCardContainerStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  marginBottom: "1rem",
+  justifyContent: "space-between",
+  height: "-webkit-fill-available",
 };
 
 const baronessCardStyle = {
@@ -1594,17 +1595,19 @@ const baronessCardStyle = {
 };
 
 const baronessCardLabelStyle = {
+  display: "flex",
+  flexWrap: "wrap",
   color: "#ffb6c1",
-  fontSize: "0.9rem",
+  fontSize: "1.1rem",
   fontFamily: "Cinzel, serif",
   fontWeight: "bold",
   textAlign: "center",
-  marginTop: "0.5rem",
+  margin: "0",
   textShadow: "0 1px 2px rgba(0, 0, 0, 0.8)",
+  paddingTop: "1rem",
 };
 
 const baronessMessageContainerStyle = {
-  maxWidth: "48%",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",

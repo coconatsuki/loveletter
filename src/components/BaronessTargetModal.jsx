@@ -24,16 +24,13 @@ const BARONESS_STYLES = {
 
   attentionMessage: {
     lineHeight: "1.6em",
-    textAlign: "center",
+    textAlign: "justify",
     color: "#ffb6c1",
-    fontSize: "1rem",
+    fontSize: "1.1rem",
     fontFamily: "Lora, serif",
     fontStyle: "italic",
     margin: "1rem 0",
     padding: "0.5rem",
-    backgroundColor: "rgba(255, 105, 180, 0.1)",
-    borderRadius: "8px",
-    border: "1px solid rgba(255, 105, 180, 0.3)",
   },
 
   dropdownContainer: {
@@ -268,7 +265,8 @@ export default function BaronessTargetModal({
               {!hasNoTargets &&
                 finalValidTargets1.map(([name, p]) => (
                   <option key={name} value={name}>
-                    💕 {p.name} ({p.realName}) {isTargetingForced ? "🎯" : ""}
+                    💕 {p.name} ({p.realName}){" "}
+                    {isTargetingForced && !isForcedToSelf ? "🎯" : ""}
                   </option>
                 ))}
               {hasNoTargets && (
@@ -302,7 +300,12 @@ export default function BaronessTargetModal({
           )}
 
           {showSecondDropdown && (
-            <div style={BARONESS_STYLES.dropdownSection}>
+            <div
+              style={{
+                ...BARONESS_STYLES.dropdownSection,
+                marginBottom: "0.7rem",
+              }}
+            >
               <label style={BARONESS_STYLES.dropdownLabel}>
                 💐 And whose other secrets?
               </label>
