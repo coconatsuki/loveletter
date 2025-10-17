@@ -7,15 +7,9 @@ const BARONESS_STYLES = {
     flexDirection: "column",
     justifyContent: "space-between",
     height: "100%",
-    background:
-      "linear-gradient(145deg, #4a1625 0%, #2d0e18 50%, #1a0a10 100%)",
-    borderRadius: "15px",
     color: "#ffe4e6",
     fontFamily: "Cinzel, serif",
     animation: "baronessSlideIn 0.5s ease-out",
-    border: "3px solid #ff69b4",
-    boxShadow:
-      "0 0 30px rgba(255, 105, 180, 0.4), inset 0 0 20px rgba(255, 182, 193, 0.1)",
   },
 
   noTargetMessage: {
@@ -54,7 +48,7 @@ const BARONESS_STYLES = {
   dropdownLabel: {
     fontSize: "1.1rem",
     fontWeight: "bold",
-    color: "#ff69b4",
+    color: "rgb(246, 151, 199)",
     margin: "1rem 0",
     display: "block",
     textAlign: "left",
@@ -85,8 +79,7 @@ const BARONESS_STYLES = {
   },
 
   button: {
-    width: "47%",
-    padding: "0.7rem",
+    padding: "0.5rem",
     fontSize: "1.1rem",
     border: "2px solid",
     borderRadius: "8px",
@@ -100,14 +93,16 @@ const BARONESS_STYLES = {
   },
 
   confirmButton: {
-    background: "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)",
+    background:
+      "linear-gradient(135deg, rgb(104 22 64) 0%, rgb(221 123 173) 100%)",
     color: "#fff",
     borderColor: "#ff69b4",
     boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
   },
 
   confirmButtonHover: {
-    background: "linear-gradient(135deg, #e91e63 0%, #f06292 100%)",
+    background:
+      "linear-gradient(135deg, rgb(221 123 173) 0%, rgb(104 22 64) 100%)",
     color: "#fff",
     borderColor: "#ffb6c1",
     boxShadow: "0 6px 18px rgba(233, 30, 99, 0.6)",
@@ -249,7 +244,7 @@ export default function BaronessTargetModal({
         <div style={BARONESS_STYLES.dropdownContainer}>
           <div style={BARONESS_STYLES.dropdownSection}>
             <label style={BARONESS_STYLES.dropdownLabel}>
-              💋 Whose romantic secrets shall we observe?
+              💋 Whose secrets shall we uncover?
             </label>
 
             <select
@@ -269,7 +264,7 @@ export default function BaronessTargetModal({
                 e.target.style.boxShadow = "none";
               }}
             >
-              <option value="">🌹 Choose a romantic target...</option>
+              <option value="">🌹 Choose a target...</option>
               {!hasNoTargets &&
                 finalValidTargets1.map(([name, p]) => (
                   <option key={name} value={name}>
@@ -340,9 +335,19 @@ export default function BaronessTargetModal({
           )}
 
           {showSecondDropdown && sameTarget && (
-            <div style={BARONESS_STYLES.noTargetMessage}>
+            <div
+              style={{
+                ...BARONESS_STYLES.noTargetMessage,
+                margin: "0rem 0px 1rem",
+              }}
+            >
               You need 2 different romantic targets!{" "}
-              <span style={{ fontStyle: "normal", fontSize: "1.3rem" }}>
+              <span
+                style={{
+                  fontStyle: "normal",
+                  fontSize: "1.3rem",
+                }}
+              >
                 💕💕
               </span>
             </div>
@@ -362,6 +367,7 @@ export default function BaronessTargetModal({
                     ...BARONESS_STYLES.backButtonHover,
                   }
                 : BARONESS_STYLES.backButton),
+              width: "35%",
             }}
           >
             ↩️ Back
@@ -386,6 +392,7 @@ export default function BaronessTargetModal({
                     }
                   : BARONESS_STYLES.confirmButton
                 : BARONESS_STYLES.confirmButtonDisabled),
+              width: "60%",
             }}
           >
             {selectedTarget1 === "SKIP_TURN"

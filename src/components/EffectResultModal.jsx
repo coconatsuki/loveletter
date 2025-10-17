@@ -53,7 +53,7 @@ const effectTextStyles = `
     margin-top: 0;
   }
 
-  .effect-description.phantom-king, .effect-description.confessor {
+  .effect-description.phantom-king, .effect-description.confessor, .effect-description.baroness {
     font-size: 1.2rem;
     text-align: justify;
   }
@@ -1510,11 +1510,11 @@ const baronessCardsContainerStyle = {
 
 const baronessCardRowStyle = {
   display: "flex",
+  flexDirection: "row",
   gap: "15px",
   alignItems: "flex-start",
   justifyContent: "center",
   width: "100%",
-  flexWrap: "wrap",
 };
 
 const baronessCardContainerStyle = {

@@ -50,7 +50,7 @@ const names = [
   { name: "The Knight of Nightly Builds", gender: "neutral" },
   { name: "Dame Dataclass", gender: "female" },
   { name: "Lord Overload", gender: "male" },
-  { name: "Countess Console.error", gender: "female" },
+  { name: "Countess ConsoleError", gender: "female" },
   { name: "Sir Storypointless", gender: "male" },
   { name: "Lady Pullrequest", gender: "female" },
   { name: "Viscount VPN", gender: "male" },
