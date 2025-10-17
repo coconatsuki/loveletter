@@ -143,8 +143,10 @@ export default function EffectResultModal({
   const isChamberlainEffect = selectedCardId === 10;
   const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
   const isRoyalConfessorEffect = selectedCardId === 13 && swappedCards;
-  const isBaronessEffect =
-    selectedCardId === 15 && cardDetails && role === "attacker";
+  const isBaronessEffect = selectedCardId === 15;
+  const isBaronessAttacker =
+    isBaronessEffect && cardDetails && role === "attacker";
+  const isBaronessTarget = isBaronessEffect && role === "target";
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -558,7 +560,7 @@ export default function EffectResultModal({
                 </div>
               </div>
             </div>
-          ) : isBaronessEffect && cardDetails ? (
+          ) : isBaronessAttacker && cardDetails ? (
             /* Special Baroness Layout with Revealed Cards Display */
             <div style={baronessLayoutStyle}>
               {/* Left side - The revealed cards */}
@@ -658,6 +660,59 @@ export default function EffectResultModal({
                     ☕ Continue
                   </button>
                 </div>
+              </div>
+            </div>
+          ) : isBaronessTarget ? (
+            /* Special Baroness Target Layout - Simple romantic themed message */
+            <div
+              style={{
+                padding: "1.5rem",
+                color: "#ffe4e6",
+                fontFamily: "Lora, serif",
+                textAlign: "justify",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "1.1rem",
+                  lineHeight: "1.6",
+                  marginBottom: "2rem",
+                }}
+              >
+                {formatText(resultText)}
+              </div>
+              <div style={buttonContainerStyle}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    ...buttonStyle,
+                    background:
+                      "linear-gradient(135deg, rgb(96 34 119) 0%, rgb(238 112 149) 100%)",
+                    color: "#fff",
+                    border: "2px solid #ff69b4",
+                    boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(238 112 149) 0%, rgb(96 34 119) 100%)";
+                    e.target.style.color = "#fff";
+                    e.target.style.borderColor = "#ffb6c1";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 18px rgba(233, 30, 99, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(96 34 119) 0%, rgb(238 112 149) 100%)";
+                    e.target.style.color = "#fff";
+                    e.target.style.borderColor = "#ff69b4";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 12px rgba(233, 30, 99, 0.4)";
+                  }}
+                >
+                  💋 Continue
+                </button>
               </div>
             </div>
           ) : (
