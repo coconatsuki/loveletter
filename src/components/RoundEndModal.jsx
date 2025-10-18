@@ -4,6 +4,7 @@ import "./RoundEndModal.css";
 export default function RoundEndModal({ roundResult, players, onContinue }) {
   const [countdown, setCountdown] = useState(5);
 
+  /*TEMPORARY DISABLE TO TEST
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -18,6 +19,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
 
     return () => clearInterval(timer);
   }, [onContinue]);
+  */
 
   const handleManualContinue = () => {
     onContinue();
@@ -199,6 +201,20 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                           <div className="round-end-card-strength">
                             Strength: {standing.strength}
                           </div>
+                          {/* 👑🐕 Duke bonus message */}
+                          {standing.dukeBonus > 0 && (
+                            <div
+                              style={{
+                                fontStyle: "italic",
+                                color: "white",
+                                fontSize: "1em",
+                                marginTop: "10px",
+                                fontFamily: "Lora, serif",
+                              }}
+                            >
+                              +{standing.dukeBonus} thanks to Duke's benediction
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -223,7 +239,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                       {winners
                         .map((w) => players[w]?.realName || w)
                         .join(" and ")}
-                    </strong>
+                    </strong>{" "}
                     share equal strength! Both earn the Princess's admiration!
                     💕
                   </p>
