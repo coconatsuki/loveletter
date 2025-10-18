@@ -167,6 +167,31 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 Whose love letter bears the strongest seal? 💌
               </p>
 
+              {/* ⚖️ Tiebreaker message if used */}
+              {roundResult.tiebreakerUsed && roundResult.tiebreakerDetails && (
+                <div
+                  style={{
+                    fontStyle: "italic",
+                    color: "white",
+                    textAlign: "center",
+                    margin: "15px 0",
+                    padding: "10px",
+                  }}
+                >
+                  ⚖️ A noble tie! Victory decided by the accumulated strength of
+                  discarded cards:{" "}
+                  {roundResult.tiebreakerDetails.discardPileComparison
+                    .sort((a, b) => b.discardPilePoints - a.discardPilePoints)
+                    .map((player, index) => (
+                      <React.Fragment key={player.player}>
+                        {index > 0 && " defeats "}
+                        <strong>{player.playerName}</strong> (
+                        {player.discardPilePoints} points)
+                      </React.Fragment>
+                    ))}
+                </div>
+              )}
+
               <div className="strength-battle">
                 <h3>🗡️ Final Standings 🗡️</h3>
                 <div className="players-showcase">

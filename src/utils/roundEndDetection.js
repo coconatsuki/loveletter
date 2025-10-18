@@ -89,22 +89,109 @@ export async function checkRoundEndConditions(roomCode) {
       playerStrengths.sort((a, b) => b.strength - a.strength);
 
       const highestStrength = playerStrengths[0].strength;
-      const winners = playerStrengths.filter(
+      const initialWinners = playerStrengths.filter(
         (p) => p.strength === highestStrength
       );
 
-      console.log("🏆 STRENGTH COMPARISON RESULTS:", {
+      console.log("🏆 INITIAL STRENGTH COMPARISON RESULTS:", {
         playerStrengths,
         highestStrength,
-        winners: winners.map((w) => w.player),
+        initialWinners: initialWinners.map((w) => w.player),
+      });
+
+      // ⚖️ TIEBREAKER LOGIC: Only run if there's actually a tie
+      let finalWinners = initialWinners;
+      let tiebreakerUsed = false;
+      let tiebreakerDetails = null;
+
+      // Only proceed with tiebreaker if we have multiple initial winners
+      if (initialWinners.length > 1) {
+        console.log("⚖️ TIE DETECTED! Initiating discard pile tiebreaker...");
+
+        // Calculate discard pile points for each tied player
+        const tiedPlayersWithDiscardPoints = initialWinners.map(
+          (playerData) => {
+            const playerName = playerData.player;
+            const discardPile = players[playerName]?.discard || [];
+
+            // Sum up all card strengths in discard pile
+            const discardPilePoints = discardPile.reduce((total, card) => {
+              return total + (card.strength || 0);
+            }, 0);
+
+            console.log(
+              `⚖️ TIEBREAKER: ${playerName} has ${discardPilePoints} discard pile points (${discardPile.length} cards)`
+            );
+
+            return {
+              ...playerData,
+              discardPilePoints,
+              discardPile: discardPile,
+            };
+          }
+        );
+
+        // Sort by discard pile points (highest first)
+        tiedPlayersWithDiscardPoints.sort(
+          (a, b) => b.discardPilePoints - a.discardPilePoints
+        );
+
+        const highestDiscardPoints =
+          tiedPlayersWithDiscardPoints[0].discardPilePoints;
+        const tiebreakerWinners = tiedPlayersWithDiscardPoints.filter(
+          (p) => p.discardPilePoints === highestDiscardPoints
+        );
+
+        console.log("⚖️ TIEBREAKER RESULTS:", {
+          highestDiscardPoints,
+          tiebreakerWinners: tiebreakerWinners.map(
+            (w) => `${w.player} (${w.discardPilePoints} pts)`
+          ),
+        });
+
+        // Update final winners and mark tiebreaker as used
+        finalWinners = tiebreakerWinners;
+        tiebreakerUsed = true;
+        tiebreakerDetails = {
+          initialTiedPlayers: initialWinners.map((w) => w.player),
+          discardPileComparison: tiedPlayersWithDiscardPoints.map((p) => ({
+            player: p.player,
+            playerName: players[p.player]?.name || p.player,
+            discardPilePoints: p.discardPilePoints,
+          })),
+          highestDiscardPoints,
+        };
+
+        // Update playerStrengths to include discard pile data for all tied players
+        playerStrengths.forEach((ps) => {
+          const tiebreakerData = tiedPlayersWithDiscardPoints.find(
+            (tp) => tp.player === ps.player
+          );
+          if (tiebreakerData) {
+            ps.discardPilePoints = tiebreakerData.discardPilePoints;
+          }
+        });
+      } else {
+        // Single winner - no tiebreaker needed
+        console.log("🏆 CLEAR VICTORY: Single winner, no tiebreaker needed");
+      }
+
+      console.log("🏆 FINAL RESULT:", {
+        finalWinners: finalWinners.map((w) => w.player),
+        tiebreakerUsed,
+        singleWinner: initialWinners.length === 1,
       });
 
       return {
         isRoundEnd: true,
         type: "deckEmpty",
-        winners: winners.map((w) => w.player),
-        winnerNames: winners.map((w) => players[w.player]?.name || w.player),
+        winners: finalWinners.map((w) => w.player),
+        winnerNames: finalWinners.map(
+          (w) => players[w.player]?.name || w.player
+        ),
         finalStandings: playerStrengths,
+        tiebreakerUsed,
+        tiebreakerDetails,
       };
     }
 
@@ -296,6 +383,8 @@ export async function triggerRoundEnd(roomCode) {
       winnerNames: roundEndResult.winnerNames || [roundEndResult.winnerName],
       hiddenCard: roomData.round?.hiddenCard || null,
       finalStandings: roundEndResult.finalStandings || [],
+      tiebreakerUsed: roundEndResult.tiebreakerUsed || false, // ⚖️ Add tiebreaker information
+      tiebreakerDetails: roundEndResult.tiebreakerDetails || null, // ⚖️ Add tiebreaker details
       jesterBonusInfo, // 🃏 Add jester bonus information
       chamberlainBonusInfo, // 🏰💰 Add Chamberlain bonus information
       timestamp: Date.now(),
