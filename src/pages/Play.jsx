@@ -5,6 +5,7 @@ import { ref, onValue, update, set, get } from "firebase/database";
 import TargetModal from "../components/TargetModal";
 import InquisitorTargetModal from "../components/InquisitorTargetModal";
 import RoyalConfessorTargetModal from "../components/RoyalConfessorTargetModal";
+import BaronessTargetModal from "../components/BaronessTargetModal";
 import RoyalConfessorResultModal from "../components/RoyalConfessorResultModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
@@ -32,6 +33,7 @@ import {
   applyInquisitorEffect,
   applyCourtWhispererEffect,
   applyRoyalConfessorEffect,
+  applyBaronessEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -645,8 +647,8 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    if ([0, 1, 2, 3, 6, 9, 11, 12, 13].includes(card.id)) {
-      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer)
+    if ([0, 1, 2, 3, 6, 9, 11, 12, 13, 15].includes(card.id)) {
+      // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer, Baroness)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
@@ -1381,6 +1383,91 @@ export default function Play() {
       return;
     }
 
+    // === BARONESS CARD LOGIC (ID: 15) ===
+    else if (cardPlayed.id === 15) {
+      console.log(
+        `💄 BARONESS: ${nickname} observes romantic secrets from ${target}${
+          target2 ? ` and ${target2}` : ""
+        }`
+      );
+
+      const result = await applyBaronessEffect({
+        roomCode,
+        attacker: nickname,
+        target1: target,
+        target2,
+      });
+
+      if (result.result === "error") {
+        console.error("💄 BARONESS ERROR:", result.error);
+        setResultModalData({
+          resultText: `💄 Baroness observation failed: ${result.error}`,
+        });
+        return;
+      }
+
+      // Send target messages with proper error handling
+      try {
+        // Send target message to target1
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          message: result.target1Message,
+          timestamp: Date.now(),
+        });
+
+        // Send target message to target2 if exists
+        if (target2 && result.target2Message) {
+          await update(ref(db, `rooms/${roomCode}/target2Message`), {
+            selectedCardId: cardPlayed.id,
+            visibleTo: target2,
+            attacker: nickname,
+            message: result.target2Message,
+            timestamp: Date.now(),
+          });
+        }
+
+        // Show attacker's result modal with revealed cards (only if Firebase succeeded)
+        setResultModalData({
+          selectedCardId: 15, // Baroness
+          resultText: result.attackerMessage,
+          cardDetails: {
+            target1Name: target,
+            target1Card: result.target1Card,
+            target2Name: target2,
+            target2Card: result.target2Card,
+          },
+          role: "attacker",
+        });
+      } catch (error) {
+        console.error("💄 BARONESS Firebase Error:", error);
+
+        // Show user-friendly error message with graceful degradation
+        setResultModalData({
+          selectedCardId: 15, // Baroness
+          resultText: `💄 Network error! The Baroness's romantic secrets couldn't be shared with the targets, but you still observed: ${target}${
+            target2 ? ` and ${target2}` : ""
+          }.`,
+          cardDetails: {
+            target1Name: target,
+            target1Card: result.target1Card,
+            target2Name: target2,
+            target2Card: result.target2Card,
+          },
+          role: "attacker",
+          isError: true,
+        });
+
+        // Still continue with turn completion - card effect succeeded, only messaging failed
+        return;
+      }
+
+      // Notify all players about the romantic observation
+      pushNotification(roomCode, result.publicMessage);
+      return;
+    }
+
     // === INQUISITOR CARD LOGIC (ID: 9) ===
     else if (cardPlayed.id === 9) {
       console.log(
@@ -1393,14 +1480,6 @@ export default function Play() {
         target,
         guess,
       });
-
-      // Handle skip turn case
-      if (target === "SKIP_TURN") {
-        setResultModalData({
-          resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your Inquisitor cannot find a target to investigate, so your turn is skipped. ☕🔍`,
-        });
-        return;
-      }
 
       if (result.result === "error") {
         console.error("🕵️ INQUISITOR ERROR:", result.error);
@@ -2720,6 +2799,20 @@ export default function Play() {
                                           ) : player.hand[selectedCardIndex]
                                               .id === 13 ? (
                                             <RoyalConfessorTargetModal
+                                              players={players}
+                                              currentPlayer={nickname}
+                                              protectedPlayers={
+                                                roomData?.protectedPlayers || []
+                                              }
+                                              nextTarget={
+                                                roomData?.round?.nextTarget
+                                              }
+                                              onConfirm={handleTargetConfirm}
+                                              onCancel={handleCardBack}
+                                            />
+                                          ) : player.hand[selectedCardIndex]
+                                              .id === 15 ? (
+                                            <BaronessTargetModal
                                               players={players}
                                               currentPlayer={nickname}
                                               protectedPlayers={

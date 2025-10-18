@@ -222,4 +222,4 @@ ID 15 → Baroness (Strength: 3, Count: 2)
 → Player may privately see up to two other players' hands.
 
 ID 16 → Duke (Strength: 5, Count: 2)
-→ If the player has played or discarded this card and remains in play until the end of the round, they add one to the strength of the card in their hand.
+→ If the player has played or discarded this card and remains in play until the end of the round, and if the round end with a "deck empty" type, they add one to the strength of the card in their hand (the card that will be compared with other player's cards, to determine the round winner).

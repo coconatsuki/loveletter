@@ -310,7 +310,13 @@ export default function RoyalConfessorInquisitorTargetModal({
           {!hasLessThan2validTargets && sameTarget && (
             <div style={CONFESSOR_STYLES.noTargetMessage}>
               You need 2 different sinners!{" "}
-              <span style={{ fontStyle: "normal", fontSize: "1.3rem" }}>
+              <span
+                style={{
+                  fontStyle: "normal",
+                  fontSize: "1.3rem",
+                  margin: "0rem 0px 1rem",
+                }}
+              >
                 🧎🏼‍➡️🧎🏼
               </span>
             </div>
