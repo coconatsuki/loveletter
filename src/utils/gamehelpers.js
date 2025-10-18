@@ -56,6 +56,18 @@ export function handleCardDiscard({
     );
   }
 
+  // In premium mode, check if this is a Duke card
+  if (gameMode === "premium" && card.id === 16) {
+    // Increment Duke token (can stack multiple Duke discards)
+    const currentDukeToken = updates[`players/${playerName}/dukeToken`] || 0;
+    updates[`players/${playerName}/dukeToken`] = currentDukeToken + 1;
+    console.log(
+      `👑🐕 Duke token incremented for ${playerName} - now has ${
+        currentDukeToken + 1
+      } Duke favor(s)`
+    );
+  }
+
   return updates;
 }
 

@@ -19,6 +19,7 @@ export const CARD_MODAL_FLOW = {
   11: { advanceOnAttacker: true, advanceOnTarget: false }, // Regent Queen
   12: { advanceOnAttacker: true, advanceOnTarget: false }, // Court Whisperer
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
+  16: { advanceOnAttacker: true, advanceOnTarget: false }, // Duke
   // Premium mode cards will be added as we implement them...
 };
 
@@ -50,10 +51,10 @@ const cardStrengths = {
   10: 6, // Chamberlain
   11: 7, // Regent Queen
   12: 4, // Court Whisperer
-  13: 0, // Royal Confessor
+  13: 2, // Royal Confessor
   14: 0, // Assassin
-  15: 2, // Baroness
-  16: 3, // Duke
+  15: 3, // Baroness
+  16: 5, // Duke
 };
 
 // 🃏✨ JESTER EFFECT ✨🃏
@@ -1559,6 +1560,53 @@ export async function applyBaronessEffect({
     };
   } catch (error) {
     console.error("👻 BARONESS EFFECT ERROR:", error);
+    return {
+      result: "error",
+      error: error.message,
+    };
+  }
+}
+
+export async function applyDukeEffect({ roomCode, player }) {
+  try {
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error("The royal court has disappeared...");
+    }
+
+    const gameData = snapshot.val();
+    const playerData = gameData.players[player];
+
+    console.log("👑🐕 DUKE: Noble favor granted", {
+      player,
+      hand: playerData.hand,
+    });
+
+    const attackerMessage = `
+<div class="effect-description top">👑 The Duke approaches you with quiet authority. His loyal little hound 🐕 trots proudly at his heels, wearing a velvet collar far too grand for its size.</div>
+<div class="effect-description"><span class="quotation duke">"My dear <span class="effect-player">${
+      playerData.name || player
+    }</span>,"</span> the Duke says, <span class="quotation duke">"my niece deserves sincerity, not showmanship. You have shown both courage and patience — virtues I hold dear."</span></div>
+<div class="effect-description">He rests a gloved hand 🤝 on your shoulder. <span class="quotation duke">"Take my blessing. While I stand in your corner, your name shall carry greater weight in this court."</span></div>
+<div class="effect-description">The tiny dog lets out a solemn <span class="quotation duke">"woof,"</span> 🐾 as if sealing the vow.</div>
+<div class="effect-technical">✨ If you're still standing when the round ends, add +1 to your last card's strength!</div>`;
+
+    const publicMessage = `
+<div class="effect-description">🏛️ The Duke, uncle to the Princess and guardian of her honor, has granted his favor to <span class="effect-player">${
+      playerData.name || player
+    }</span>.</div>
+<div class="effect-description">His word alone elevates their standing in the eyes of the court — and even his tiny hound 🐶 seems to approve, tail held high with royal pride 👑.</div>`;
+
+    return {
+      result: "duke_favor",
+      requiresPrompt: false,
+      attackerMessage,
+      publicMessage,
+    };
+  } catch (error) {
+    console.error("👑🐕 DUKE EFFECT ERROR:", error);
     return {
       result: "error",
       error: error.message,

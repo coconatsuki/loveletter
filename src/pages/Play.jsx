@@ -34,6 +34,7 @@ import {
   applyCourtWhispererEffect,
   applyRoyalConfessorEffect,
   applyBaronessEffect,
+  applyDukeEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -667,6 +668,9 @@ export default function Play() {
     } else if (card.id === 10) {
       // CHAMBERLAIN CARD - No target needed, secure royal influence immediately
       playChamberlain(index);
+    } else if (card.id === 16) {
+      // DUKE CARD - No target needed, noble favor effect immediately
+      playDuke(index);
     } else if (card.id === 14) {
       // ASSASSIN CARD - No target needed, shadow moves through the court
       playAssassin(index);
@@ -692,6 +696,30 @@ export default function Play() {
       selectedCardId: 4, // Handmaid
       resultText: result.playerMessage,
       isHandmaidProtection: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playDuke = async (index) => {
+    setSelectedCardIndex(index);
+    console.log("👑🐕 DUKE: Setting isPlaying = true");
+    setIsPlaying(true);
+
+    // Apply Duke noble favor effect
+    const result = await applyDukeEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show duke favor confirmation modal to the player
+    setResultModalData({
+      selectedCardId: 16, // Duke
+      resultText: result.attackerMessage,
+      hasDukeFavor: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -1552,6 +1580,13 @@ export default function Play() {
       return;
     }
 
+    // Special handling for Duke - noble favor effect must be applied now
+    if (resultModalData?.hasDukeFavor) {
+      console.log("👑🐕 DUKE: Using special turn completion");
+      await completeDukeTurn();
+      return;
+    }
+
     // Standard validation for other cards
     if (
       selectedCardIndex === null ||
@@ -2166,6 +2201,82 @@ export default function Play() {
     // Reset local state
     console.log(
       "🔄 HANDMAID TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
+    setSelectedCardIndex(null);
+  };
+
+  const completeDukeTurn = async () => {
+    console.log(
+      "👑🐕 DUKE TURN COMPLETION: Noble favor granted, completing turn"
+    );
+
+    // Validate selectedCardIndex and get the Duke card
+    if (
+      selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      !player.hand ||
+      selectedCardIndex >= player.hand.length
+    ) {
+      console.error(
+        "👑🐕 DUKE ERROR: Cannot complete turn - invalid selectedCardIndex:",
+        { selectedCardIndex, handLength: player.hand?.length }
+      );
+      return;
+    }
+
+    const dukeCard = player.hand[selectedCardIndex];
+
+    if (!dukeCard || dukeCard.id !== 16) {
+      console.error(
+        "👑🐕 DUKE ERROR: Cannot complete turn - invalid Duke card:",
+        dukeCard
+      );
+      return;
+    }
+
+    // Remove Duke from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), dukeCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Increment Duke token for this player (can stack)
+    const currentDukeToken = player.dukeToken || 0;
+    const newDukeToken = currentDukeToken + 1;
+
+    // Update game state: discard Duke, advance turn, set Duke token
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`players/${nickname}/dukeToken`]: newDukeToken,
+      [`round/currentPlayer`]: nextPlayer,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🏛️ The Duke's favor has been granted. The crown now passes to ${nextPlayer}. 👑🐕`
+    );
+
+    // Reset local state
+    console.log(
+      "🔄 DUKE TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
     );
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);

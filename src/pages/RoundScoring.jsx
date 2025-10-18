@@ -83,6 +83,7 @@ export default function RoundScoring() {
         playerUpdates[`players/${playerKey}/isOut`] = false;
         playerUpdates[`players/${playerKey}/jesterToken`] = null; // 🃏 Clear jester tokens
         playerUpdates[`players/${playerKey}/chamberlainToken`] = null; // 🏰💰 Reset Chamberlain tokens to null
+        playerUpdates[`players/${playerKey}/dukeToken`] = null; // 👑🐕 Clear Duke tokens
       });
 
       // Increment round counter

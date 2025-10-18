@@ -63,10 +63,25 @@ export async function checkRoundEndConditions(roomCode) {
         const playerHand = players[player].hand;
         const highestCard =
           playerHand && playerHand.length > 0 ? playerHand[0] : null;
+        const baseStrength = highestCard?.strength || 0;
+
+        // 👑🐕 Check for Duke token bonus (premium mode only)
+        const dukeToken = players[player]?.dukeToken || 0;
+        const dukeBonus = dukeToken; // Each Duke token adds +1 to strength
+        const finalStrength = baseStrength + dukeBonus;
+
+        if (dukeBonus > 0) {
+          console.log(
+            `👑🐕 DUKE BONUS: ${player} has ${dukeToken} Duke favor(s), adding +${dukeBonus} to strength (${baseStrength} → ${finalStrength})`
+          );
+        }
+
         return {
           player,
           hand: playerHand || [],
-          strength: highestCard?.strength || 0,
+          strength: finalStrength,
+          baseStrength,
+          dukeBonus,
         };
       });
 
