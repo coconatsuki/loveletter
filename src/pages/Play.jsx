@@ -1406,38 +1406,62 @@ export default function Play() {
         return;
       }
 
-      // Send target message to target1
-      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-        selectedCardId: cardPlayed.id,
-        visibleTo: target,
-        attacker: nickname,
-        message: result.target1Message,
-        timestamp: Date.now(),
-      });
-
-      // Send target message to target2 if exists
-      if (target2 && result.target2Message) {
-        await update(ref(db, `rooms/${roomCode}/target2Message`), {
+      // Send target messages with proper error handling
+      try {
+        // Send target message to target1
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
           selectedCardId: cardPlayed.id,
-          visibleTo: target2,
+          visibleTo: target,
           attacker: nickname,
-          message: result.target2Message,
+          message: result.target1Message,
           timestamp: Date.now(),
         });
-      }
 
-      // Show attacker's result modal with revealed cards
-      setResultModalData({
-        selectedCardId: 15, // Baroness
-        resultText: result.attackerMessage,
-        cardDetails: {
-          target1Name: target,
-          target1Card: result.target1Card,
-          target2Name: target2,
-          target2Card: result.target2Card,
-        },
-        role: "attacker",
-      });
+        // Send target message to target2 if exists
+        if (target2 && result.target2Message) {
+          await update(ref(db, `rooms/${roomCode}/target2Message`), {
+            selectedCardId: cardPlayed.id,
+            visibleTo: target2,
+            attacker: nickname,
+            message: result.target2Message,
+            timestamp: Date.now(),
+          });
+        }
+
+        // Show attacker's result modal with revealed cards (only if Firebase succeeded)
+        setResultModalData({
+          selectedCardId: 15, // Baroness
+          resultText: result.attackerMessage,
+          cardDetails: {
+            target1Name: target,
+            target1Card: result.target1Card,
+            target2Name: target2,
+            target2Card: result.target2Card,
+          },
+          role: "attacker",
+        });
+      } catch (error) {
+        console.error("💄 BARONESS Firebase Error:", error);
+
+        // Show user-friendly error message with graceful degradation
+        setResultModalData({
+          selectedCardId: 15, // Baroness
+          resultText: `💄 Network error! The Baroness's romantic secrets couldn't be shared with the targets, but you still observed: ${target}${
+            target2 ? ` and ${target2}` : ""
+          }.`,
+          cardDetails: {
+            target1Name: target,
+            target1Card: result.target1Card,
+            target2Name: target2,
+            target2Card: result.target2Card,
+          },
+          role: "attacker",
+          isError: true,
+        });
+
+        // Still continue with turn completion - card effect succeeded, only messaging failed
+        return;
+      }
 
       // Notify all players about the romantic observation
       pushNotification(roomCode, result.publicMessage);
@@ -1456,14 +1480,6 @@ export default function Play() {
         target,
         guess,
       });
-
-      // Handle skip turn case
-      if (target === "SKIP_TURN") {
-        setResultModalData({
-          resultText: `🫖✨ Alas! All other players are cozily protected by the Princess' Handmaid, sipping tea in her chambers. Your Inquisitor cannot find a target to investigate, so your turn is skipped. ☕🔍`,
-        });
-        return;
-      }
 
       if (result.result === "error") {
         console.error("🕵️ INQUISITOR ERROR:", result.error);
