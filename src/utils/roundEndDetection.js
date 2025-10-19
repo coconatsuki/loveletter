@@ -43,6 +43,7 @@ export async function checkRoundEndConditions(roomCode) {
         winnerName: players[activePlayers[0]]?.name || activePlayers[0],
         activePlayers,
         eliminatedPlayers,
+        hiddenCard: round.hiddenCard || null,
       };
     }
 
@@ -192,6 +193,7 @@ export async function checkRoundEndConditions(roomCode) {
         finalStandings: playerStrengths,
         tiebreakerUsed,
         tiebreakerDetails,
+        hiddenCard: round.hiddenCard || null,
       };
     }
 
@@ -263,6 +265,11 @@ export async function triggerRoundEnd(roomCode) {
         roomData.players[roundEndResult.winner]?.tokens || 0;
       updates[`players/${roundEndResult.winner}/tokens`] = currentTokens + 1;
 
+      // 🏆 Track love token origin for round winner
+      updates[`players/${roundEndResult.winner}/loveTokenOrigin`] = {
+        roundWinner: 1,
+      };
+
       // 🃏 Check for Jester token - single winner case
       const winnerData = roomData.players[roundEndResult.winner];
       if (winnerData?.jesterToken?.giver) {
@@ -272,6 +279,14 @@ export async function triggerRoundEnd(roomCode) {
         if (jesterGiver !== roundEndResult.winner) {
           const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
           updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+          // 🃏 Track love token origin for jester bonus
+          const existingOrigin =
+            roomData.players[jesterGiver]?.loveTokenOrigin || {};
+          updates[`players/${jesterGiver}/loveTokenOrigin`] = {
+            ...existingOrigin,
+            jesterBonus: 1,
+          };
 
           console.log(
             `🃏 JESTER BONUS: Awarding love token to ${jesterGiver} (had ${jesterTokens}, now ${
@@ -299,6 +314,11 @@ export async function triggerRoundEnd(roomCode) {
         const currentTokens = roomData.players[winner]?.tokens || 0;
         updates[`players/${winner}/tokens`] = currentTokens + 1;
 
+        // 🏆 Track love token origin for round winner
+        updates[`players/${winner}/loveTokenOrigin`] = {
+          roundWinner: 1,
+        };
+
         // 🃏 Check for Jester token - multiple winners case
         const winnerData = roomData.players[winner];
         if (winnerData?.jesterToken?.giver) {
@@ -308,6 +328,14 @@ export async function triggerRoundEnd(roomCode) {
           if (!roundEndResult.winners.includes(jesterGiver)) {
             const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
             updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+            // 🃏 Track love token origin for jester bonus
+            const existingOrigin =
+              roomData.players[jesterGiver]?.loveTokenOrigin || {};
+            updates[`players/${jesterGiver}/loveTokenOrigin`] = {
+              ...existingOrigin,
+              jesterBonus: 1,
+            };
           }
 
           jesterBonuses.push({
@@ -356,6 +384,13 @@ export async function triggerRoundEnd(roomCode) {
           // Award this eliminated player 1 love token for their Chamberlain's influence
           updates[`players/${playerName}/tokens`] = baseTokens + 1;
 
+          // 🏰💰 Track love token origin for chamberlain bonus
+          const existingOrigin = playerData.loveTokenOrigin || {};
+          updates[`players/${playerName}/loveTokenOrigin`] = {
+            ...existingOrigin,
+            chamberlainToken: 1,
+          };
+
           chamberlainBonuses.push({
             player: playerName,
             playerName: playerData.name || playerName,
@@ -374,14 +409,13 @@ export async function triggerRoundEnd(roomCode) {
     chamberlainBonusInfo =
       chamberlainBonuses.length > 0 ? chamberlainBonuses[0] : null;
 
-    // Build round result data
     const roundResult = {
       roundNumber: roomData.gameStats?.currentRound || 1,
       type: roundEndResult.type,
       winner: roundEndResult.winner || roundEndResult.winners?.[0],
       winners: roundEndResult.winners || [roundEndResult.winner],
       winnerNames: roundEndResult.winnerNames || [roundEndResult.winnerName],
-      hiddenCard: roomData.round?.hiddenCard || null,
+      hiddenCard: roundEndResult.hiddenCard,
       finalStandings: roundEndResult.finalStandings || [],
       tiebreakerUsed: roundEndResult.tiebreakerUsed || false, // ⚖️ Add tiebreaker information
       tiebreakerDetails: roundEndResult.tiebreakerDetails || null, // ⚖️ Add tiebreaker details
@@ -447,15 +481,51 @@ export async function logRoundEndCheck(context, roomCode) {
  * @param {string} roomCode - The room code
  */
 export async function triggerRoundEndIfNeeded(context, roomCode) {
-  console.log(`🔍 ROUND END CHECK WITH AUTO-TRIGGER: ${context}`, { roomCode });
   const result = await checkRoundEndConditions(roomCode);
-  console.log(`🔍 ROUND END RESULT: ${context}`, result);
+  console.log(
+    `🔍 triggerRoundEndIfNeeded - ROUND END RESULT: ${context}`,
+    result
+  );
 
   // If round end is detected, trigger the actual round end with protection
   if (result.isRoundEnd) {
-    console.log(`🎯 ROUND END DETECTED - TRIGGERING: ${context}`);
+    console.log(
+      `🎯 triggerRoundEndIfNeeded - ROUND END DETECTED - TRIGGERING: ${context}`
+    );
     const triggerResult = await triggerRoundEnd(roomCode);
-    console.log(`🎯 ROUND END TRIGGER RESULT: ${context}`, triggerResult);
+    console.log(
+      `🎯 triggerRoundEndIfNeeded - ROUND END TRIGGER RESULT: ${context}`,
+      triggerResult
+    );
+    return { ...result, triggerResult };
+  }
+
+  return result;
+}
+
+export async function triggerRoundEndIfNeededWithDelay(context, roomCode) {
+  const result = await checkRoundEndConditions(roomCode);
+  console.log(
+    `🔍 triggerRoundEndIfNeededWithDelay - ROUND END RESULT: ${context}`,
+    result
+  );
+
+  // If round end is detected, trigger the actual round end with protection
+  if (result.isRoundEnd) {
+    console.log(
+      `🎯 triggerRoundEndIfNeededWithDelay - ROUND END DETECTED - TRIGGERING: ${context}`
+    );
+
+    const triggerResult = {};
+
+    setTimeout(async () => {
+      triggerResult = await triggerRoundEnd(roomCode);
+    }, 2000);
+
+    console.log(
+      `🎯 triggerRoundEndIfNeededWithDelay - ROUND END TRIGGER RESULT: ${context}`,
+      triggerResult
+    );
     return { ...result, triggerResult };
   }
 

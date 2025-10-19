@@ -547,7 +547,7 @@ export default function Play() {
       // Also check if this is already flagged as final turn
       if (round.isFinalTurn) {
         console.log(
-          "🏆 FINAL TURN: Deck is empty and this is flagged as the final turn"
+          "🏆 DrawCard () - FINAL TURN: Deck is empty and this is flagged as the final turn"
         );
       }
       // Don't trigger round end check here - wait for turn completion
@@ -581,7 +581,7 @@ export default function Play() {
     // Check if deck is now empty (round end condition)
     if (newDeck.length === 0) {
       console.log(
-        "🏆 DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
+        "🏆 drawCard() - DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
       );
       // Flag in Firebase that this is the final turn - all players will see this
       updatedRound.isFinalTurn = true;
@@ -860,6 +860,7 @@ export default function Play() {
       });
 
       setResultModalData({
+        selectedCardId: cardPlayed.id,
         resultText: result.attackerMessage,
       });
       pushNotification(roomCode, result.publicMessage);
@@ -874,6 +875,7 @@ export default function Play() {
       });
 
       setResultModalData({
+        selectedCardId: cardPlayed.id,
         resultText: result.attackerMessage,
       });
       pushNotification(roomCode, result.publicMessage);
@@ -1255,7 +1257,6 @@ export default function Play() {
         if (!attackerCard || !targetCard) {
           console.error("👻 PHANTOM KING ERROR: Missing card data");
           setResultModalData({
-            selectedCardId: 6,
             resultText:
               "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
           });
@@ -1317,7 +1318,6 @@ export default function Play() {
       } catch (error) {
         console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
         setResultModalData({
-          selectedCardId: 6,
           resultText: `❌ The Phantom King's power faltered... ${
             error.message || "Unknown error"
           }`,
@@ -1473,7 +1473,6 @@ export default function Play() {
 
         // Show user-friendly error message with graceful degradation
         setResultModalData({
-          selectedCardId: 15, // Baroness
           resultText: `💄 Network error! The Baroness's romantic secrets couldn't be shared with the targets, but you still observed: ${target}${
             target2 ? ` and ${target2}` : ""
           }.`,
@@ -1720,7 +1719,7 @@ export default function Play() {
         console.log("🏆 TRIGGERING ROUND END after delay");
         // Trigger round end - it will do a fresh check internally
         await triggerRoundEnd(roomCode);
-      }, 3000); // Reduced delay since modal will handle the timing now
+      }, 2000); // Reduced delay since modal will handle the timing now
 
       return; // Don't reset isPlaying yet, let the round end handle it
     }
@@ -2567,7 +2566,7 @@ export default function Play() {
             </div>
 
             {/* PLAYERS GRID */}
-            <div className="players-game-grid">
+            <div className="game-grid">
               {Object.entries(players).map(([name, p], index) => {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
                 const isCurrentPlayer = name === currentPlayer;
@@ -2706,7 +2705,8 @@ export default function Play() {
               player.hand?.length >= 1 &&
               (!isPlaying ||
                 (roomData?.guardPrompt &&
-                  roomData.guardPrompt.attacker === nickname)) && (
+                  roomData.guardPrompt.attacker === nickname)) &&
+              roomData?.gameState !== "roundScoring" && (
                 <div className="royal-action-area-overlay">
                   <div className="royal-actions-area">
                     {/* Discard History Link - Top Right */}

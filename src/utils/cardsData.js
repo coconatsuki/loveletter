@@ -30,6 +30,8 @@ export const cards = [
     strength: 0,
     countNormal: 0,
     countPremium: 1,
+    effectDetails:
+      "Choose another player — ideally, the one you believe is most likely to win the round. If you're correct (and your chosen player does win the round), you'll also gain a Love Token!",
     effect: "Choose a player. If they win, you gain a token.",
   },
   {
@@ -38,6 +40,10 @@ export const cards = [
     strength: 1,
     countNormal: 5,
     countPremium: 8,
+    effectDetails:
+      "Guess a strength (≠1). If correct, your target is eliminated.",
+    effectDetails:
+      "Choose a player and select a Strength number (other than 1). If that player has a card with that Strength, they are eliminated. On target selection, if no player can be be chosen (eg. due to Handmaid or Court Whisperer), your Guard will be discarded without effect.",
     effect: "Guess a strength (≠1). If correct, target is eliminated.",
   },
   {
@@ -46,6 +52,7 @@ export const cards = [
     strength: 2,
     countNormal: 2,
     countPremium: 2,
+    effectDetails: "",
     effect: "View another player's hand.",
   },
   {
@@ -54,6 +61,7 @@ export const cards = [
     strength: 3,
     countNormal: 2,
     countPremium: 2,
+    effectDetails: "",
     effect: "Compare hands. Player with the lower card is eliminated.",
   },
   {
@@ -62,6 +70,7 @@ export const cards = [
     strength: 4,
     countNormal: 2,
     countPremium: 2,
+    effectDetails: "",
     effect: "You are protected until your next turn.",
   },
   {
@@ -70,6 +79,7 @@ export const cards = [
     strength: 5,
     countNormal: 2,
     countPremium: 2,
+    effectDetails: "",
     effect: "Target (or yourself) discards hand and draws a card.",
   },
   {
@@ -78,6 +88,7 @@ export const cards = [
     strength: 6,
     countNormal: 1,
     countPremium: 1,
+    effectDetails: "",
     effect: "You may trade hands with another player.",
   },
   {
@@ -86,6 +97,7 @@ export const cards = [
     strength: 7,
     countNormal: 1,
     countPremium: 1,
+    effectDetails: "",
     effect: "Must be played if you also have a Prince or the Phantom King.",
   },
   {
@@ -94,6 +106,7 @@ export const cards = [
     strength: 8,
     countNormal: 1,
     countPremium: 1,
+    effectDetails: "",
     effect: "If discarded (by you, or by force), you are eliminated.",
   },
   {
@@ -102,6 +115,7 @@ export const cards = [
     strength: 9,
     countNormal: 0,
     countPremium: 1,
+    effectDetails: "",
     effect:
       "Guess a strength other than 1. If correct, gain an affection token.",
   },
@@ -111,6 +125,7 @@ export const cards = [
     strength: 6,
     countNormal: 0,
     countPremium: 1,
+    effectDetails: "",
     effect: "If eliminated, gain 1 affection token.",
   },
   {
@@ -119,6 +134,7 @@ export const cards = [
     strength: 7,
     countNormal: 0,
     countPremium: 1,
+    effectDetails: "",
     effect: "Compare hands. Player with higher strength is eliminated.",
   },
   {
@@ -127,6 +143,7 @@ export const cards = [
     strength: 4,
     countNormal: 0,
     countPremium: 2,
+    effectDetails: "",
     effect: "Choose who the next player must target.",
   },
   {
@@ -135,6 +152,7 @@ export const cards = [
     strength: 2,
     countNormal: 0,
     countPremium: 2,
+    effectDetails: "",
     effect: "Trade hands. View the new card if you wish.",
   },
   {
@@ -143,6 +161,7 @@ export const cards = [
     strength: 0,
     countNormal: 0,
     countPremium: 1,
+    effectDetails: "",
     effect: "If targeted with Guard, eliminate attacker instead.",
   },
 
@@ -152,6 +171,7 @@ export const cards = [
     strength: 3,
     countNormal: 0,
     countPremium: 2,
+    effectDetails: "",
     effect: "View the hands of two players.",
   },
   {
@@ -160,6 +180,7 @@ export const cards = [
     strength: 5,
     countNormal: 0,
     countPremium: 2,
+    effectDetails: "",
     effect: "If discarded or played, add +1 to your hand strength.",
   },
 ];

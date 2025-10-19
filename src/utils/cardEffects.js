@@ -1204,8 +1204,15 @@ export async function awardLoveToken({ roomCode, player }) {
     const data = snapshot.val();
     const currentTokens = data.players[player]?.tokens || 0;
 
+    // 🕵️ Track love token origin for inquisitor correct guess
+    const existingOrigin = data.players[player]?.loveTokenOrigin || {};
+
     await update(ref(db, `rooms/${roomCode}/players/${player}`), {
       tokens: currentTokens + 1,
+      loveTokenOrigin: {
+        ...existingOrigin,
+        inquisitorGuess: 1,
+      },
     });
 
     console.log(

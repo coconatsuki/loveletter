@@ -136,12 +136,12 @@
 }
 
 /* Players grid layout - Compact for up to 11 players */
-.players-game-grid {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 3rem;
+.game-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  flex-wrap: wrap !important;
+  gap: 3rem !important;
   padding: 2rem 1rem 5.5rem;
   box-sizing: border-box;
   flex: 1;
@@ -416,7 +416,7 @@
     grid-template-columns: 1fr 280px;
   }
 
-  .players-game-grid {
+  .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 }
@@ -431,7 +431,7 @@
     display: none; /* Hide sidebar on mobile, add toggle button */
   }
 
-  .players-game-grid {
+  .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }

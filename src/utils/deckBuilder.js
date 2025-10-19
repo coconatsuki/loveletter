@@ -1,16 +1,18 @@
-import { cards } from './cardsData';
+import { cards } from "./cardsData";
 
-export function buildDeck(mode = 'normal') {
+export function buildDeck(mode = "normal") {
   const fullDeck = [];
 
-  cards.forEach(card => {
-    const count = mode === 'premium' ? card.countPremium : card.countNormal;
+  cards.forEach((card) => {
+    const count = mode === "premium" ? card.countPremium : card.countNormal;
     for (let i = 0; i < count; i++) {
       fullDeck.push({
         id: card.id,
         name: card.name,
         strength: card.strength,
-        effect: card.effect
+        effect: card.effect,
+        effectDetails: card.effectDetails,
+        count,
       });
     }
   });
