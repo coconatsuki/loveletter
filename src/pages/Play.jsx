@@ -1612,7 +1612,7 @@ export default function Play() {
    * Completes the turn using a specific card index (used by target message modals)
    */
   const completeTurnWithCardIndex = async (cardIndex) => {
-    console.log("🔄 TURN COMPLETION DEBUG: Starting with data:", {
+    console.log("🔄 completeTurnWithCardIndex: Starting with data:", {
       cardIndex,
       cardIndexType: typeof cardIndex,
       player,
@@ -1632,7 +1632,7 @@ export default function Play() {
       cardIndex >= player.hand.length
     ) {
       console.error(
-        "🔄 TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
+        "🔄 completeTurnWithCardIndex - TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
         {
           cardIndex,
           cardIndexType: typeof cardIndex,
@@ -1648,42 +1648,10 @@ export default function Play() {
     const remainingHand = player.hand.filter((_, index) => index !== cardIndex);
     const newDiscard = [...(player.discard || []), playedCard];
 
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Final validation before Firebase update
-    if (!playedCard || !nextPlayer) {
-      console.error("Invalid values detected before Firebase update:", {
-        playedCard,
-        remainingHand,
-        nextPlayer,
-      });
-      return;
-    }
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
     // Handle card discard and check for special tokens (like Chamberlain)
-    const baseUpdates = {
+    const discardUpdates = {
       [`players/${nickname}/hand`]: remainingHand,
       [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
     };
 
     const finalUpdates = handleCardDiscard({
@@ -1691,42 +1659,85 @@ export default function Play() {
       playerName: nickname,
       card: playedCard,
       gameMode: roomData?.mode,
-      existingUpdates: baseUpdates,
+      existingUpdates: discardUpdates,
     });
 
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-    );
-
-    // Check for round end conditions after turn completion
-    console.log("🔍 ROUND END CHECK: After Turn Completion");
+    // Checking if the round should end now
     const roundEndResult = await checkRoundEndConditions(roomCode);
 
     // Also check if this was the final turn (deck empty flag)
     const isFinalTurn = roomData?.round?.isFinalTurn;
-    console.log("🏆 FINAL TURN CHECK:", { isFinalTurn, roundEndResult });
 
     if (roundEndResult.isRoundEnd || isFinalTurn) {
-      console.log("🏆 ROUND END DETECTED:", { roundEndResult, isFinalTurn });
+      console.log("🏆 completeTurnWithCardIndex - ROUND END DETECTED:", {
+        roundEndResult,
+        isFinalTurn,
+      });
 
       // Add a delay to allow modals to be displayed and players to read effects
       setTimeout(async () => {
-        console.log("🏆 TRIGGERING ROUND END after delay");
-        // Trigger round end - it will do a fresh check internally
+        console.log(
+          "🏆 completeTurnWithCardIndex - TRIGGERING ROUND END after delay"
+        );
         await triggerRoundEnd(roomCode);
-      }, 2000); // Reduced delay since modal will handle the timing now
+      }, 2000);
 
       return; // Don't reset isPlaying yet, let the round end handle it
+    } else {
+      console.log("🔄 completeTurnWithCardIndex - ADVANCING TO NEXT PLAYER");
+      // Calculate next player in turn order (skip eliminated players)
+      const activePlayers = Object.keys(players).filter(
+        (p) => !players[p].isOut
+      );
+      const currentIndex = activePlayers.indexOf(nickname);
+      let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+      // Skip any players that got eliminated during this turn
+      while (
+        players[activePlayers[nextIndex]]?.isOut &&
+        nextIndex !== currentIndex
+      ) {
+        nextIndex = (nextIndex + 1) % activePlayers.length;
+      }
+      const nextPlayer = activePlayers[nextIndex];
+
+      // Final validation before Firebase update
+      if (!playedCard || !nextPlayer) {
+        console.error("Invalid values detected before Firebase update:", {
+          playedCard,
+          remainingHand,
+          nextPlayer,
+        });
+        return;
+      }
+
+      // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+      const currentProtected = roomData?.protectedPlayers || [];
+      const updatedProtected = currentProtected.filter(
+        (player) => player !== nextPlayer
+      );
+
+      const playersUpdates = {
+        [`round/currentPlayer`]: nextPlayer,
+        protectedPlayers: updatedProtected,
+      };
+
+      // Notify all players about the turn change
+      pushNotification(
+        roomCode,
+        `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+      );
+
+      // Update Firebase with the turn completion
+      await update(ref(db, `rooms/${roomCode}`), playersUpdates);
     }
 
     // Reset local state only if round didn't end
     console.log(
-      "🔄 TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
+      "🔄 completeTurnWithCardIndex - TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
     );
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
@@ -3313,26 +3324,20 @@ export default function Play() {
                   promptData={guardTargetPromptData}
                   // Target acknowledges the guess without using Assassin
                   onAcknowledge={async () => {
-                    console.log(`🔍 GUARD PROMPT DATA FULL DEBUG:`, {
-                      guardTargetPromptData: guardTargetPromptData,
-                      keys: Object.keys(guardTargetPromptData || {}),
-                      target: guardTargetPromptData?.target,
-                      attacker: guardTargetPromptData?.attacker,
-                      isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
-                      targetCard: guardTargetPromptData?.targetCard,
-                    });
+                    console.log(
+                      `🔍 AssassinPromptModal - GUARD PROMPT DATA FULL DEBUG:`,
+                      {
+                        guardTargetPromptData: guardTargetPromptData,
+                        keys: Object.keys(guardTargetPromptData || {}),
+                        target: guardTargetPromptData?.target,
+                        attacker: guardTargetPromptData?.attacker,
+                        isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
+                        targetCard: guardTargetPromptData?.targetCard,
+                      }
+                    );
 
                     const { isCorrectGuess, targetCard, target, attacker } =
                       guardTargetPromptData;
-
-                    console.log(`🔍 DESTRUCTURED VALUES DEBUG:`, {
-                      isCorrectGuess,
-                      targetCard,
-                      target,
-                      attacker,
-                      targetType: typeof target,
-                      targetValue: target,
-                    });
 
                     let finalResultContent;
 
@@ -3340,20 +3345,23 @@ export default function Play() {
                       // Attacker guessed correctly - eliminate target
                       const targetPlayerData = players[target];
 
-                      console.log(`🚨 GUARD ELIMINATION DEBUG:`, {
-                        isCorrectGuess,
-                        targetFromGuardData: target,
-                        targetPlayerData: targetPlayerData
-                          ? {
-                              name: targetPlayerData.name,
-                              chamberlainToken:
-                                targetPlayerData.chamberlainToken,
-                              isOut: targetPlayerData.isOut,
-                            }
-                          : "PLAYER NOT FOUND",
-                        allPlayersKeys: Object.keys(players || {}),
-                        guardPromptDataFull: guardTargetPromptData,
-                      });
+                      console.log(
+                        `🚨 GUARD ELIMINATION DEBUG - isCorrectGuess:`,
+                        {
+                          isCorrectGuess,
+                          targetFromGuardData: target,
+                          targetPlayerData: targetPlayerData
+                            ? {
+                                name: targetPlayerData.name,
+                                chamberlainToken:
+                                  targetPlayerData.chamberlainToken,
+                                isOut: targetPlayerData.isOut,
+                              }
+                            : "PLAYER NOT FOUND",
+                          allPlayersKeys: Object.keys(players || {}),
+                          guardPromptDataFull: guardTargetPromptData,
+                        }
+                      );
 
                       const eliminationUpdates = handlePlayerElimination(
                         roomCode,

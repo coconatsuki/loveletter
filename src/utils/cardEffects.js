@@ -143,7 +143,6 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   const targetPlayer = data.players[target];
   const targetCard = targetPlayer.hand[0];
 
-  const isPremium = data.mode === "premium";
   const hasAssassin = targetCard.id === 14;
   const wasCorrect = targetCard.strength === guess;
 
@@ -170,12 +169,7 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
   const newDeck = deck.slice(1);
 
   // Get the full Assassin card object from cards data
-  const assassinCard = cards.find((card) => card.id === 14) || {
-    id: 14,
-    name: "Assassin",
-    strength: 0,
-    effect: "If targeted with Guard, eliminate attacker instead.",
-  };
+  const assassinCard = cards.find((card) => card.id === 14);
 
   // Immediate effects: Discard Assassin (full card object) + Draw new card for target
   // BUT do NOT eliminate attacker yet - that happens when they click "Continue"
