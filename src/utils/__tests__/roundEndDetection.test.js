@@ -35,6 +35,7 @@ describe("Round End Detection", () => {
         },
         round: {
           deck: [{ id: 1, strength: 1 }],
+          hiddenCard: null,
         },
       };
 
@@ -52,18 +53,24 @@ describe("Round End Detection", () => {
         winnerName: "alice",
         activePlayers: ["alice"],
         eliminatedPlayers: ["bob", "charlie"],
+        hiddenCard: null,
       });
     });
 
     it("should detect deck empty with single highest card (Case 2)", async () => {
       const mockRoomData = {
         players: {
-          alice: { isOut: false, hand: [{ id: 8, strength: 8 }] },
-          bob: { isOut: false, hand: [{ id: 5, strength: 5 }] },
-          charlie: { isOut: false, hand: [{ id: 3, strength: 3 }] },
+          alice: { isOut: false, hand: [{ id: 8, strength: 8 }], discard: [] },
+          bob: { isOut: false, hand: [{ id: 5, strength: 5 }], discard: [] },
+          charlie: {
+            isOut: false,
+            hand: [{ id: 3, strength: 3 }],
+            discard: [],
+          },
         },
         round: {
           deck: [], // Empty deck
+          hiddenCard: null,
         },
       };
 
@@ -80,22 +87,48 @@ describe("Round End Detection", () => {
         winners: ["alice"],
         winnerNames: ["alice"],
         finalStandings: [
-          { player: "alice", strength: 8, hand: [{ id: 8, strength: 8 }] },
-          { player: "bob", strength: 5, hand: [{ id: 5, strength: 5 }] },
-          { player: "charlie", strength: 3, hand: [{ id: 3, strength: 3 }] },
+          {
+            player: "alice",
+            strength: 8,
+            baseStrength: 8,
+            dukeBonus: 0,
+            hand: [{ id: 8, strength: 8 }],
+          },
+          {
+            player: "bob",
+            strength: 5,
+            baseStrength: 5,
+            dukeBonus: 0,
+            hand: [{ id: 5, strength: 5 }],
+          },
+          {
+            player: "charlie",
+            strength: 3,
+            baseStrength: 3,
+            dukeBonus: 0,
+            hand: [{ id: 3, strength: 3 }],
+          },
         ],
+        tiebreakerUsed: false,
+        tiebreakerDetails: null,
+        hiddenCard: null,
       });
     });
 
     it("should detect deck empty with multiple tied winners", async () => {
       const mockRoomData = {
         players: {
-          alice: { isOut: false, hand: [{ id: 8, strength: 8 }] },
-          bob: { isOut: false, hand: [{ id: 8, strength: 8 }] },
-          charlie: { isOut: false, hand: [{ id: 3, strength: 3 }] },
+          alice: { isOut: false, hand: [{ id: 8, strength: 8 }], discard: [] },
+          bob: { isOut: false, hand: [{ id: 8, strength: 8 }], discard: [] },
+          charlie: {
+            isOut: false,
+            hand: [{ id: 3, strength: 3 }],
+            discard: [],
+          },
         },
         round: {
           deck: [], // Empty deck
+          hiddenCard: null,
         },
       };
 
@@ -112,10 +145,48 @@ describe("Round End Detection", () => {
         winners: ["alice", "bob"],
         winnerNames: ["alice", "bob"],
         finalStandings: [
-          { player: "alice", strength: 8, hand: [{ id: 8, strength: 8 }] },
-          { player: "bob", strength: 8, hand: [{ id: 8, strength: 8 }] },
-          { player: "charlie", strength: 3, hand: [{ id: 3, strength: 3 }] },
+          {
+            player: "alice",
+            strength: 8,
+            baseStrength: 8,
+            dukeBonus: 0,
+            discardPilePoints: 0,
+            hand: [{ id: 8, strength: 8 }],
+          },
+          {
+            player: "bob",
+            strength: 8,
+            baseStrength: 8,
+            dukeBonus: 0,
+            discardPilePoints: 0,
+            hand: [{ id: 8, strength: 8 }],
+          },
+          {
+            player: "charlie",
+            strength: 3,
+            baseStrength: 3,
+            dukeBonus: 0,
+            hand: [{ id: 3, strength: 3 }],
+          },
         ],
+        tiebreakerUsed: true,
+        tiebreakerDetails: {
+          initialTiedPlayers: ["alice", "bob"],
+          discardPileComparison: [
+            {
+              player: "alice",
+              playerName: "alice",
+              discardPilePoints: 0,
+            },
+            {
+              player: "bob",
+              playerName: "bob",
+              discardPilePoints: 0,
+            },
+          ],
+          highestDiscardPoints: 0,
+        },
+        hiddenCard: null,
       });
     });
 

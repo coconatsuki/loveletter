@@ -2582,6 +2582,7 @@ export default function Play() {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
                 const isCurrentPlayer = name === currentPlayer;
                 const isEliminated = p.isOut;
+                const hasJester = p.jesterToken;
                 const isYou = name === nickname;
 
                 // Use hardcoded positioning logic based on player count and position
@@ -2621,7 +2622,7 @@ export default function Play() {
                       roomData.round.nextTarget.nickname === name
                         ? "is-targeted"
                         : ""
-                    }`}
+                    } ${hasJester ? "has-jester" : ""}`}
                     onClick={() => handlePlayerSectionClick(name, p)}
                     onMouseEnter={() => setHoveredPlayer(name)}
                     onMouseLeave={() => setHoveredPlayer(null)}
@@ -3715,17 +3716,9 @@ export default function Play() {
                       // Only call handleEffectResultClose if selectedCardIndex is valid
                       // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
                       if (selectedCardIndex !== null) {
-                        // Use the new turn advancement system to determine if attacker modal should advance turn
-                        const lastPlayedCard =
-                          player?.discard?.[player.discard.length - 1];
-                        const cardId = lastPlayedCard?.id;
-
-                        // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
-                        //if (shouldAdvanceTurnOnModal(cardId, true)) {
-                        // isAttacker = true
                         console.log(
-                          "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
-                          cardId
+                          "⚔️ RESULT MODAL DEBUG: Advancing turn for selectedCardIndex:",
+                          selectedCardIndex
                         );
 
                         // Special handling for Prince self-targeting

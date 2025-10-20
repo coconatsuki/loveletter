@@ -206,6 +206,19 @@
   filter: drop-shadow(0 0 5px rgba(64, 224, 208, 0.8));
 }
 
+.royal-player-section.has-jester {
+  border-color: #6799ca;
+}
+
+.royal-player-section.has-jester::after {
+  content: "🤡";
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px rgba(20, 247, 255, 0.8));
+}
+
 .royal-player-section.is-targeted {
   border-color: #e45dd9;
 }

@@ -4,6 +4,18 @@
 
 ### 0 - JESTER
 
+showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 0)
+
+calls applyJesterEffect() (cardEffects) =>
+
+     * Apply [`players/${target}/jesterToken`]: { giver: attacker } in Firebase
+
+     * Set /targetMessage & setResultModalData & publicMessage
+
+EffectResultModal onClose => handleEffectResultClose() => completeTurnWithCardIndex =>
+
+Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextPlayer
+
 ### 1 - GUARD
 
 ## **AssassinPromptModal / onAcknowledge ()** =>

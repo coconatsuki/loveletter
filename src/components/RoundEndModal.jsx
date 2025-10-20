@@ -162,11 +162,6 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 📜
               </p>
 
-              <p className="battle-intro">
-                🏰 Now comes the grand battle among the Princess's suitors!
-                Whose love letter bears the strongest seal? 💌
-              </p>
-
               {/* ⚖️ Tiebreaker message if used */}
               {roundResult.tiebreakerUsed && roundResult.tiebreakerDetails && (
                 <div
