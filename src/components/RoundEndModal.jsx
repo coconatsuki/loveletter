@@ -4,6 +4,7 @@ import "./RoundEndModal.css";
 export default function RoundEndModal({ roundResult, players, onContinue }) {
   const [countdown, setCountdown] = useState(5);
 
+  /*TEMPORARY DISABLE TO TEST
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -18,6 +19,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
 
     return () => clearInterval(timer);
   }, [onContinue]);
+  */
 
   const handleManualContinue = () => {
     onContinue();
@@ -160,10 +162,30 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                 📜
               </p>
 
-              <p className="battle-intro">
-                🏰 Now comes the grand battle among the Princess's suitors!
-                Whose love letter bears the strongest seal? 💌
-              </p>
+              {/* ⚖️ Tiebreaker message if used */}
+              {roundResult.tiebreakerUsed && roundResult.tiebreakerDetails && (
+                <div
+                  style={{
+                    fontStyle: "italic",
+                    color: "white",
+                    textAlign: "center",
+                    margin: "15px 0",
+                    padding: "10px",
+                  }}
+                >
+                  ⚖️ A noble tie! Victory decided by the accumulated strength of
+                  discarded cards:{" "}
+                  {roundResult.tiebreakerDetails.discardPileComparison
+                    .sort((a, b) => b.discardPilePoints - a.discardPilePoints)
+                    .map((player, index) => (
+                      <React.Fragment key={player.player}>
+                        {index > 0 && " defeats "}
+                        <strong>{player.playerName}</strong> (
+                        {player.discardPilePoints} points)
+                      </React.Fragment>
+                    ))}
+                </div>
+              )}
 
               <div className="strength-battle">
                 <h3>🗡️ Final Standings 🗡️</h3>
@@ -199,6 +221,20 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                           <div className="round-end-card-strength">
                             Strength: {standing.strength}
                           </div>
+                          {/* 👑🐕 Duke bonus message */}
+                          {standing.dukeBonus > 0 && (
+                            <div
+                              style={{
+                                fontStyle: "italic",
+                                color: "white",
+                                fontSize: "1em",
+                                marginTop: "10px",
+                                fontFamily: "Lora, serif",
+                              }}
+                            >
+                              +{standing.dukeBonus} thanks to Duke's benediction
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -223,7 +259,7 @@ export default function RoundEndModal({ roundResult, players, onContinue }) {
                       {winners
                         .map((w) => players[w]?.realName || w)
                         .join(" and ")}
-                    </strong>
+                    </strong>{" "}
                     share equal strength! Both earn the Princess's admiration!
                     💕
                   </p>

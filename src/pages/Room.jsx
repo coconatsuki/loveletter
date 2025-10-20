@@ -103,6 +103,7 @@ export default function Room() {
         realName: realName || "",
         isOut: false,
         tokens: 0,
+        gameTokens: 0,
       });
     }
 
@@ -278,6 +279,8 @@ export default function Room() {
       (snapshot) => {
         const roomData = snapshot.val();
         if (!roomData?.players) return;
+
+        console.log("Starting game / roomData.players:", roomData.players);
 
         const playerNames = Object.keys(roomData.players);
         const fullDeck = buildDeck(roomData.mode || "normal");

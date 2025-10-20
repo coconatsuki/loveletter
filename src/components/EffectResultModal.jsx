@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { getCardImage } from "../utils/cardsData";
+import CardCountStars from "./CardCountStars";
 
 // CSS styles for card effect formatting
 const effectTextStyles = `
@@ -61,6 +62,10 @@ const effectTextStyles = `
   .quotation {
     font-style: italic;
     color: rgb(247, 105, 166);
+  }
+
+  .quotation.duke {
+    color: #dfdf73;
   }
 
   .effect-warning {
@@ -147,6 +152,7 @@ export default function EffectResultModal({
   const isBaronessAttacker =
     isBaronessEffect && cardDetails && role === "attacker";
   const isBaronessTarget = isBaronessEffect && role === "target";
+  const isDukeEffect = selectedCardId === 16;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -156,20 +162,7 @@ export default function EffectResultModal({
   // Extract card information for Priest effect
   let revealedCard = null;
   if (isPriestEffect && cardDetails) {
-    const revealedCardText = cardDetails["Revealed Card"];
-    const cardEffect = cardDetails["Card Effect"];
-
-    if (revealedCardText) {
-      // Parse "Prince (Strength 5)" format
-      const match = revealedCardText.match(/^(.+?)\s*\(Strength\s*(\d+)\)$/);
-      if (match) {
-        revealedCard = {
-          name: match[1].trim(),
-          strength: parseInt(match[2]),
-          effect: cardEffect || "No effect description available",
-        };
-      }
-    }
+    revealedCard = cardDetails["Revealed Card"];
   }
 
   return (
@@ -187,6 +180,7 @@ export default function EffectResultModal({
             ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
             ...(isRoyalConfessorEffect ? royalConfessorModalStyle : {}),
             ...(isBaronessEffect ? baronessModalStyle : {}),
+            ...(isDukeEffect ? dukeModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -208,6 +202,8 @@ export default function EffectResultModal({
                 ? "linear-gradient(135deg, rgb(101, 67, 33) 0%, rgb(139, 69, 19) 100%)"
                 : isBaronessEffect
                 ? "linear-gradient(135deg, #4a1625 0%, #2d0e18 100%)"
+                : isDukeEffect
+                ? "linear-gradient(135deg, rgb(26, 31, 58) 0%, rgb(82 101 205) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -224,6 +220,8 @@ export default function EffectResultModal({
                   ? "#d4af37"
                   : isBaronessEffect
                   ? "#ff69b4"
+                  : isDukeEffect
+                  ? "#dc143c"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -253,6 +251,8 @@ export default function EffectResultModal({
               ? "🕯️"
               : isBaronessEffect
               ? "💄"
+              : isDukeEffect
+              ? "🐶"
               : isChamberlainEffect
               ? "💰"
               : isHandmaidProtection
@@ -268,7 +268,8 @@ export default function EffectResultModal({
               isCourtWhispererEffect,
               isPhantomKingEffect,
               isRoyalConfessorEffect,
-              isBaronessEffect
+              isBaronessEffect,
+              isDukeEffect
             )}
           >
             {isPriestEffect
@@ -289,6 +290,8 @@ export default function EffectResultModal({
               ? "🕯️ The Mutual Confession Ritual"
               : isBaronessEffect
               ? "💄 The Court's Matchmaker"
+              : isDukeEffect
+              ? "🐾 A Noble Pat and a Loyal Paw 🐾"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
               : "Effect Result"}
@@ -315,6 +318,7 @@ export default function EffectResultModal({
                     <div style={priestCardEffectStyle}>
                       {revealedCard.effect}
                     </div>
+                    <CardCountStars count={revealedCard.count} />
                   </div>
                 </div>
               </div>
@@ -716,7 +720,7 @@ export default function EffectResultModal({
               </div>
             </div>
           ) : (
-            <div style={getMessageStyle(isCourtWhispererEffect)}>
+            <div style={getMessageStyle(isCourtWhispererEffect, isDukeEffect)}>
               {formatText(resultText)}
               <div
                 style={{
@@ -732,6 +736,7 @@ export default function EffectResultModal({
                     ...(isCourtWhispererEffect
                       ? courtWhispererButtonStyle
                       : {}),
+                    ...(isDukeEffect ? dukeButtonStyle : {}),
                   }}
                   onMouseEnter={(e) => {
                     if (isJesterEffect) {
@@ -748,6 +753,13 @@ export default function EffectResultModal({
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(255, 20, 147, 0.6)";
                       e.target.style.border = "2px solid #FF69B4";
+                    } else if (isDukeEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #dc143c 0%, #1a1f3a 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(220, 20, 60, 0.6)";
+                      e.target.style.border = "2px solid #f0f8ff";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(46 116 50) 0%,rgb(11 28 11)  100%)";
@@ -778,6 +790,14 @@ export default function EffectResultModal({
                         "0 4px 15px rgba(255, 20, 147, 0.4)";
                       e.target.style.color = "white";
                       e.target.style.border = "2px solid #FF1493";
+                    } else if (isDukeEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #1a1f3a 0%, #dc143c 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(220, 20, 60, 0.4)";
+                      e.target.style.color = "#f0f8ff";
+                      e.target.style.border = "2px solid #dc143c";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
@@ -797,6 +817,8 @@ export default function EffectResultModal({
                     ? "🎪✨ Marvelous! ✨🎭"
                     : isCourtWhispererEffect
                     ? "💅✨ Fabulous Gossip! ✨💋"
+                    : isDukeEffect
+                    ? "Thanks, your grace! 🙏🏼"
                     : isHandmaidProtection
                     ? "🍰✨ Very Well ✨🫖"
                     : "Continue"}
@@ -866,7 +888,8 @@ const getHeaderStyle = (
   isCourtWhispererEffect,
   isPhantomKingEffect,
   isRoyalConfessorEffect,
-  isBaronessEffect
+  isBaronessEffect,
+  isDukeEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -884,6 +907,8 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(101, 67, 33) 50%, rgb(139, 69, 19) 100%)"
     : isBaronessEffect
     ? "linear-gradient(135deg, #4a1625 0%, #2d0e18 50%, #1a0a10 100%)"
+    : isDukeEffect
+    ? "linear-gradient(135deg, #1a1f3a 0%, #2c1810 50%, #dc143c 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: isCourtWhispererEffect
     ? "rgb(242 242 242)"
@@ -893,6 +918,8 @@ const getHeaderStyle = (
     ? "#f4e5c2"
     : isBaronessEffect
     ? "#ffe4e6"
+    : isDukeEffect
+    ? "#f0f8ff"
     : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
@@ -913,20 +940,24 @@ const getHeaderStyle = (
       ? "rgb(139, 195, 74)"
       : isPhantomKingEffect
       ? "rgb(247 105 166)"
+      : isDukeEffect
+      ? "#dc143c"
       : "#ffd700"
   }`,
   borderRadius: "20px 20px 0 0",
   position: "relative",
 });
 
-const getMessageStyle = (isCourtWhispererEffect) => ({
+const getMessageStyle = (isCourtWhispererEffect, isDukeEffect) => ({
   fontSize: "1.3rem",
   textAlign: "justify",
   lineHeight: "1.6",
   color: isCourtWhispererEffect ? "#faebd7" : "white",
   margin: "0",
   padding: "25px",
-  background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
+  background: isDukeEffect
+    ? "linear-gradient(135deg, rgb(19 25 52) 0%, rgb(51 73 190) 100%)"
+    : "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
 });
 
@@ -998,7 +1029,18 @@ const courtWhispererButtonStyle = {
   textShadow: "1px 1px 2px rgba(139, 0, 0, 0.8)",
 };
 
-// 🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
+// �🐕 Duke Button Style - Royal noble theme
+const dukeButtonStyle = {
+  width: "65%",
+  background: "linear-gradient(135deg, #1a1f3a 0%, #dc143c 100%)",
+  color: "#f0f8ff",
+  border: "2px solid #dc143c",
+  fontWeight: "700",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
+  fontFamily: "Cinzel, serif",
+};
+
+// �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
 const courtWhispererModalStyle = {
   background:
     "linear-gradient(135deg, #FF69B4 0%, #FFB6C1 25%, #FFC0CB 50%, #FFEFD5 75%, #FF69B4 100%)",
@@ -1087,6 +1129,7 @@ const priestCardContentStyle = {
   display: "flex",
   flexDirection: "column",
   textAlign: "center",
+  height: "40%",
 };
 
 const priestCardNameStyle = {
@@ -1616,6 +1659,18 @@ const baronessMessageContainerStyle = {
   fontFamily: "Lora, serif",
   fontSize: "1.1rem",
   lineHeight: "1.6",
+};
+
+// 👑🐕 Duke modal styling - Royal crimson & deep blue colors
+const dukeModalStyle = {
+  width: "85%",
+  maxWidth: "85%",
+  background: "linear-gradient(145deg, #1a1f3a 0%, #2c1810 50%, #4a0e2f 100%)",
+  border: "4px solid #dc143c",
+  boxShadow:
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(220, 20, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+  color: "#f0f8ff", // Alice blue for text
+  fontFamily: "Cinzel, serif",
 };
 
 // Inject the animation styles

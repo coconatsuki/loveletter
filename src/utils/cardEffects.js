@@ -19,6 +19,7 @@ export const CARD_MODAL_FLOW = {
   11: { advanceOnAttacker: true, advanceOnTarget: false }, // Regent Queen
   12: { advanceOnAttacker: true, advanceOnTarget: false }, // Court Whisperer
   14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
+  16: { advanceOnAttacker: true, advanceOnTarget: false }, // Duke
   // Premium mode cards will be added as we implement them...
 };
 
@@ -50,10 +51,10 @@ const cardStrengths = {
   10: 6, // Chamberlain
   11: 7, // Regent Queen
   12: 4, // Court Whisperer
-  13: 0, // Royal Confessor
+  13: 2, // Royal Confessor
   14: 0, // Assassin
-  15: 2, // Baroness
-  16: 3, // Duke
+  15: 3, // Baroness
+  16: 5, // Duke
 };
 
 // 🃏✨ JESTER EFFECT ✨🃏
@@ -142,7 +143,6 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   const targetPlayer = data.players[target];
   const targetCard = targetPlayer.hand[0];
 
-  const isPremium = data.mode === "premium";
   const hasAssassin = targetCard.id === 14;
   const wasCorrect = targetCard.strength === guess;
 
@@ -169,12 +169,7 @@ export async function resolveAssassinDefense({ roomCode, attacker, target }) {
   const newDeck = deck.slice(1);
 
   // Get the full Assassin card object from cards data
-  const assassinCard = cards.find((card) => card.id === 14) || {
-    id: 14,
-    name: "Assassin",
-    strength: 0,
-    effect: "If targeted with Guard, eliminate attacker instead.",
-  };
+  const assassinCard = cards.find((card) => card.id === 14);
 
   // Immediate effects: Discard Assassin (full card object) + Draw new card for target
   // BUT do NOT eliminate attacker yet - that happens when they click "Continue"
@@ -259,7 +254,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   if (!data || !data.players || !data.players[target]) {
     return {
       result: "error",
-      message: "Target player not found",
+      message: "Priest Target player not found",
     };
   }
 
@@ -268,35 +263,30 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) {
     return {
       result: "error",
-      message: "Target has no cards",
+      message: "Priest Target has no cards",
     };
   }
 
   const targetCard = targetPlayer.hand[0];
 
-  if (!targetCard) {
-    return {
-      result: "error",
-      message: "Target has no cards",
-    };
-  }
-
-  // Enrich target card with effect description from cards data
+  /*
   const cardData = cards.find((c) => c.id === targetCard.id);
-  const enrichedTargetCard = {
+   const enrichedTargetCard = {
     ...targetCard,
     effect: cardData?.effect || "Unknown card effect",
-  };
+  }; */
+
+  console.log("PRIEST CARD DATA - contains count & effect? => ", targetCard);
 
   return {
     result: "revealCard",
     attacker,
     target,
-    targetCard: enrichedTargetCard,
+    targetCard,
     // Fun medieval notification messages 🏰
-    attackerMessage: `<div class="effect-description">🔍✨ The divine light reveals <span class="effect-player">${targetPlayer.name}</span>'s secret!</div><div class="effect-description">They hold: <span class="effect-card">${enrichedTargetCard.name}</span> (Strength <span class="effect-strength">${enrichedTargetCard.strength}</span>)</div>`,
-    targetMessage: `<div class="effect-description">🙈⚡ A holy priest peers into your soul! Your <span class="effect-card">${
-      enrichedTargetCard.name
+    attackerMessage: `<div class="effect-description">🔍✨ The divine light reveals <span class="effect-player">${targetPlayer.name}</span>'s secret!</div><div class="effect-description">They hold: <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>)</div>`,
+    targetMessage: `<div class="effect-description top">🙈⚡ A holy priest peers into your soul! Your <span class="effect-card">${
+      targetCard.name
     }</span> has been revealed to <span class="effect-player">${
       data.players[attacker]?.name || attacker
     }</span>!</div>`,
@@ -1203,8 +1193,15 @@ export async function awardLoveToken({ roomCode, player }) {
     const data = snapshot.val();
     const currentTokens = data.players[player]?.tokens || 0;
 
+    // 🕵️ Track love token origin for inquisitor correct guess
+    const existingOrigin = data.players[player]?.loveTokenOrigin || {};
+
     await update(ref(db, `rooms/${roomCode}/players/${player}`), {
       tokens: currentTokens + 1,
+      loveTokenOrigin: {
+        ...existingOrigin,
+        inquisitorGuess: 1,
+      },
     });
 
     console.log(
@@ -1559,6 +1556,53 @@ export async function applyBaronessEffect({
     };
   } catch (error) {
     console.error("👻 BARONESS EFFECT ERROR:", error);
+    return {
+      result: "error",
+      error: error.message,
+    };
+  }
+}
+
+export async function applyDukeEffect({ roomCode, player }) {
+  try {
+    const gameRef = ref(db, `rooms/${roomCode}`);
+    const snapshot = await get(gameRef);
+
+    if (!snapshot.exists()) {
+      throw new Error("The royal court has disappeared...");
+    }
+
+    const gameData = snapshot.val();
+    const playerData = gameData.players[player];
+
+    console.log("👑🐕 DUKE: Noble favor granted", {
+      player,
+      hand: playerData.hand,
+    });
+
+    const attackerMessage = `
+<div class="effect-description top">👑 The Duke approaches you with quiet authority. His loyal little hound 🐕 trots proudly at his heels, wearing a velvet collar far too grand for its size.</div>
+<div class="effect-description"><span class="quotation duke">"My dear <span class="effect-player">${
+      playerData.name || player
+    }</span>,"</span> the Duke says, <span class="quotation duke">"my niece deserves sincerity, not showmanship. You have shown both courage and patience — virtues I hold dear."</span></div>
+<div class="effect-description">He rests a gloved hand 🤝 on your shoulder. <span class="quotation duke">"Take my blessing. While I stand in your corner, your name shall carry greater weight in this court."</span></div>
+<div class="effect-description">The tiny dog lets out a solemn <span class="quotation duke">"woof,"</span> 🐾 as if sealing the vow.</div>
+<div class="effect-technical">✨ If you're still standing when the round ends, add +1 to your last card's strength!</div>`;
+
+    const publicMessage = `
+<div class="effect-description">🏛️ The Duke, uncle to the Princess and guardian of her honor, has granted his favor to <span class="effect-player">${
+      playerData.name || player
+    }</span>.</div>
+<div class="effect-description">His word alone elevates their standing in the eyes of the court — and even his tiny hound 🐶 seems to approve, tail held high with royal pride 👑.</div>`;
+
+    return {
+      result: "duke_favor",
+      requiresPrompt: false,
+      attackerMessage,
+      publicMessage,
+    };
+  } catch (error) {
+    console.error("👑🐕 DUKE EFFECT ERROR:", error);
     return {
       result: "error",
       error: error.message,

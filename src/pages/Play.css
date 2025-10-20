@@ -136,12 +136,12 @@
 }
 
 /* Players grid layout - Compact for up to 11 players */
-.players-game-grid {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 3rem;
+.game-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-around !important;
+  flex-wrap: wrap !important;
+  gap: 3rem !important;
   padding: 2rem 1rem 5.5rem;
   box-sizing: border-box;
   flex: 1;
@@ -204,6 +204,19 @@
   left: -15px;
   font-size: 1.5rem;
   filter: drop-shadow(0 0 5px rgba(64, 224, 208, 0.8));
+}
+
+.royal-player-section.has-jester {
+  border-color: #6799ca;
+}
+
+.royal-player-section.has-jester::after {
+  content: "🤡";
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px rgba(20, 247, 255, 0.8));
 }
 
 .royal-player-section.is-targeted {
@@ -416,7 +429,7 @@
     grid-template-columns: 1fr 280px;
   }
 
-  .players-game-grid {
+  .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 }
@@ -431,7 +444,7 @@
     display: none; /* Hide sidebar on mobile, add toggle button */
   }
 
-  .players-game-grid {
+  .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
@@ -1154,7 +1167,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   margin: 0;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   border: 2px solid #d4af37;
@@ -1185,7 +1198,7 @@
 
 /* Card content area */
 .card-content {
-  padding: 2% 3%;
+  padding: 2% 3% 0;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -1214,24 +1227,6 @@
   text-align: justify;
   font-family: "Lora", serif;
   font-style: italic;
-}
-
-/* Card count stars */
-.card-count-stars {
-  display: flex;
-  justify-content: center;
-  gap: 2px;
-  margin-top: auto;
-  padding-top: 4px;
-  margin-bottom: 2px;
-}
-
-.card-count-star {
-  font-size: 0.7rem;
-  color: #ffd700;
-  text-shadow: 1px 1px 2px rgba(139, 0, 0, 0.6);
-  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4));
-  line-height: 1;
 }
 
 /* Ensure royal-player-section has relative positioning for popover */

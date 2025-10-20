@@ -83,6 +83,8 @@ export default function RoundScoring() {
         playerUpdates[`players/${playerKey}/isOut`] = false;
         playerUpdates[`players/${playerKey}/jesterToken`] = null; // 🃏 Clear jester tokens
         playerUpdates[`players/${playerKey}/chamberlainToken`] = null; // 🏰💰 Reset Chamberlain tokens to null
+        playerUpdates[`players/${playerKey}/dukeToken`] = null; // 👑🐕 Clear Duke tokens
+        playerUpdates[`players/${playerKey}/loveTokenOrigin`] = null; // 💕 Clear love token origin tracking
       });
 
       // Increment round counter
@@ -353,10 +355,28 @@ export default function RoundScoring() {
                         </div>
 
                         <div className="player-actions">
-                          <span className="love-tokens">
+                          {/* Move love tokens up */}
+                          <div className="love-tokens-top">
                             {player.tokens || 0} love token
                             {(player.tokens || 0) !== 1 ? "s" : ""}
-                          </span>
+                          </div>
+                          {/* Love token breakdown - bottom right */}
+                          {player.loveTokenOrigin && (
+                            <div className="love-token-breakdown">
+                              {[
+                                player.loveTokenOrigin.roundWinner &&
+                                  "+1 from Round Victory",
+                                player.loveTokenOrigin.jesterBonus &&
+                                  "+1 from Jester",
+                                player.loveTokenOrigin.chamberlainToken &&
+                                  "+1 from Chamberlain",
+                                player.loveTokenOrigin.inquisitorGuess &&
+                                  "+1 from Inquisitor",
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </div>
+                          )}
 
                           {/* Kick Player Button (Host Only) */}
                           {isHost && player.name !== nickname && (

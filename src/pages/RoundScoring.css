@@ -232,7 +232,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
   border-radius: 10px;
   position: relative;
 }
@@ -255,6 +254,7 @@ body {
 
 .player-info-section {
   display: flex;
+  padding: 1rem;
   align-items: center;
   flex: 1;
 }
@@ -298,18 +298,38 @@ body {
 
 .player-actions {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-end;
+  height: -webkit-fill-available;
+  justify-content: space-between;
+  padding: 0.5rem;
 }
 
 .love-tokens {
-  color: #dc143c;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  position: relative;
+}
+
+.love-tokens-top {
+  color: #ef8399;
   font-weight: bold;
   font-size: 1.1rem;
   background: rgba(220, 20, 60, 0.1);
   padding: 0.3rem 0.8rem;
   border-radius: 15px;
   border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+.love-token-breakdown {
+  font-family: "Lora", serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #cd853f;
+  margin-top: 0.2rem;
+  text-align: right;
+  opacity: 0.9;
 }
 
 .banish-button {

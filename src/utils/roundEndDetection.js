@@ -43,6 +43,7 @@ export async function checkRoundEndConditions(roomCode) {
         winnerName: players[activePlayers[0]]?.name || activePlayers[0],
         activePlayers,
         eliminatedPlayers,
+        hiddenCard: round.hiddenCard || null,
       };
     }
 
@@ -63,10 +64,25 @@ export async function checkRoundEndConditions(roomCode) {
         const playerHand = players[player].hand;
         const highestCard =
           playerHand && playerHand.length > 0 ? playerHand[0] : null;
+        const baseStrength = highestCard?.strength || 0;
+
+        // 👑🐕 Check for Duke token bonus (premium mode only)
+        const dukeToken = players[player]?.dukeToken || 0;
+        const dukeBonus = dukeToken; // Each Duke token adds +1 to strength
+        const finalStrength = baseStrength + dukeBonus;
+
+        if (dukeBonus > 0) {
+          console.log(
+            `👑🐕 DUKE BONUS: ${player} has ${dukeToken} Duke favor(s), adding +${dukeBonus} to strength (${baseStrength} → ${finalStrength})`
+          );
+        }
+
         return {
           player,
           hand: playerHand || [],
-          strength: highestCard?.strength || 0,
+          strength: finalStrength,
+          baseStrength,
+          dukeBonus,
         };
       });
 
@@ -74,22 +90,110 @@ export async function checkRoundEndConditions(roomCode) {
       playerStrengths.sort((a, b) => b.strength - a.strength);
 
       const highestStrength = playerStrengths[0].strength;
-      const winners = playerStrengths.filter(
+      const initialWinners = playerStrengths.filter(
         (p) => p.strength === highestStrength
       );
 
-      console.log("🏆 STRENGTH COMPARISON RESULTS:", {
+      console.log("🏆 INITIAL STRENGTH COMPARISON RESULTS:", {
         playerStrengths,
         highestStrength,
-        winners: winners.map((w) => w.player),
+        initialWinners: initialWinners.map((w) => w.player),
+      });
+
+      // ⚖️ TIEBREAKER LOGIC: Only run if there's actually a tie
+      let finalWinners = initialWinners;
+      let tiebreakerUsed = false;
+      let tiebreakerDetails = null;
+
+      // Only proceed with tiebreaker if we have multiple initial winners
+      if (initialWinners.length > 1) {
+        console.log("⚖️ TIE DETECTED! Initiating discard pile tiebreaker...");
+
+        // Calculate discard pile points for each tied player
+        const tiedPlayersWithDiscardPoints = initialWinners.map(
+          (playerData) => {
+            const playerName = playerData.player;
+            const discardPile = players[playerName]?.discard || [];
+
+            // Sum up all card strengths in discard pile
+            const discardPilePoints = discardPile.reduce((total, card) => {
+              return total + (card.strength || 0);
+            }, 0);
+
+            console.log(
+              `⚖️ TIEBREAKER: ${playerName} has ${discardPilePoints} discard pile points (${discardPile.length} cards)`
+            );
+
+            return {
+              ...playerData,
+              discardPilePoints,
+              discardPile: discardPile,
+            };
+          }
+        );
+
+        // Sort by discard pile points (highest first)
+        tiedPlayersWithDiscardPoints.sort(
+          (a, b) => b.discardPilePoints - a.discardPilePoints
+        );
+
+        const highestDiscardPoints =
+          tiedPlayersWithDiscardPoints[0].discardPilePoints;
+        const tiebreakerWinners = tiedPlayersWithDiscardPoints.filter(
+          (p) => p.discardPilePoints === highestDiscardPoints
+        );
+
+        console.log("⚖️ TIEBREAKER RESULTS:", {
+          highestDiscardPoints,
+          tiebreakerWinners: tiebreakerWinners.map(
+            (w) => `${w.player} (${w.discardPilePoints} pts)`
+          ),
+        });
+
+        // Update final winners and mark tiebreaker as used
+        finalWinners = tiebreakerWinners;
+        tiebreakerUsed = true;
+        tiebreakerDetails = {
+          initialTiedPlayers: initialWinners.map((w) => w.player),
+          discardPileComparison: tiedPlayersWithDiscardPoints.map((p) => ({
+            player: p.player,
+            playerName: players[p.player]?.name || p.player,
+            discardPilePoints: p.discardPilePoints,
+          })),
+          highestDiscardPoints,
+        };
+
+        // Update playerStrengths to include discard pile data for all tied players
+        playerStrengths.forEach((ps) => {
+          const tiebreakerData = tiedPlayersWithDiscardPoints.find(
+            (tp) => tp.player === ps.player
+          );
+          if (tiebreakerData) {
+            ps.discardPilePoints = tiebreakerData.discardPilePoints;
+          }
+        });
+      } else {
+        // Single winner - no tiebreaker needed
+        console.log("🏆 CLEAR VICTORY: Single winner, no tiebreaker needed");
+      }
+
+      console.log("🏆 FINAL RESULT:", {
+        finalWinners: finalWinners.map((w) => w.player),
+        tiebreakerUsed,
+        singleWinner: initialWinners.length === 1,
       });
 
       return {
         isRoundEnd: true,
         type: "deckEmpty",
-        winners: winners.map((w) => w.player),
-        winnerNames: winners.map((w) => players[w.player]?.name || w.player),
+        winners: finalWinners.map((w) => w.player),
+        winnerNames: finalWinners.map(
+          (w) => players[w.player]?.name || w.player
+        ),
         finalStandings: playerStrengths,
+        tiebreakerUsed,
+        tiebreakerDetails,
+        hiddenCard: round.hiddenCard || null,
       };
     }
 
@@ -161,6 +265,11 @@ export async function triggerRoundEnd(roomCode) {
         roomData.players[roundEndResult.winner]?.tokens || 0;
       updates[`players/${roundEndResult.winner}/tokens`] = currentTokens + 1;
 
+      // 🏆 Track love token origin for round winner
+      updates[`players/${roundEndResult.winner}/loveTokenOrigin`] = {
+        roundWinner: 1,
+      };
+
       // 🃏 Check for Jester token - single winner case
       const winnerData = roomData.players[roundEndResult.winner];
       if (winnerData?.jesterToken?.giver) {
@@ -170,6 +279,14 @@ export async function triggerRoundEnd(roomCode) {
         if (jesterGiver !== roundEndResult.winner) {
           const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
           updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+          // 🃏 Track love token origin for jester bonus
+          const existingOrigin =
+            roomData.players[jesterGiver]?.loveTokenOrigin || {};
+          updates[`players/${jesterGiver}/loveTokenOrigin`] = {
+            ...existingOrigin,
+            jesterBonus: 1,
+          };
 
           console.log(
             `🃏 JESTER BONUS: Awarding love token to ${jesterGiver} (had ${jesterTokens}, now ${
@@ -197,6 +314,11 @@ export async function triggerRoundEnd(roomCode) {
         const currentTokens = roomData.players[winner]?.tokens || 0;
         updates[`players/${winner}/tokens`] = currentTokens + 1;
 
+        // 🏆 Track love token origin for round winner
+        updates[`players/${winner}/loveTokenOrigin`] = {
+          roundWinner: 1,
+        };
+
         // 🃏 Check for Jester token - multiple winners case
         const winnerData = roomData.players[winner];
         if (winnerData?.jesterToken?.giver) {
@@ -206,6 +328,14 @@ export async function triggerRoundEnd(roomCode) {
           if (!roundEndResult.winners.includes(jesterGiver)) {
             const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
             updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+            // 🃏 Track love token origin for jester bonus
+            const existingOrigin =
+              roomData.players[jesterGiver]?.loveTokenOrigin || {};
+            updates[`players/${jesterGiver}/loveTokenOrigin`] = {
+              ...existingOrigin,
+              jesterBonus: 1,
+            };
           }
 
           jesterBonuses.push({
@@ -254,6 +384,13 @@ export async function triggerRoundEnd(roomCode) {
           // Award this eliminated player 1 love token for their Chamberlain's influence
           updates[`players/${playerName}/tokens`] = baseTokens + 1;
 
+          // 🏰💰 Track love token origin for chamberlain bonus
+          const existingOrigin = playerData.loveTokenOrigin || {};
+          updates[`players/${playerName}/loveTokenOrigin`] = {
+            ...existingOrigin,
+            chamberlainToken: 1,
+          };
+
           chamberlainBonuses.push({
             player: playerName,
             playerName: playerData.name || playerName,
@@ -272,15 +409,16 @@ export async function triggerRoundEnd(roomCode) {
     chamberlainBonusInfo =
       chamberlainBonuses.length > 0 ? chamberlainBonuses[0] : null;
 
-    // Build round result data
     const roundResult = {
       roundNumber: roomData.gameStats?.currentRound || 1,
       type: roundEndResult.type,
       winner: roundEndResult.winner || roundEndResult.winners?.[0],
       winners: roundEndResult.winners || [roundEndResult.winner],
       winnerNames: roundEndResult.winnerNames || [roundEndResult.winnerName],
-      hiddenCard: roomData.round?.hiddenCard || null,
+      hiddenCard: roundEndResult.hiddenCard,
       finalStandings: roundEndResult.finalStandings || [],
+      tiebreakerUsed: roundEndResult.tiebreakerUsed || false, // ⚖️ Add tiebreaker information
+      tiebreakerDetails: roundEndResult.tiebreakerDetails || null, // ⚖️ Add tiebreaker details
       jesterBonusInfo, // 🃏 Add jester bonus information
       chamberlainBonusInfo, // 🏰💰 Add Chamberlain bonus information
       timestamp: Date.now(),
@@ -343,15 +481,51 @@ export async function logRoundEndCheck(context, roomCode) {
  * @param {string} roomCode - The room code
  */
 export async function triggerRoundEndIfNeeded(context, roomCode) {
-  console.log(`🔍 ROUND END CHECK WITH AUTO-TRIGGER: ${context}`, { roomCode });
   const result = await checkRoundEndConditions(roomCode);
-  console.log(`🔍 ROUND END RESULT: ${context}`, result);
+  console.log(
+    `🔍 triggerRoundEndIfNeeded - ROUND END RESULT: ${context}`,
+    result
+  );
 
   // If round end is detected, trigger the actual round end with protection
   if (result.isRoundEnd) {
-    console.log(`🎯 ROUND END DETECTED - TRIGGERING: ${context}`);
+    console.log(
+      `🎯 triggerRoundEndIfNeeded - ROUND END DETECTED - TRIGGERING: ${context}`
+    );
     const triggerResult = await triggerRoundEnd(roomCode);
-    console.log(`🎯 ROUND END TRIGGER RESULT: ${context}`, triggerResult);
+    console.log(
+      `🎯 triggerRoundEndIfNeeded - ROUND END TRIGGER RESULT: ${context}`,
+      triggerResult
+    );
+    return { ...result, triggerResult };
+  }
+
+  return result;
+}
+
+export async function triggerRoundEndIfNeededWithDelay(context, roomCode) {
+  const result = await checkRoundEndConditions(roomCode);
+  console.log(
+    `🔍 triggerRoundEndIfNeededWithDelay - ROUND END RESULT: ${context}`,
+    result
+  );
+
+  // If round end is detected, trigger the actual round end with protection
+  if (result.isRoundEnd) {
+    console.log(
+      `🎯 triggerRoundEndIfNeededWithDelay - ROUND END DETECTED - TRIGGERING: ${context}`
+    );
+
+    const triggerResult = {};
+
+    setTimeout(async () => {
+      triggerResult = await triggerRoundEnd(roomCode);
+    }, 2000);
+
+    console.log(
+      `🎯 triggerRoundEndIfNeededWithDelay - ROUND END TRIGGER RESULT: ${context}`,
+      triggerResult
+    );
     return { ...result, triggerResult };
   }
 

@@ -15,6 +15,7 @@ import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
+import CardCountStars from "../components/CardCountStars";
 import {
   applyJesterEffect,
   applyChamberlainEffect,
@@ -34,6 +35,7 @@ import {
   applyCourtWhispererEffect,
   applyRoyalConfessorEffect,
   applyBaronessEffect,
+  applyDukeEffect,
   awardLoveToken,
   shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
@@ -70,23 +72,6 @@ const cardNames = {
   14: "Assassin",
   15: "Baroness",
   16: "Duke",
-};
-
-// Component to render star icons for card count
-const CardCountStars = ({ cardId, gameMode }) => {
-  const count = getCardCount(cardId, gameMode, cards);
-
-  if (count === 0) return null; // Don't show anything if count is 0
-
-  return (
-    <div className="card-count-stars">
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index} className="card-count-star">
-          ★
-        </span>
-      ))}
-    </div>
-  );
 };
 
 export default function Play() {
@@ -546,7 +531,7 @@ export default function Play() {
       // Also check if this is already flagged as final turn
       if (round.isFinalTurn) {
         console.log(
-          "🏆 FINAL TURN: Deck is empty and this is flagged as the final turn"
+          "🏆 DrawCard () - FINAL TURN: Deck is empty and this is flagged as the final turn"
         );
       }
       // Don't trigger round end check here - wait for turn completion
@@ -580,7 +565,7 @@ export default function Play() {
     // Check if deck is now empty (round end condition)
     if (newDeck.length === 0) {
       console.log(
-        "🏆 DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
+        "🏆 drawCard() - DECK EMPTY: Last card drawn, flagging this as the final turn in Firebase"
       );
       // Flag in Firebase that this is the final turn - all players will see this
       updatedRound.isFinalTurn = true;
@@ -667,6 +652,9 @@ export default function Play() {
     } else if (card.id === 10) {
       // CHAMBERLAIN CARD - No target needed, secure royal influence immediately
       playChamberlain(index);
+    } else if (card.id === 16) {
+      // DUKE CARD - No target needed, noble favor effect immediately
+      playDuke(index);
     } else if (card.id === 14) {
       // ASSASSIN CARD - No target needed, shadow moves through the court
       playAssassin(index);
@@ -692,6 +680,30 @@ export default function Play() {
       selectedCardId: 4, // Handmaid
       resultText: result.playerMessage,
       isHandmaidProtection: true,
+    });
+
+    // Note: Turn will be completed when player closes the result modal
+  };
+
+  const playDuke = async (index) => {
+    setSelectedCardIndex(index);
+    console.log("👑🐕 DUKE: Setting isPlaying = true");
+    setIsPlaying(true);
+
+    // Apply Duke noble favor effect
+    const result = await applyDukeEffect({
+      roomCode,
+      player: nickname,
+    });
+
+    // Send public notification
+    pushNotification(roomCode, result.publicMessage);
+
+    // Show duke favor confirmation modal to the player
+    setResultModalData({
+      selectedCardId: 16, // Duke
+      resultText: result.attackerMessage,
+      hasDukeFavor: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -832,6 +844,7 @@ export default function Play() {
       });
 
       setResultModalData({
+        selectedCardId: cardPlayed.id,
         resultText: result.attackerMessage,
       });
       pushNotification(roomCode, result.publicMessage);
@@ -846,6 +859,7 @@ export default function Play() {
       });
 
       setResultModalData({
+        selectedCardId: cardPlayed.id,
         resultText: result.attackerMessage,
       });
       pushNotification(roomCode, result.publicMessage);
@@ -916,9 +930,7 @@ export default function Play() {
         resultText: priestResult.attackerMessage,
         cardDetails: {
           "Target Player": target,
-          "Revealed Card": `${priestResult.targetCard.name} (Strength ${priestResult.targetCard.strength})`,
-          "Card Effect":
-            priestResult.targetCard.effect || "No effect description available",
+          "Revealed Card": { ...priestResult.targetCard },
         },
       });
 
@@ -1227,7 +1239,6 @@ export default function Play() {
         if (!attackerCard || !targetCard) {
           console.error("👻 PHANTOM KING ERROR: Missing card data");
           setResultModalData({
-            selectedCardId: 6,
             resultText:
               "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
           });
@@ -1289,7 +1300,6 @@ export default function Play() {
       } catch (error) {
         console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
         setResultModalData({
-          selectedCardId: 6,
           resultText: `❌ The Phantom King's power faltered... ${
             error.message || "Unknown error"
           }`,
@@ -1445,7 +1455,6 @@ export default function Play() {
 
         // Show user-friendly error message with graceful degradation
         setResultModalData({
-          selectedCardId: 15, // Baroness
           resultText: `💄 Network error! The Baroness's romantic secrets couldn't be shared with the targets, but you still observed: ${target}${
             target2 ? ` and ${target2}` : ""
           }.`,
@@ -1552,6 +1561,13 @@ export default function Play() {
       return;
     }
 
+    // Special handling for Duke - noble favor effect must be applied now
+    if (resultModalData?.hasDukeFavor) {
+      console.log("👑🐕 DUKE: Using special turn completion");
+      await completeDukeTurn();
+      return;
+    }
+
     // Standard validation for other cards
     if (
       selectedCardIndex === null ||
@@ -1574,11 +1590,10 @@ export default function Play() {
     await completeTurnWithCardIndex(selectedCardIndex);
   };
 
-  /**
-   * Completes the turn using a specific card index (used by target message modals)
-   */
+  /*Completes the turn using a specific card index (used by target message modals) */
+
   const completeTurnWithCardIndex = async (cardIndex) => {
-    console.log("🔄 TURN COMPLETION DEBUG: Starting with data:", {
+    console.log("🔄 completeTurnWithCardIndex: Starting with data:", {
       cardIndex,
       cardIndexType: typeof cardIndex,
       player,
@@ -1598,7 +1613,7 @@ export default function Play() {
       cardIndex >= player.hand.length
     ) {
       console.error(
-        "🔄 TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
+        "🔄 completeTurnWithCardIndex - TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
         {
           cardIndex,
           cardIndexType: typeof cardIndex,
@@ -1614,42 +1629,10 @@ export default function Play() {
     const remainingHand = player.hand.filter((_, index) => index !== cardIndex);
     const newDiscard = [...(player.discard || []), playedCard];
 
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Final validation before Firebase update
-    if (!playedCard || !nextPlayer) {
-      console.error("Invalid values detected before Firebase update:", {
-        playedCard,
-        remainingHand,
-        nextPlayer,
-      });
-      return;
-    }
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
     // Handle card discard and check for special tokens (like Chamberlain)
-    const baseUpdates = {
+    const discardUpdates = {
       [`players/${nickname}/hand`]: remainingHand,
       [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
     };
 
     const finalUpdates = handleCardDiscard({
@@ -1657,42 +1640,85 @@ export default function Play() {
       playerName: nickname,
       card: playedCard,
       gameMode: roomData?.mode,
-      existingUpdates: baseUpdates,
+      existingUpdates: discardUpdates,
     });
 
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-    );
-
-    // Check for round end conditions after turn completion
-    console.log("🔍 ROUND END CHECK: After Turn Completion");
+    // Checking if the round should end now
     const roundEndResult = await checkRoundEndConditions(roomCode);
 
     // Also check if this was the final turn (deck empty flag)
     const isFinalTurn = roomData?.round?.isFinalTurn;
-    console.log("🏆 FINAL TURN CHECK:", { isFinalTurn, roundEndResult });
 
     if (roundEndResult.isRoundEnd || isFinalTurn) {
-      console.log("🏆 ROUND END DETECTED:", { roundEndResult, isFinalTurn });
+      console.log("🏆 completeTurnWithCardIndex - ROUND END DETECTED:", {
+        roundEndResult,
+        isFinalTurn,
+      });
 
       // Add a delay to allow modals to be displayed and players to read effects
       setTimeout(async () => {
-        console.log("🏆 TRIGGERING ROUND END after delay");
-        // Trigger round end - it will do a fresh check internally
+        console.log(
+          "🏆 completeTurnWithCardIndex - TRIGGERING ROUND END after delay"
+        );
         await triggerRoundEnd(roomCode);
-      }, 3000); // Reduced delay since modal will handle the timing now
+      }, 2000);
 
       return; // Don't reset isPlaying yet, let the round end handle it
+    } else {
+      console.log("🔄 completeTurnWithCardIndex - ADVANCING TO NEXT PLAYER");
+      // Calculate next player in turn order (skip eliminated players)
+      const activePlayers = Object.keys(players).filter(
+        (p) => !players[p].isOut
+      );
+      const currentIndex = activePlayers.indexOf(nickname);
+      let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+      // Skip any players that got eliminated during this turn
+      while (
+        players[activePlayers[nextIndex]]?.isOut &&
+        nextIndex !== currentIndex
+      ) {
+        nextIndex = (nextIndex + 1) % activePlayers.length;
+      }
+      const nextPlayer = activePlayers[nextIndex];
+
+      // Final validation before Firebase update
+      if (!playedCard || !nextPlayer) {
+        console.error("Invalid values detected before Firebase update:", {
+          playedCard,
+          remainingHand,
+          nextPlayer,
+        });
+        return;
+      }
+
+      // Clean up Handmaid protection for the next player (protection expires when their turn starts)
+      const currentProtected = roomData?.protectedPlayers || [];
+      const updatedProtected = currentProtected.filter(
+        (player) => player !== nextPlayer
+      );
+
+      const playersUpdates = {
+        [`round/currentPlayer`]: nextPlayer,
+        protectedPlayers: updatedProtected,
+      };
+
+      // Notify all players about the turn change
+      pushNotification(
+        roomCode,
+        `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+      );
+
+      // Update Firebase with the turn completion
+      await update(ref(db, `rooms/${roomCode}`), playersUpdates);
     }
 
     // Reset local state only if round didn't end
     console.log(
-      "🔄 TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
+      "🔄 completeTurnWithCardIndex - TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
     );
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
@@ -2171,6 +2197,82 @@ export default function Play() {
     setSelectedCardIndex(null);
   };
 
+  const completeDukeTurn = async () => {
+    console.log(
+      "👑🐕 DUKE TURN COMPLETION: Noble favor granted, completing turn"
+    );
+
+    // Validate selectedCardIndex and get the Duke card
+    if (
+      selectedCardIndex === null ||
+      selectedCardIndex === undefined ||
+      !player.hand ||
+      selectedCardIndex >= player.hand.length
+    ) {
+      console.error(
+        "👑🐕 DUKE ERROR: Cannot complete turn - invalid selectedCardIndex:",
+        { selectedCardIndex, handLength: player.hand?.length }
+      );
+      return;
+    }
+
+    const dukeCard = player.hand[selectedCardIndex];
+
+    if (!dukeCard || dukeCard.id !== 16) {
+      console.error(
+        "👑🐕 DUKE ERROR: Cannot complete turn - invalid Duke card:",
+        dukeCard
+      );
+      return;
+    }
+
+    // Remove Duke from hand and add to discard pile
+    const newHand = player.hand.filter(
+      (_, index) => index !== selectedCardIndex
+    );
+    const newDiscard = [...(player.discard || []), dukeCard];
+
+    // Calculate next player in turn order (skip eliminated players)
+    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
+    const currentIndex = activePlayers.indexOf(nickname);
+    let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+    // Skip any players that got eliminated during this turn
+    while (
+      players[activePlayers[nextIndex]]?.isOut &&
+      nextIndex !== currentIndex
+    ) {
+      nextIndex = (nextIndex + 1) % activePlayers.length;
+    }
+
+    const nextPlayer = activePlayers[nextIndex];
+
+    // Increment Duke token for this player (can stack)
+    const currentDukeToken = player.dukeToken || 0;
+    const newDukeToken = currentDukeToken + 1;
+
+    // Update game state: discard Duke, advance turn, set Duke token
+    await update(ref(db, `rooms/${roomCode}`), {
+      [`players/${nickname}/hand`]: newHand,
+      [`players/${nickname}/discard`]: newDiscard,
+      [`players/${nickname}/dukeToken`]: newDukeToken,
+      [`round/currentPlayer`]: nextPlayer,
+    });
+
+    // Notify all players about the turn change
+    pushNotification(
+      roomCode,
+      `🏛️ The Duke's favor has been granted. The crown now passes to ${nextPlayer}. 👑🐕`
+    );
+
+    // Reset local state
+    console.log(
+      "🔄 DUKE TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+    );
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
+    setSelectedCardIndex(null);
+  };
+
   /**
    * Completes the Court Whisperer turn - sets nextTarget and completes the turn
    * Called after the attacker confirms their EffectResultModal
@@ -2456,11 +2558,12 @@ export default function Play() {
             </div>
 
             {/* PLAYERS GRID */}
-            <div className="players-game-grid">
+            <div className="game-grid">
               {Object.entries(players).map(([name, p], index) => {
                 const isProtected = roomData?.protectedPlayers?.includes(name);
                 const isCurrentPlayer = name === currentPlayer;
                 const isEliminated = p.isOut;
+                const hasJester = p.jesterToken;
                 const isYou = name === nickname;
 
                 // Use hardcoded positioning logic based on player count and position
@@ -2500,7 +2603,7 @@ export default function Play() {
                       roomData.round.nextTarget.nickname === name
                         ? "is-targeted"
                         : ""
-                    }`}
+                    } ${hasJester ? "has-jester" : ""}`}
                     onClick={() => handlePlayerSectionClick(name, p)}
                     onMouseEnter={() => setHoveredPlayer(name)}
                     onMouseLeave={() => setHoveredPlayer(null)}
@@ -2595,7 +2698,8 @@ export default function Play() {
               player.hand?.length >= 1 &&
               (!isPlaying ||
                 (roomData?.guardPrompt &&
-                  roomData.guardPrompt.attacker === nickname)) && (
+                  roomData.guardPrompt.attacker === nickname)) &&
+              roomData?.gameState !== "roundScoring" && (
                 <div className="royal-action-area-overlay">
                   <div className="royal-actions-area">
                     {/* Discard History Link - Top Right */}
@@ -2708,8 +2812,7 @@ export default function Play() {
                                                   </div>
                                                 )}
                                                 <CardCountStars
-                                                  cardId={card.id}
-                                                  gameMode={roomData?.mode}
+                                                  count={card.count}
                                                 />
                                               </div>
                                             </button>
@@ -2767,8 +2870,7 @@ export default function Play() {
                                                 </div>
                                               )}
                                               <CardCountStars
-                                                cardId={card.id}
-                                                gameMode={roomData?.mode}
+                                                count={card.count}
                                               />
                                             </div>
                                           </button>
@@ -3202,26 +3304,20 @@ export default function Play() {
                   promptData={guardTargetPromptData}
                   // Target acknowledges the guess without using Assassin
                   onAcknowledge={async () => {
-                    console.log(`🔍 GUARD PROMPT DATA FULL DEBUG:`, {
-                      guardTargetPromptData: guardTargetPromptData,
-                      keys: Object.keys(guardTargetPromptData || {}),
-                      target: guardTargetPromptData?.target,
-                      attacker: guardTargetPromptData?.attacker,
-                      isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
-                      targetCard: guardTargetPromptData?.targetCard,
-                    });
+                    console.log(
+                      `🔍 AssassinPromptModal - GUARD PROMPT DATA FULL DEBUG:`,
+                      {
+                        guardTargetPromptData: guardTargetPromptData,
+                        keys: Object.keys(guardTargetPromptData || {}),
+                        target: guardTargetPromptData?.target,
+                        attacker: guardTargetPromptData?.attacker,
+                        isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
+                        targetCard: guardTargetPromptData?.targetCard,
+                      }
+                    );
 
                     const { isCorrectGuess, targetCard, target, attacker } =
                       guardTargetPromptData;
-
-                    console.log(`🔍 DESTRUCTURED VALUES DEBUG:`, {
-                      isCorrectGuess,
-                      targetCard,
-                      target,
-                      attacker,
-                      targetType: typeof target,
-                      targetValue: target,
-                    });
 
                     let finalResultContent;
 
@@ -3229,20 +3325,23 @@ export default function Play() {
                       // Attacker guessed correctly - eliminate target
                       const targetPlayerData = players[target];
 
-                      console.log(`🚨 GUARD ELIMINATION DEBUG:`, {
-                        isCorrectGuess,
-                        targetFromGuardData: target,
-                        targetPlayerData: targetPlayerData
-                          ? {
-                              name: targetPlayerData.name,
-                              chamberlainToken:
-                                targetPlayerData.chamberlainToken,
-                              isOut: targetPlayerData.isOut,
-                            }
-                          : "PLAYER NOT FOUND",
-                        allPlayersKeys: Object.keys(players || {}),
-                        guardPromptDataFull: guardTargetPromptData,
-                      });
+                      console.log(
+                        `🚨 GUARD ELIMINATION DEBUG - isCorrectGuess:`,
+                        {
+                          isCorrectGuess,
+                          targetFromGuardData: target,
+                          targetPlayerData: targetPlayerData
+                            ? {
+                                name: targetPlayerData.name,
+                                chamberlainToken:
+                                  targetPlayerData.chamberlainToken,
+                                isOut: targetPlayerData.isOut,
+                              }
+                            : "PLAYER NOT FOUND",
+                          allPlayersKeys: Object.keys(players || {}),
+                          guardPromptDataFull: guardTargetPromptData,
+                        }
+                      );
 
                       const eliminationUpdates = handlePlayerElimination(
                         roomCode,
@@ -3527,13 +3626,9 @@ export default function Play() {
                       executionResult.eliminatedPlayer === nickname
                     ) {
                       console.log(
-                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin!"
+                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin! / Checking for round end after elimination"
                       );
-                      // This player was just eliminated, no need to advance turn
-                      // Check for round end after Assassin elimination
-                      console.log(
-                        "🗡️ ASSASSINATION: Checking for round end after elimination"
-                      );
+
                       await triggerRoundEndIfNeeded(
                         "After Assassin Elimination (Modal Confirmed)",
                         roomCode
@@ -3596,17 +3691,9 @@ export default function Play() {
                       // Only call handleEffectResultClose if selectedCardIndex is valid
                       // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
                       if (selectedCardIndex !== null) {
-                        // Use the new turn advancement system to determine if attacker modal should advance turn
-                        const lastPlayedCard =
-                          player?.discard?.[player.discard.length - 1];
-                        const cardId = lastPlayedCard?.id;
-
-                        // TODO: DEBUG THIS / Why do we need this if we already have the isInfoOnly data??
-                        //if (shouldAdvanceTurnOnModal(cardId, true)) {
-                        // isAttacker = true
                         console.log(
-                          "⚔️ RESULT MODAL DEBUG: Advancing turn for card ID:",
-                          cardId
+                          "⚔️ RESULT MODAL DEBUG: Advancing turn for selectedCardIndex:",
+                          selectedCardIndex
                         );
 
                         // Special handling for Prince self-targeting
