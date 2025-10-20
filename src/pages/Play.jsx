@@ -9,7 +9,6 @@ import BaronessTargetModal from "../components/BaronessTargetModal";
 import RoyalConfessorResultModal from "../components/RoyalConfessorResultModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
-import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
@@ -94,7 +93,6 @@ export default function Play() {
   const [royalConfessorResultModalData, setRoyalConfessorResultModalData] =
     useState(null);
 
-  const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [regentQueenResultModalData, setRegentQueenResultModalData] =
@@ -120,7 +118,6 @@ export default function Play() {
       resultModalData ||
       inquisitorResultModalData ||
       royalConfessorResultModalData ||
-      priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
       regentQueenResultModalData ||
@@ -373,23 +370,6 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
-  // Listen to priest target modal data
-  useEffect(() => {
-    const refPriestTarget = ref(db, `rooms/${roomCode}/priestTarget`);
-    const unsubscribe = onValue(refPriestTarget, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data && data.visibleTo === nickname) {
-        // Show target modal to the target player
-        setPriestTargetModalData(data);
-      } else if (!data) {
-        // Clear the modal when data is cleared
-        setPriestTargetModalData(null);
-      }
-    });
-    return () => unsubscribe();
-  }, [roomCode, nickname]);
-
   // Listen to baron target modal data
   useEffect(() => {
     const refBaronTarget = ref(db, `rooms/${roomCode}/baronTarget`);
@@ -516,7 +496,6 @@ export default function Play() {
       selectedCardIndex,
       showTargetModal,
       resultModalData: !!resultModalData,
-      priestTargetModalData: !!priestTargetModalData,
       baronResultModalData: !!baronResultModalData,
       targetMessageModalData: !!targetMessageModalData,
       inquisitorResultModalData: !!inquisitorResultModalData,
@@ -918,10 +897,20 @@ export default function Play() {
       pushNotification(roomCode, priestResult.publicMessage);
 
       // Show the target modal to the target (no button needed)
-      await update(ref(db, `rooms/${roomCode}/priestTarget`), {
+      /*       await update(ref(db, `rooms/${roomCode}/priestTarget`), {
         visibleTo: target,
         attacker: nickname,
         targetCard: priestResult.targetCard,
+      });
+ */
+
+      // Show the target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        message: priestResult.targetMessage,
+        timestamp: Date.now(),
       });
 
       // Show the result to the attacker with card details
@@ -2576,7 +2565,6 @@ export default function Play() {
                 const shouldBlockPopover =
                   isMyTurn &&
                   !resultModalData &&
-                  !priestTargetModalData &&
                   !baronResultModalData &&
                   !baronTargetModalData &&
                   !regentQueenResultModalData &&
@@ -3268,14 +3256,6 @@ export default function Play() {
                 eliminatedPlayer={regentQueenTargetModalData.eliminatedPlayer}
                 isTie={regentQueenTargetModalData.isTie}
                 // No onConfirm for target - they just observe
-              />
-            )}
-
-            {/* === PRIEST TARGET MODAL === */}
-            {priestTargetModalData && (
-              <PriestTargetModal
-                attacker={priestTargetModalData.attacker}
-                targetCard={priestTargetModalData.targetCard}
               />
             )}
 

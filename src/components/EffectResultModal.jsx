@@ -61,7 +61,7 @@ const effectTextStyles = `
 
   .quotation {
     font-style: italic;
-    color: rgb(247, 105, 166);
+    color: rgb(244 135 182);
   }
 
   .quotation.duke {
@@ -326,7 +326,6 @@ export default function EffectResultModal({
               {/* Right side - The spying message */}
               <div style={priestMessageContainerStyle}>
                 <div style={priestMessageIconStyle}>
-                  <div style={priestSpyIconStyle}>👁️‍🗨️</div>
                   <div style={priestMessageStyle}>{formatText(resultText)}</div>
                 </div>
                 <div
@@ -944,7 +943,7 @@ const getHeaderStyle = (
       ? "#dc143c"
       : "#ffd700"
   }`,
-  borderRadius: "20px 20px 0 0",
+  borderRadius: "20px 17px 0 0",
   position: "relative",
 });
 
@@ -959,6 +958,7 @@ const getMessageStyle = (isCourtWhispererEffect, isDukeEffect) => ({
     ? "linear-gradient(135deg, rgb(19 25 52) 0%, rgb(51 73 190) 100%)"
     : "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
+  borderRadius: "0 0 20px 20px",
 });
 
 const classicResultTextContainer = {
@@ -1167,12 +1167,6 @@ const priestMessageContainerStyle = {
 const priestMessageIconStyle = {
   display: "flex",
   flexDirection: "column",
-};
-
-const priestSpyIconStyle = {
-  fontSize: "4rem",
-  filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))",
-  animation: "priestGlow 2s ease-in-out infinite alternate",
 };
 
 const priestMessageStyle = {
