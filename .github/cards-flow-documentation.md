@@ -71,3 +71,21 @@ AssassinPromptModal / onIgnore =>
 CompleteGuardTurn() => trigger completeTurnWithCardIndex(1) which is calling checkRoundEndConditions()
 
 And if it's NOT the end of the round => Turn advancement to next player + update of Handmaid protected players.
+
+### 2 - PRIEST
+
+showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 2) {
+
+calls applyPriestEffect() (cardEffects) =>
+
+    * Fetch TargetCard & return enrichedTargetCard + all messages
+
+     * update(ref(db, `rooms/${roomCode}/priestTarget`) with targetCard
+
+     * Set /targetMessage & setResultModalData & publicMessage
+
+EffectResultModal onClose => handleEffectResultClose() => completeTurnWithCardIndex =>
+
+Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextPlayer
+
+### 3 - BARON

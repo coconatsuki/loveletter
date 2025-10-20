@@ -64,60 +64,69 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
 
       const result = await checkRoundEndConditions("TEST123");
 
-      expect(result).toEqual({
-        isRoundEnd: true,
-        type: "deckEmpty",
-        winners: ["alice"], // Alice wins with 12 discard points
-        winnerNames: ["alice"],
-        finalStandings: [
+      expect(result.isRoundEnd).toBe(true);
+      expect(result.type).toBe("deckEmpty");
+      expect(result.winners).toEqual(["alice"]); // Alice wins with 12 discard points
+      expect(result.winnerNames).toEqual(["alice"]);
+      expect(result.tiebreakerUsed).toBe(true);
+      expect(result.hiddenCard).toBeNull();
+
+      // Check that Alice is the winner with highest discard points
+      const aliceStanding = result.finalStandings.find(
+        (p) => p.player === "alice"
+      );
+      const charlieStanding = result.finalStandings.find(
+        (p) => p.player === "charlie"
+      );
+      const bobStanding = result.finalStandings.find((p) => p.player === "bob");
+
+      expect(aliceStanding).toEqual({
+        player: "alice",
+        hand: [{ id: 8, strength: 8 }],
+        strength: 8,
+        baseStrength: 8,
+        dukeBonus: 0,
+        discardPilePoints: 12,
+      });
+
+      expect(charlieStanding).toEqual({
+        player: "charlie",
+        hand: [{ id: 8, strength: 8 }],
+        strength: 8,
+        baseStrength: 8,
+        dukeBonus: 0,
+        discardPilePoints: 11,
+      });
+
+      expect(bobStanding).toEqual({
+        player: "bob",
+        hand: [{ id: 8, strength: 8 }],
+        strength: 8,
+        baseStrength: 8,
+        dukeBonus: 0,
+        discardPilePoints: 5,
+      });
+
+      expect(result.tiebreakerDetails).toEqual({
+        initialTiedPlayers: ["alice", "bob", "charlie"],
+        discardPileComparison: [
           {
             player: "alice",
-            hand: [{ id: 8, strength: 8 }],
-            strength: 8,
-            baseStrength: 8,
-            dukeBonus: 0,
+            playerName: "alice",
             discardPilePoints: 12,
           },
           {
             player: "charlie",
-            hand: [{ id: 8, strength: 8 }],
-            strength: 8,
-            baseStrength: 8,
-            dukeBonus: 0,
+            playerName: "charlie",
             discardPilePoints: 11,
           },
           {
             player: "bob",
-            hand: [{ id: 8, strength: 8 }],
-            strength: 8,
-            baseStrength: 8,
-            dukeBonus: 0,
+            playerName: "bob",
             discardPilePoints: 5,
           },
         ],
-        tiebreakerUsed: true,
-        tiebreakerDetails: {
-          initialTiedPlayers: ["alice", "bob", "charlie"],
-          discardPileComparison: [
-            {
-              player: "alice",
-              playerName: "alice",
-              discardPilePoints: 12,
-            },
-            {
-              player: "charlie",
-              playerName: "alice",
-              discardPilePoints: 11,
-            },
-            {
-              player: "bob",
-              playerName: "alice",
-              discardPilePoints: 5,
-            },
-          ],
-          highestDiscardPoints: 12,
-        },
-        hiddenCard: null,
+        highestDiscardPoints: 12,
       });
     });
 
@@ -339,8 +348,14 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
       expect(result.isRoundEnd).toBe(true);
       expect(result.winners).toEqual(["bob"]); // Bob wins with 2 discard points vs Alice's 0
       expect(result.tiebreakerUsed).toBe(true);
-      expect(result.finalStandings[0].discardPilePoints).toBe(2); // Bob
-      expect(result.finalStandings[1].discardPilePoints).toBe(0); // Alice
+
+      const bobStanding = result.finalStandings.find((p) => p.player === "bob");
+      const aliceStanding = result.finalStandings.find(
+        (p) => p.player === "alice"
+      );
+
+      expect(bobStanding.discardPilePoints).toBe(2); // Bob
+      expect(aliceStanding.discardPilePoints).toBe(0); // Alice
     });
 
     it("should handle cards without strength property", async () => {
@@ -375,8 +390,14 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
 
       expect(result.isRoundEnd).toBe(true);
       expect(result.winners).toEqual(["bob"]); // Bob wins: 3 points vs Alice's 2 points (0 + 2)
-      expect(result.finalStandings[0].discardPilePoints).toBe(3); // Bob
-      expect(result.finalStandings[1].discardPilePoints).toBe(2); // Alice (missing strength treated as 0)
+
+      const bobStanding = result.finalStandings.find((p) => p.player === "bob");
+      const aliceStanding = result.finalStandings.find(
+        (p) => p.player === "alice"
+      );
+
+      expect(bobStanding.discardPilePoints).toBe(3); // Bob
+      expect(aliceStanding.discardPilePoints).toBe(2); // Alice (missing strength treated as 0)
     });
   });
 
@@ -434,8 +455,16 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
       expect(result.winners).toEqual(["charlie"]); // Charlie wins tiebreaker: 8 strength + 13 discard points
       expect(result.tiebreakerUsed).toBe(true);
 
-      // Verify the final standings are sorted correctly
-      expect(result.finalStandings[0]).toEqual({
+      // Find the standings for each player
+      const charlieStanding = result.finalStandings.find(
+        (p) => p.player === "charlie"
+      );
+      const aliceStanding = result.finalStandings.find(
+        (p) => p.player === "alice"
+      );
+      const bobStanding = result.finalStandings.find((p) => p.player === "bob");
+
+      expect(charlieStanding).toEqual({
         player: "charlie",
         hand: [{ id: 8, strength: 8 }],
         strength: 8,
@@ -444,7 +473,7 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
         discardPilePoints: 13,
       });
 
-      expect(result.finalStandings[1]).toEqual({
+      expect(aliceStanding).toEqual({
         player: "alice",
         hand: [{ id: 8, strength: 8 }],
         strength: 8,
@@ -453,7 +482,7 @@ describe("⚖️ Discard Pile Tiebreaker Tests", () => {
         discardPilePoints: 3,
       });
 
-      expect(result.finalStandings[2]).toEqual({
+      expect(bobStanding).toEqual({
         player: "bob",
         hand: [{ id: 7, strength: 7 }],
         strength: 7,

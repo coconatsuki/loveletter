@@ -32,7 +32,7 @@ export const cards = [
     countPremium: 1,
     effectDetails:
       "Choose another player — ideally, the one you believe is most likely to win the round. If you're correct (and your chosen player does win the round), you'll also gain a Love Token!",
-    effect: "Choose a player. If they win, you gain a token.",
+    effect: "Choose a player. If they win, you gain a love token.",
   },
   {
     id: 1,
@@ -52,8 +52,9 @@ export const cards = [
     strength: 2,
     countNormal: 2,
     countPremium: 2,
-    effectDetails: "",
-    effect: "View another player's hand.",
+    effectDetails:
+      "You can look at another player’s hand (it won't be revealed to any other players).",
+    effect: "Look at another player's hand.",
   },
   {
     id: 3,

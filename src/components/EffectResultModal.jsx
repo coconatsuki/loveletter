@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { getCardImage } from "../utils/cardsData";
+import CardCountStars from "./CardCountStars";
 
 // CSS styles for card effect formatting
 const effectTextStyles = `
@@ -161,20 +162,7 @@ export default function EffectResultModal({
   // Extract card information for Priest effect
   let revealedCard = null;
   if (isPriestEffect && cardDetails) {
-    const revealedCardText = cardDetails["Revealed Card"];
-    const cardEffect = cardDetails["Card Effect"];
-
-    if (revealedCardText) {
-      // Parse "Prince (Strength 5)" format
-      const match = revealedCardText.match(/^(.+?)\s*\(Strength\s*(\d+)\)$/);
-      if (match) {
-        revealedCard = {
-          name: match[1].trim(),
-          strength: parseInt(match[2]),
-          effect: cardEffect || "No effect description available",
-        };
-      }
-    }
+    revealedCard = cardDetails["Revealed Card"];
   }
 
   return (
@@ -330,6 +318,7 @@ export default function EffectResultModal({
                     <div style={priestCardEffectStyle}>
                       {revealedCard.effect}
                     </div>
+                    <CardCountStars count={revealedCard.count} />
                   </div>
                 </div>
               </div>
@@ -1140,6 +1129,7 @@ const priestCardContentStyle = {
   display: "flex",
   flexDirection: "column",
   textAlign: "center",
+  height: "40%",
 };
 
 const priestCardNameStyle = {

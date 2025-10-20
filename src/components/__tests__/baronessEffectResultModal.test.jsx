@@ -6,7 +6,8 @@ import EffectResultModal from "../EffectResultModal";
 
 // Mock the cardsData import
 vi.mock("../../utils/cardsData", () => ({
-  getCardImage: (cardName) => `${cardName.toLowerCase()}.jpeg`,
+  getCardImage: (cardName) =>
+    cardName ? `${cardName.toLowerCase()}.jpeg` : "default.jpeg",
 }));
 
 describe("EffectResultModal - Baroness Romantic Styling", () => {
@@ -266,7 +267,13 @@ describe("EffectResultModal - Baroness Romantic Styling", () => {
         role: "attacker",
         resultText: "Priest message\nRevealed Card: Guard (Strength 1)",
         cardDetails: {
-          "Revealed Card": "Guard (Strength 1)",
+          "Revealed Card": {
+            id: 1,
+            name: "Guard",
+            strength: 1,
+            effect: "Look at another player's hand",
+            count: 5,
+          },
         },
         onClose: mockOnClose,
       };

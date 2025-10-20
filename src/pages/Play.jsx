@@ -15,6 +15,7 @@ import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
+import CardCountStars from "../components/CardCountStars";
 import {
   applyJesterEffect,
   applyChamberlainEffect,
@@ -71,23 +72,6 @@ const cardNames = {
   14: "Assassin",
   15: "Baroness",
   16: "Duke",
-};
-
-// Component to render star icons for card count
-const CardCountStars = ({ cardId, gameMode }) => {
-  const count = getCardCount(cardId, gameMode, cards);
-
-  if (count === 0) return null; // Don't show anything if count is 0
-
-  return (
-    <div className="card-count-stars">
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index} className="card-count-star">
-          ★
-        </span>
-      ))}
-    </div>
-  );
 };
 
 export default function Play() {
@@ -946,9 +930,7 @@ export default function Play() {
         resultText: priestResult.attackerMessage,
         cardDetails: {
           "Target Player": target,
-          "Revealed Card": `${priestResult.targetCard.name} (Strength ${priestResult.targetCard.strength})`,
-          "Card Effect":
-            priestResult.targetCard.effect || "No effect description available",
+          "Revealed Card": { ...priestResult.targetCard },
         },
       });
 
@@ -1608,9 +1590,8 @@ export default function Play() {
     await completeTurnWithCardIndex(selectedCardIndex);
   };
 
-  /**
-   * Completes the turn using a specific card index (used by target message modals)
-   */
+  /*Completes the turn using a specific card index (used by target message modals) */
+
   const completeTurnWithCardIndex = async (cardIndex) => {
     console.log("🔄 completeTurnWithCardIndex: Starting with data:", {
       cardIndex,
@@ -2831,8 +2812,7 @@ export default function Play() {
                                                   </div>
                                                 )}
                                                 <CardCountStars
-                                                  cardId={card.id}
-                                                  gameMode={roomData?.mode}
+                                                  count={card.count}
                                                 />
                                               </div>
                                             </button>
@@ -2890,8 +2870,7 @@ export default function Play() {
                                                 </div>
                                               )}
                                               <CardCountStars
-                                                cardId={card.id}
-                                                gameMode={roomData?.mode}
+                                                count={card.count}
                                               />
                                             </div>
                                           </button>
@@ -3647,13 +3626,9 @@ export default function Play() {
                       executionResult.eliminatedPlayer === nickname
                     ) {
                       console.log(
-                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin!"
+                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin! / Checking for round end after elimination"
                       );
-                      // This player was just eliminated, no need to advance turn
-                      // Check for round end after Assassin elimination
-                      console.log(
-                        "🗡️ ASSASSINATION: Checking for round end after elimination"
-                      );
+
                       await triggerRoundEndIfNeeded(
                         "After Assassin Elimination (Modal Confirmed)",
                         roomCode

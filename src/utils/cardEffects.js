@@ -254,7 +254,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   if (!data || !data.players || !data.players[target]) {
     return {
       result: "error",
-      message: "Target player not found",
+      message: "Priest Target player not found",
     };
   }
 
@@ -263,35 +263,30 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) {
     return {
       result: "error",
-      message: "Target has no cards",
+      message: "Priest Target has no cards",
     };
   }
 
   const targetCard = targetPlayer.hand[0];
 
-  if (!targetCard) {
-    return {
-      result: "error",
-      message: "Target has no cards",
-    };
-  }
-
-  // Enrich target card with effect description from cards data
+  /*
   const cardData = cards.find((c) => c.id === targetCard.id);
-  const enrichedTargetCard = {
+   const enrichedTargetCard = {
     ...targetCard,
     effect: cardData?.effect || "Unknown card effect",
-  };
+  }; */
+
+  console.log("PRIEST CARD DATA - contains count & effect? => ", targetCard);
 
   return {
     result: "revealCard",
     attacker,
     target,
-    targetCard: enrichedTargetCard,
+    targetCard,
     // Fun medieval notification messages 🏰
-    attackerMessage: `<div class="effect-description">🔍✨ The divine light reveals <span class="effect-player">${targetPlayer.name}</span>'s secret!</div><div class="effect-description">They hold: <span class="effect-card">${enrichedTargetCard.name}</span> (Strength <span class="effect-strength">${enrichedTargetCard.strength}</span>)</div>`,
-    targetMessage: `<div class="effect-description">🙈⚡ A holy priest peers into your soul! Your <span class="effect-card">${
-      enrichedTargetCard.name
+    attackerMessage: `<div class="effect-description">🔍✨ The divine light reveals <span class="effect-player">${targetPlayer.name}</span>'s secret!</div><div class="effect-description">They hold: <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>)</div>`,
+    targetMessage: `<div class="effect-description top">🙈⚡ A holy priest peers into your soul! Your <span class="effect-card">${
+      targetCard.name
     }</span> has been revealed to <span class="effect-player">${
       data.players[attacker]?.name || attacker
     }</span>!</div>`,

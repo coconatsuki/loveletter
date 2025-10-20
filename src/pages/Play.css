@@ -1167,7 +1167,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   margin: 0;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   border: 2px solid #d4af37;
@@ -1198,7 +1198,7 @@
 
 /* Card content area */
 .card-content {
-  padding: 2% 3%;
+  padding: 2% 3% 0;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -1227,24 +1227,6 @@
   text-align: justify;
   font-family: "Lora", serif;
   font-style: italic;
-}
-
-/* Card count stars */
-.card-count-stars {
-  display: flex;
-  justify-content: center;
-  gap: 2px;
-  margin-top: auto;
-  padding-top: 4px;
-  margin-bottom: 2px;
-}
-
-.card-count-star {
-  font-size: 0.7rem;
-  color: #ffd700;
-  text-shadow: 1px 1px 2px rgba(139, 0, 0, 0.6);
-  filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.4));
-  line-height: 1;
 }
 
 /* Ensure royal-player-section has relative positioning for popover */
