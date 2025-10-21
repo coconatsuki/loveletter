@@ -38,7 +38,6 @@ import {
   applyBaronessEffect,
   applyDukeEffect,
   awardLoveToken,
-  shouldAdvanceTurnOnModal,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
 import {
@@ -785,6 +784,9 @@ export default function Play() {
 
   const handleTargetConfirm = async ({ target, target2, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
+    const isDeckEmpty =
+      !roomData?.round?.deck || roomData?.round?.deck.length === 0;
+
     setShowTargetModal(false);
     console.log(
       "🎯 TARGET CONFIRM: Setting isPlaying = true for card:",
@@ -1066,6 +1068,13 @@ export default function Play() {
       // Store the original attacker hand before Prince effect modifies it
       const originalAttackerHand = [...player.hand];
 
+      if (isDeckEmpty) {
+        setResultModalData({
+          resultText: `❌ Error: The Deck is empty. You can't target anyone.`,
+        });
+        return;
+      }
+
       const princeResult = await applyPrinceEffect({
         selectedCardId: cardPlayed.id,
         roomCode,
@@ -1094,9 +1103,7 @@ export default function Play() {
       setResultModalData({
         selectedCardId: 5, // Prince
         resultText: princeResult.attackerMessage,
-        isInfoOnly: !princeResult.isSelfTarget, // For self-targeting, modal should advance turn // isInfoOnly=false when isSelfTarget
         isSelfTarget: princeResult.isSelfTarget, // Store self-target flag for turn completion
-        isPrinceModal: true, // Flag to identify this as a Prince modal
         originalAttackerHand: originalAttackerHand, // Store original hand for turn completion
       });
 
@@ -1108,7 +1115,7 @@ export default function Play() {
           message: princeResult.targetMessage,
           from: nickname,
           cardName: "Prince",
-          shouldAdvanceTurn: true, // This modal controls turn advancement for external targeting
+          /* shouldAdvanceTurn: true, // This modal controls turn advancement for external targeting */
           selectedCardIndex: selectedCardIndex,
           originalAttackerHand: originalAttackerHand,
         });
@@ -1118,6 +1125,7 @@ export default function Play() {
         "🤴 PRINCE DEBUG: Target message sent to Firebase for player:",
         target
       ); // Prince effect is complete - return early, turn will be completed when result modal is closed
+
       return;
     }
 
@@ -2902,7 +2910,7 @@ export default function Play() {
                 </div>
               )}
 
-            {/* === GENERAL TARGET MESSAGE MODAL (Prince, etc.) === */}
+            {/* === GENERAL TARGET MESSAGE MODAL === */}
             {targetMessageModalData && (
               <EffectResultModal
                 selectedCardId={targetMessageModalData.selectedCardId}
@@ -2929,65 +2937,6 @@ export default function Play() {
                     // Clear the target message when confirmed
                     await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
                     setTargetMessageModalData(null);
-
-                    // If this target message should advance turn, do it now using stored card index
-                    if (
-                      targetMessageModalData.shouldAdvanceTurn &&
-                      targetMessageModalData.selectedCardIndex !== null
-                    ) {
-                      console.log(
-                        "🎯 TARGET MODAL DEBUG: Attempting to complete turn with cardIndex:",
-                        targetMessageModalData.selectedCardIndex
-                      );
-
-                      // Use the new turn advancement system to determine if target modal should advance turn
-                      const cardId =
-                        targetMessageModalData.cardName === "Prince"
-                          ? 5
-                          : targetMessageModalData.cardName === "Phantom King"
-                          ? 6
-                          : null;
-
-                      if (shouldAdvanceTurnOnModal(cardId, false)) {
-                        // isAttacker = false
-                        // For Prince cards, we need special turn completion logic since the effect has already been applied
-                        if (targetMessageModalData.cardName === "Prince") {
-                          console.log(
-                            "🎯 TARGET MODAL DEBUG: Prince - completing turn"
-                          );
-                          await completePrinceTurn(
-                            targetMessageModalData.selectedCardIndex,
-                            targetMessageModalData.from,
-                            targetMessageModalData.originalAttackerHand
-                          );
-                        } else {
-                          console.log(
-                            "🎯 TARGET MODAL DEBUG: Advancing turn for card:",
-                            targetMessageModalData.cardName
-                          );
-                          // Complete the turn directly using the stored card index
-                          await completeTurnWithCardIndex(
-                            targetMessageModalData.selectedCardIndex
-                          );
-                        }
-                      } else {
-                        console.log(
-                          "🎯 TARGET MODAL DEBUG: Target modal for",
-                          targetMessageModalData.cardName,
-                          "should not advance turn"
-                        );
-                      }
-                    } else {
-                      console.log(
-                        "🎯 TARGET MODAL DEBUG: NOT advancing turn because:",
-                        {
-                          shouldAdvanceTurn:
-                            targetMessageModalData.shouldAdvanceTurn,
-                          selectedCardIndex:
-                            targetMessageModalData.selectedCardIndex,
-                        }
-                      );
-                    }
                   })
                 }
               />
@@ -3570,22 +3519,7 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                         "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
                       );
 
-                      // Special handling for Prince self-targeting
-                      if (
-                        resultModalData.isPrinceModal &&
-                        resultModalData.selectedCardId === 5
-                      ) {
-                        console.log(
-                          "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
-                        );
-                        await completePrinceTurn(
-                          selectedCardIndex,
-                          nickname,
-                          resultModalData.originalAttackerHand
-                        );
-                      } else {
-                        handleEffectResultClose();
-                      }
+                      handleEffectResultClose();
                     } else {
                       console.log(
                         "⚔️ RESULT MODAL DEBUG: Info-only modal, NOT advancing turn"
