@@ -284,17 +284,18 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     target,
     targetCard,
     // Fun medieval notification messages 🏰
-    attackerMessage: `<div class="effect-description">🔍✨ The divine light reveals <span class="effect-player">${targetPlayer.name}</span>'s secret!</div><div class="effect-description">They hold: <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>)</div>`,
-    targetMessage: `<div class="effect-description top">🙈⚡ A holy priest peers into your soul! Your <span class="effect-card">${
-      targetCard.name
-    }</span> has been revealed to <span class="effect-player">${
-      data.players[attacker]?.name || attacker
-    }</span>!</div>`,
-    publicMessage: `<div class="effect-description">🔮📿 <span class="effect-player">${
-      data.players[attacker]?.name || attacker
-    }</span> plays Priest and communes with the spirits to glimpse <span class="effect-player">${
-      targetPlayer.name
-    }</span>'s hand! The mystic arts are at work... 🌟</div>`,
+    attackerMessage: `
+<div class="effect-description justify top">⛪✨ The priest lifts his eyes to the heavens, murmuring a prayer for your generous donation.</div>
+<div class="effect-description justify">A halo of light swirls above his head before he gasps — <span class="quotation">“Ah! The truth is revealed!”</span></div>
+<div class="effect-description justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul…</div>
+<div class="effect-description justify">Their secret ally is <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>`,
+    targetMessage: `
+<div class="effect-description top">🙈⚡ The Priest turns his shining gaze upon you, murmuring words too ancient to follow.</div>
+<div class="effect-description"><span class="quotation">“The soul hides nothing from the light,”</span> he declares, peering straight through your composure.</div>
+<div class="effect-description">You feel the chill of divine intrusion — your trusted ally, the <span class="effect-card">${targetCard.name}</span>, who could have helped you in this game of love (and throne!), has been revealed to <span class="effect-player">${attacker}</span>!</div>`,
+    publicMessage: `
+<div class="effect-description">🔮📿 <span class="effect-player">${attacker}</span> seeks the Priest’s divine guidance.</div>
+<div class="effect-description">A blinding light flashes as he glimpses into <span class="effect-player">${targetPlayer.name}</span>’s soul — the court falls silent under heaven’s gaze. ✨</div>`,
   };
 }
 

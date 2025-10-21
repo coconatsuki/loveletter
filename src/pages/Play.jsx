@@ -9,7 +9,6 @@ import BaronessTargetModal from "../components/BaronessTargetModal";
 import RoyalConfessorResultModal from "../components/RoyalConfessorResultModal";
 import EffectResultModal from "../components/EffectResultModal";
 import AssassinPromptModal from "../components/AssassinPromptModal";
-import PriestTargetModal from "../components/PriestTargetModal";
 import BaronResultModal from "../components/BaronResultModal";
 import RegentQueenResultModal from "../components/RegentQueenResultModal";
 import RoundEndModal from "../components/RoundEndModal";
@@ -94,7 +93,6 @@ export default function Play() {
   const [royalConfessorResultModalData, setRoyalConfessorResultModalData] =
     useState(null);
 
-  const [priestTargetModalData, setPriestTargetModalData] = useState(null);
   const [baronResultModalData, setBaronResultModalData] = useState(null);
   const [baronTargetModalData, setBaronTargetModalData] = useState(null);
   const [regentQueenResultModalData, setRegentQueenResultModalData] =
@@ -120,7 +118,6 @@ export default function Play() {
       resultModalData ||
       inquisitorResultModalData ||
       royalConfessorResultModalData ||
-      priestTargetModalData ||
       baronResultModalData ||
       baronTargetModalData ||
       regentQueenResultModalData ||
@@ -373,23 +370,6 @@ export default function Play() {
     return () => unsubscribe();
   }, [roomCode, nickname]);
 
-  // Listen to priest target modal data
-  useEffect(() => {
-    const refPriestTarget = ref(db, `rooms/${roomCode}/priestTarget`);
-    const unsubscribe = onValue(refPriestTarget, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data && data.visibleTo === nickname) {
-        // Show target modal to the target player
-        setPriestTargetModalData(data);
-      } else if (!data) {
-        // Clear the modal when data is cleared
-        setPriestTargetModalData(null);
-      }
-    });
-    return () => unsubscribe();
-  }, [roomCode, nickname]);
-
   // Listen to baron target modal data
   useEffect(() => {
     const refBaronTarget = ref(db, `rooms/${roomCode}/baronTarget`);
@@ -516,7 +496,6 @@ export default function Play() {
       selectedCardIndex,
       showTargetModal,
       resultModalData: !!resultModalData,
-      priestTargetModalData: !!priestTargetModalData,
       baronResultModalData: !!baronResultModalData,
       targetMessageModalData: !!targetMessageModalData,
       inquisitorResultModalData: !!inquisitorResultModalData,
@@ -879,7 +858,7 @@ export default function Play() {
       // Notify all players about the Guard action
       pushNotification(
         roomCode,
-        `${nickname} played a Guard and pointed their finger at ${target}, whispering: "Strength ${guess}!"`
+        `🕵️‍♂️ ${nickname} summoned a Guard and accused ${target} of conspiring with someone of influence ${guess}!`
       );
 
       // ALWAYS show AssassinPromptModal to target (good UX for both modes)
@@ -918,10 +897,20 @@ export default function Play() {
       pushNotification(roomCode, priestResult.publicMessage);
 
       // Show the target modal to the target (no button needed)
-      await update(ref(db, `rooms/${roomCode}/priestTarget`), {
+      /*       await update(ref(db, `rooms/${roomCode}/priestTarget`), {
         visibleTo: target,
         attacker: nickname,
         targetCard: priestResult.targetCard,
+      });
+ */
+
+      // Show the target message to the target
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        message: priestResult.targetMessage,
+        timestamp: Date.now(),
       });
 
       // Show the result to the attacker with card details
@@ -2576,7 +2565,6 @@ export default function Play() {
                 const shouldBlockPopover =
                   isMyTurn &&
                   !resultModalData &&
-                  !priestTargetModalData &&
                   !baronResultModalData &&
                   !baronTargetModalData &&
                   !regentQueenResultModalData &&
@@ -3271,14 +3259,6 @@ export default function Play() {
               />
             )}
 
-            {/* === PRIEST TARGET MODAL === */}
-            {priestTargetModalData && (
-              <PriestTargetModal
-                attacker={priestTargetModalData.attacker}
-                targetCard={priestTargetModalData.targetCard}
-              />
-            )}
-
             {/* === BARON TARGET MODAL === */}
             {baronTargetModalData && (
               <BaronResultModal
@@ -3357,20 +3337,27 @@ export default function Play() {
                       );
                       pushNotification(
                         roomCode,
-                        `🎯 ${attacker} guessed correctly! ${target} had the ${
-                          cardNames[targetCard.id]
-                        }. Removed from play.`
+                        `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
+The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`
                       );
-                      finalResultContent = `💀 Your suspicion proved true! ${target} held the ${
+                      finalResultContent = `
+<div class="effect-description">🎯 Your instincts were flawless.</div>
+<div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${
                         cardNames[targetCard.id]
-                      } and has been cast from the court.`;
+                      }</span>!</div>
+<div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
+<div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
                     } else {
                       // Attacker guessed incorrectly - target survives
                       pushNotification(
                         roomCode,
-                        `😎 ${target} shook their head. "Not even close." The guess was wrong.`
+                        `😎 The Guard returns to <span class="effect-player">${attacker}</span> empty-handed.
+<span class="effect-player">${target}</span> simply smiled behind their fan and said, “Not even close.”`
                       );
-                      finalResultContent = `😅 Alas! ${target} was not holding strength ${guardTargetPromptData.guessedStrength}. Your accusation echoes hollowly in the halls.`;
+                      finalResultContent = `
+<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
+<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
                     }
 
                     // Clean up and send result to attacker
@@ -3378,6 +3365,7 @@ export default function Play() {
                       guardPrompt: null,
                     });
                     await update(ref(db, `rooms/${roomCode}/actionResult`), {
+                      selectedCardId: 1, // Guard card ID
                       resultText: finalResultContent,
                       attacker: attacker,
                     });
@@ -3401,23 +3389,25 @@ export default function Play() {
 
                     pushNotification(
                       roomCode,
-                      `🗡️💀 A shadow strikes! ${attacker}'s guard discovered more than they bargained for... ${target}'s deadly secret has claimed a life! ⚔️🌙`
+                      `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
+From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`
                     );
 
                     const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
-                    <div class="effect-description">⚔️ Your guard approached ${target}, confident in their investigation...</div>
-                    <div class="effect-description">🌙 But from the shadows emerged a blade, swift and deadly!</div>
-                    <div class="effect-description">💀 ${target} revealed the Royal Assassin and struck you down!</div>
-                    <div class="effect-description">🩸 Your loyal guard lies motionless... and so do you.</div>
-                    <div class="effect-quote">"Some secrets are worth killing for."</div>
-                    <div class="effect-signature">- The Royal Assassin</div>
-                    <div class="effect-description">💔 You have been <span class="effect-elimination">ELIMINATED</span> from this round!</div>`;
+<div class="effect-description">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
+<div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
+<div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
+<div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
+<div class="effect-quote">“Some secrets are worth killing for.”</div>
+<div class="effect-signature">– The Royal Assassin</div>
+<div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
 
                     // Clean up and send result to attacker
                     await update(ref(db, `rooms/${roomCode}`), {
                       guardPrompt: null,
                     });
                     await update(ref(db, `rooms/${roomCode}/actionResult`), {
+                      selectedCardId: 1, // Guard card ID
                       resultText: finalResultContent,
                       attacker: attacker,
                     });
@@ -3434,16 +3424,19 @@ export default function Play() {
 
                     pushNotification(
                       roomCode,
-                      `😎 ${target} shook their head. "Not even close." The guess was wrong.`
+                      `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${nickname}.”`
                     );
 
-                    const finalResultContent = `😅 Alas! ${target} was not holding strength ${guardTargetPromptData.guessedStrength}. Your accusation echoes hollowly in the halls.`;
+                    const finalResultContent = `<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
+<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
 
                     // Clean up and send result to attacker
                     await update(ref(db, `rooms/${roomCode}`), {
                       guardPrompt: null,
                     });
                     await update(ref(db, `rooms/${roomCode}/actionResult`), {
+                      selectedCardId: 1, // Guard card ID
                       resultText: finalResultContent,
                       attacker: guardTargetPromptData.attacker,
                     });
