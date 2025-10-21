@@ -62,7 +62,8 @@ export const cards = [
     strength: 3,
     countNormal: 2,
     countPremium: 2,
-    effectDetails: "",
+    effectDetails:
+      "Choose another player, then secretly compare your second card with your target's one. The player with the lower number is knocked out of the round. In case of a tie, nothing happens.",
     effect: "Compare hands. Player with the lower card is eliminated.",
   },
   {
