@@ -675,9 +675,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
           ? `draw <span class="effect-card">${newCardName}</span>`
           : "find no cards left in the royal deck"
       }! A fresh start from the royal court! ✨👑</div>`;
-      attackerMessage = `<div class="effect-title">👑✨ ROYAL SELF-REFLECTION! ✨👑</div>
-
-      <div class="effect-description">By your own royal decree, you have renewed your hand!</div>
+      attackerMessage = `<div class="effect-description top">By your own royal decree, you have renewed your hand!</div>
 
       <div class="effect-description">Discarded: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
         targetCard.strength
@@ -694,9 +692,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
       publicMessage = `<div class="effect-description">👑✨ <span class="effect-player">${attackerName}</span> commands <span class="effect-player">${targetName}</span> with the Prince's authority! <span class="effect-player">${targetName}</span> discards <span class="effect-card">${discardedCardName}</span> and ${
         drewNewCard ? `draws a fresh card` : "finds the royal deck empty"
       }! By royal decree! ✨👑</div>`;
-      attackerMessage = `<div class="effect-title">👑✨ ROYAL DECREE EXECUTED! ✨👑</div>
-
-      <div class="effect-description">Your command has been followed!</div>
+      attackerMessage = `<div class="effect-description top">Your command has been followed!</div>
       <div class="effect-description"><span class="effect-player">${targetName}</span> discarded: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
         targetCard.strength
       }</span>)</div>
@@ -708,9 +704,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
 
       <div class="effect-quote">"The Prince's wisdom guides the court..."</div>
       <div class="effect-signature">- The Royal Court</div>`;
-      targetMessage = `<div class="effect-title">👑✨ ROYAL COMMAND! ✨👑</div>
-
-      <div class="effect-description"><span class="effect-player">${attackerName}</span> has commanded you with the Prince's authority!</div>
+      targetMessage = `<div class="effect-description top"><span class="effect-player">${attackerName}</span> has commanded you with the Prince's authority!</div>
 
       <div class="effect-description">Your discarded card: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
         targetCard.strength

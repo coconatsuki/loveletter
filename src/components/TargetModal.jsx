@@ -6,6 +6,7 @@ export default function TargetModal({
   cardPlayed,
   protectedPlayers = [],
   nextTarget = null,
+  isDeckEmpty = false,
   onConfirm,
   onCancel,
 }) {
@@ -13,6 +14,15 @@ export default function TargetModal({
   const [guess, setGuess] = useState(2); // default to 2 for Guard
   const [isConfirmHovered, setIsConfirmHovered] = useState(false);
   const [isBackHovered, setIsBackHovered] = useState(false);
+
+  const isGuard = cardPlayed === 1;
+  const isPrince = cardPlayed === 5;
+  const isPrinceAndDeckEmpty = isPrince && isDeckEmpty;
+  const isPhantomKing = cardPlayed === 6;
+  const isRegentQueen = cardPlayed === 11;
+  const isCourtWhisperer = cardPlayed === 12;
+
+  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
   const validTargets = Object.entries(players).filter(
     ([name, p]) =>
@@ -32,19 +42,14 @@ export default function TargetModal({
   // If targeting is forced, override validTargets to only include the forced target
   const finalValidTargets = isTargetingForced
     ? validTargets.filter(([name]) => name === forcedTargetNickname)
+    : isPrinceAndDeckEmpty
+    ? []
     : validTargets;
+
+  const hasNoTargets = finalValidTargets.length === 0 || isPrinceAndDeckEmpty;
 
   console.log("valid targets:", validTargets);
   console.log("Final valid targets:", finalValidTargets);
-
-  const isGuard = cardPlayed === 1;
-  const isPrince = cardPlayed === 5;
-  const isPhantomKing = cardPlayed === 6;
-  const isRegentQueen = cardPlayed === 11;
-  const isCourtWhisperer = cardPlayed === 12;
-  const hasNoTargets = finalValidTargets.length === 0;
-
-  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
   console.log("TargetModal button state:", {
     selectedTarget,
@@ -99,10 +104,20 @@ export default function TargetModal({
           </select>
         </div>
 
-        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
-          <p style={{ ...noTargetMessageStyle, color: "#f3b5bb" }}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid
-            and cannot be targeted.
+        {hasNoTargets &&
+          !canTargetSelf &&
+          !isTargetingForced &&
+          !isPrinceAndDeckEmpty && (
+            <p style={{ ...noTargetMessageStyle, color: "#f3b5bb" }}>
+              🫖 All other players are enjoying tea with the Princess' Handmaid
+              and cannot be targeted.
+            </p>
+          )}
+
+        {isPrinceAndDeckEmpty && (
+          <p style={{ ...noTargetMessageStyle }}>
+            🤴🏼Too late, your Highness. The Deck is empty. You can't target
+            anyone.
           </p>
         )}
 
@@ -222,7 +237,8 @@ const dropdownSectionStyle = {
 };
 
 const noTargetMessageStyle = {
-  color: "rgb(136, 136, 136)",
+  color: "rgb(222 188 188)",
+  textAlign: "justify",
   fontStyle: "italic",
   marginBottom: "2%",
   marginTop: 0,

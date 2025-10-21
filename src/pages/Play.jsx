@@ -1063,9 +1063,6 @@ export default function Play() {
 
     // === PRINCE CARD LOGIC (ID: 5) ===
     else if (cardPlayed.id === 5) {
-      // Clear any existing target messages to ensure clean state
-      await set(ref(db, `rooms/${roomCode}/targetMessage`), null);
-
       // Store the original attacker hand before Prince effect modifies it
       const originalAttackerHand = [...player.hand];
 
@@ -1097,21 +1094,14 @@ export default function Play() {
       setResultModalData({
         selectedCardId: 5, // Prince
         resultText: princeResult.attackerMessage,
-        isInfoOnly: !princeResult.isSelfTarget, // For self-targeting, modal should advance turn
+        isInfoOnly: !princeResult.isSelfTarget, // For self-targeting, modal should advance turn // isInfoOnly=false when isSelfTarget
+        isSelfTarget: princeResult.isSelfTarget, // Store self-target flag for turn completion
         isPrinceModal: true, // Flag to identify this as a Prince modal
         originalAttackerHand: originalAttackerHand, // Store original hand for turn completion
       });
 
       // Only send target message via Firebase for external targeting
       if (!princeResult.isSelfTarget && princeResult.targetMessage) {
-        console.log(
-          "🤴 PRINCE DEBUG: Creating target message for external target:",
-          {
-            target,
-            targetMessage: princeResult.targetMessage,
-          }
-        );
-
         await update(ref(db, `rooms/${roomCode}/targetMessage`), {
           selectedCardId: cardPlayed.id,
           visibleTo: target,
@@ -2811,6 +2801,11 @@ export default function Play() {
                                               nextTarget={
                                                 roomData?.round?.nextTarget
                                               }
+                                              isDeckEmpty={
+                                                !roomData?.round?.deck ||
+                                                roomData?.round?.deck.length ===
+                                                  0
+                                              }
                                               onConfirm={handleTargetConfirm}
                                               onCancel={handleCardBack}
                                             />
@@ -2855,6 +2850,11 @@ export default function Play() {
                                               }
                                               nextTarget={
                                                 roomData?.round?.nextTarget
+                                              }
+                                              isDeckEmpty={
+                                                !roomData?.round?.deck ||
+                                                roomData?.round?.deck.length ===
+                                                  0
                                               }
                                               onConfirm={handleTargetConfirm}
                                               onCancel={handleCardBack}
@@ -3517,6 +3517,7 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                 resultText={resultModalData.resultText || resultModalData}
                 cardDetails={resultModalData.cardDetails || null}
                 swappedCards={resultModalData.swappedCards || null}
+                isSelfTarget={resultModalData.isSelfTarget || false}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(

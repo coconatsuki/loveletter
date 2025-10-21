@@ -157,6 +157,12 @@ export default function EffectResultModal({
     isBaronessEffect && cardDetails && role === "attacker";
   const isBaronessTarget = isBaronessEffect && role === "target";
   const isDukeEffect = selectedCardId === 16;
+  const isPrinceEffect = selectedCardId === 5;
+  const isPrinceSelfTarget = isPrinceEffect && isSelfTarget;
+  const isPrinceExternalTarget =
+    isPrinceEffect && !isSelfTarget && role === "target";
+  const isPrinceAttacker =
+    isPrinceEffect && role === "attacker" && !isSelfTarget;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -270,6 +276,8 @@ export default function EffectResultModal({
               ? "🛡️"
               : isGuardEffect
               ? "⚔️"
+              : isPrinceEffect
+              ? "🤴"
               : "📜"}
           </div>
           <h3
@@ -307,6 +315,12 @@ export default function EffectResultModal({
               ? "🐾 A Noble Pat and a Loyal Paw 🐾"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
+              : isPrinceSelfTarget
+              ? "👑✨ ROYAL SELF-REFLECTION! ✨👑"
+              : isPrinceExternalTarget
+              ? "👑✨ ROYAL DECREE EXECUTED! ✨👑"
+              : isPrinceAttacker
+              ? "👑✨ ROYAL COMMAND! ✨👑"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
