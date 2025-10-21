@@ -285,10 +285,10 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     targetCard,
     // Fun medieval notification messages 🏰
     attackerMessage: `
-<div class=" justify top">⛪✨ The priest lifts his eyes to the heavens, murmuring a prayer for your generous donation.</div>
-<div class=" justify">A halo of light swirls above his head before he gasps — <span class="quotation">“Ah! The truth is revealed!”</span></div>
-<div class=" justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul…</div>
-<div class=" justify">Their secret ally is <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>`,
+<div class="effect-description justify top">⛪✨ The priest lifts his eyes to the heavens, murmuring a prayer for your generous donation.</div>
+<div class="effect-description justify">A halo of light swirls above his head before he gasps — <span class="quotation">“Ah! The truth is revealed!”</span></div>
+<div class="effect-description justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul…</div>
+<div class="effect-description justify">Their secret ally is <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>`,
     targetMessage: `
 <div class="effect-description top">🙈⚡ The Priest turns his shining gaze upon you, murmuring words too ancient to follow.</div>
 <div class="effect-description"><span class="quotation">“The soul hides nothing from the light,”</span> he declares, peering straight through your composure.</div>

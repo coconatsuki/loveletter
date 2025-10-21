@@ -65,6 +65,7 @@ const ASSASSIN_STYLES = {
   body: {
     padding: "1.5rem",
     background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%)",
+    borderRadius: "0 0 20px 20px",
   },
   message: {
     fontFamily: '"Lora", serif',
@@ -89,8 +90,7 @@ const ASSASSIN_STYLES = {
     color: "rgb(255, 68, 68)",
   },
   footer: {
-    padding: "1.5rem 1.5rem 2rem",
-    background: "linear-gradient(135deg, #2d1b1b 0%, #4a0000 100%)",
+    padding: "1.5rem 1.5rem 0",
     borderRadius: "0 0 20px 20px",
     display: "flex",
     justifyContent: "space-between",
@@ -141,148 +141,179 @@ export default function AssassinPromptModal({
   const isCorrectGuess = promptData?.isCorrectGuess;
 
   let title = "🛡️ You've been targeted!";
-  let message = "";
-  let buttons = null;
+  let body = null;
 
   if (!hasAssassin && !isCorrectGuess) {
-    message = (
+    body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> sent a Guard
-          your way and guessed{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>
-            {" "}
-            strength {guessedStrength}
-          </span>
-          , but you're holding{" "}
+          🚪 A <span style={ASSASSIN_STYLES.highlightedText}>guard</span> bursts
+          into your residence, sent by{" "}
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> with tales
+          of treachery. He searches every corner, looking for the “traitor” your
+          rival described… but finds only your loyal ally, the{" "}
           <span style={ASSASSIN_STYLES.highlightedText}>
             {targetCard.name} (Strength {targetCard.strength})
           </span>
           .
-        </p>{" "}
-        <p style={ASSASSIN_STYLES.message}>
-          You're <strong>safe</strong>... for now.
         </p>
-      </div>
-    );
-    buttons = (
-      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
-        <button
-          style={{
-            ...ASSASSIN_STYLES.button,
-            ...ASSASSIN_STYLES.acknowledgeButton,
-          }}
-          onClick={onAcknowledge}
-        >
-          Continue
-        </button>
+        <p style={ASSASSIN_STYLES.message}>
+          Realizing his mistake, he stammers an apology and retreats, leaving
+          your servants rattled but unharmed. You're <strong>safe…</strong> for
+          now. 😌
+        </p>
+        <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
+          <button
+            style={{
+              ...ASSASSIN_STYLES.button,
+              ...ASSASSIN_STYLES.acknowledgeButton,
+            }}
+            onClick={onAcknowledge}
+            onMouseEnter={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ffed4e 0%, #ffd700 100%)";
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 18px rgba(255, 215, 0, 0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+          >
+            Continue
+          </button>
+        </div>
       </div>
     );
   } else if (!hasAssassin && isCorrectGuess) {
-    message = (
+    body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> sent a Guard
-          your way and guessed your{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>
-            strength ({guessedStrength})
-          </span>{" "}
-          correctly!
+          🚨 Heavy boots echo through your hall—{" "}
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>’s guard
+          storms in, armed with a royal warrant.
         </p>
         <p style={ASSASSIN_STYLES.message}>
-          You've been{" "}
+          He finds exactly what your rival accused you of: your secret
+          accomplice, the{" "}
+          <span style={ASSASSIN_STYLES.highlightedText}>
+            {targetCard.name} (Strength {targetCard.strength})
+          </span>
+          !
+        </p>
+        <p style={ASSASSIN_STYLES.finalPunchLine}>
+          The accusation spreads like fire through the palace.{" "}
           <strong>
-            <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span>
+            You’ve been{" "}
+            <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span> 💔
           </strong>
         </p>
-      </div>
-    );
-    buttons = (
-      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
-        <button
-          style={{
-            ...ASSASSIN_STYLES.button,
-            ...ASSASSIN_STYLES.acknowledgeButton,
-          }}
-          onClick={onAcknowledge}
-        >
-          Face your fate
-        </button>
+        <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
+          <button
+            style={{
+              ...ASSASSIN_STYLES.button,
+              ...ASSASSIN_STYLES.acknowledgeButton,
+            }}
+            onClick={onAcknowledge}
+            onMouseEnter={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ffed4e 0%, #ffd700 100%)";
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 18px rgba(255, 215, 0, 0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+          >
+            Face your fate
+          </button>
+        </div>
       </div>
     );
   } else if (hasAssassin && isCorrectGuess) {
     title = "🗡️ YOUR SECRET IS DISCOVERED!";
-    message = (
+    body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}'s</span> guard has
-          found your{" "}
-          <span style={{ color: "#9c27b0", fontWeight: "bold" }}>
-            Royal Assassin
-          </span>{" "}
-          ally! 🔍
+          ⚔️ <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>’s guard
+          forces his way into your quarters, hunting the traitor your rival
+          described.
         </p>
         <p style={ASSASSIN_STYLES.message}>
-          ⚠️ They know your{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>deadly secret</span> and
-          will report back to their master...
+          He pulls back a curtain and uncovers your accomplice — the beautiful
+          and deadly{" "}
+          <span style={{ color: "rgb(195, 92, 212)", fontWeight: "bold" }}>
+            Royal Assassin
+          </span>
+          ! 🔍
         </p>
-        <p style={ASSASSIN_STYLES.finalPunchLine}>
+        <p style={{ ...ASSASSIN_STYLES.message, marginBottom: "0" }}>
+          ⚠️ The guard knows your{" "}
+          <span style={ASSASSIN_STYLES.highlightedText}>secret</span>. If he
+          arrests both of you for treason, your reputation will be ruined...
+        </p>
+        <p
+          style={{
+            margin: "0",
+            fontSize: "1.3rem",
+            fontWeight: "bold",
+            color: "#ffd700",
+            textAlign: "center",
+          }}
+        >
           Strike now, or face elimination! ⚔️
         </p>
-      </div>
-    );
-    buttons = (
-      <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
-        <button
-          style={{
-            ...ASSASSIN_STYLES.button,
-            ...ASSASSIN_STYLES.strikeButton,
-            width: "100%",
-          }}
-          onClick={onReveal}
-        >
-          ⚔️ Strike back!
-        </button>
+        <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
+          <button
+            style={{
+              ...ASSASSIN_STYLES.button,
+              ...ASSASSIN_STYLES.strikeButton,
+              width: "100%",
+            }}
+            onClick={onReveal}
+            onMouseEnter={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ff1744 0%, #dc143c 100%)";
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 18px rgba(220, 20, 60, 0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #dc143c 0%, #8b0000 100%)";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+          >
+            ⚔️ Strike back!
+          </button>
+        </div>
       </div>
     );
   } else if (hasAssassin && !isCorrectGuess) {
     title = "🌙 A RIVAL'S GUARD INVESTIGATES";
-    message = (
+    body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}'s</span> guard
-          comes looking for a{" "}
-          <span style={{ color: "#ffd700", fontWeight: "bold" }}>
-            strength {guessedStrength}
+          Under orders from{" "}
+          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>, a guard
+          prowls your halls, hunting the conspirator they described —
+          <span style={ASSASSIN_STYLES.highlightedText}>
+            {" "}
+            rank {guessedStrength}
           </span>
-          , but finds a beautiful lady of the court, instead. 🔍 She seems to
-          have lost her way.
+          .
         </p>
-        <p
-          style={{
-            ...ASSASSIN_STYLES.message,
-            margin: "0 0 12px 0",
-            color: "#90caf9",
-          }}
-        >
-          👤 He helps her out and turns to leave, unaware they've discovered
-          your{" "}
-          <span style={{ color: "#9c27b0", fontWeight: "bold" }}>
+        <p style={ASSASSIN_STYLES.message}>
+          He passes within a breath of your hidden ally — the{" "}
+          <span style={{ color: "rgb(195 92 212)", fontWeight: "bold" }}>
             Royal Assassin
           </span>{" "}
-          ally!
-        </p>
-        <p
-          style={{
-            ...ASSASSIN_STYLES.message,
-            margin: "0 0 12px 0",
-            color: "#90caf9",
-          }}
-        >
-          Killing that guard would frighten your rival{" "}
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> to death and
-          eliminate them.
+          — and suspects nothing. The door is half-open… the night very quiet.
         </p>
         <p
           style={{
@@ -292,30 +323,52 @@ export default function AssassinPromptModal({
             color: "#ffd700",
           }}
         >
-          ⚔️ One word from you, and she would do the dirty work.
+          ⚔️ Silence him to terrify your rival, or let him leave in ignorance.
         </p>
-      </div>
-    );
-    buttons = (
-      <div style={ASSASSIN_STYLES.footer}>
-        <button
-          style={{
-            ...ASSASSIN_STYLES.button,
-            ...ASSASSIN_STYLES.strikeButton,
-          }}
-          onClick={onReveal}
-        >
-          ⚔️ Strike back!
-        </button>
-        <button
-          style={{
-            ...ASSASSIN_STYLES.button,
-            ...ASSASSIN_STYLES.mercyButton,
-          }}
-          onClick={onIgnore}
-        >
-          🕊️ Let them go
-        </button>
+        <div style={ASSASSIN_STYLES.footer}>
+          <button
+            style={{
+              ...ASSASSIN_STYLES.button,
+              ...ASSASSIN_STYLES.strikeButton,
+            }}
+            onClick={onReveal}
+            onMouseEnter={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #ff1744 0%, #dc143c 100%)";
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 18px rgba(220, 20, 60, 0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #dc143c 0%, #8b0000 100%)";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+          >
+            ⚔️ Strike back!
+          </button>
+          <button
+            style={{
+              ...ASSASSIN_STYLES.button,
+              ...ASSASSIN_STYLES.mercyButton,
+            }}
+            onClick={onIgnore}
+            onMouseEnter={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #5a9fd4 0%, #4682b4 100%)";
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = "0 6px 18px rgba(70, 130, 180, 0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background =
+                "linear-gradient(135deg, #4682b4 0%, #2f4f4f 100%)";
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+            }}
+          >
+            🕊️ Let them go
+          </button>
+        </div>
       </div>
     );
   }
@@ -353,8 +406,7 @@ export default function AssassinPromptModal({
           <div style={ASSASSIN_STYLES.header}>
             <h3 style={ASSASSIN_STYLES.title}>{title}</h3>
           </div>
-          {message}
-          {buttons}
+          {body}
         </div>
       </div>
     </>

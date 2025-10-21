@@ -64,6 +64,10 @@ const effectTextStyles = `
     color: rgb(244 135 182);
   }
 
+  .effect-description.justify {
+    text-align: justify;
+  }
+
   .quotation.duke {
     color: #dfdf73;
   }
@@ -141,8 +145,8 @@ export default function EffectResultModal({
   // Effect detection based on selectedCardId (more reliable than text parsing)
   const isHandmaidProtection = selectedCardId === 4;
   const isJesterEffect = selectedCardId === 0;
-  const isPriestEffect =
-    selectedCardId === 2 && cardDetails && cardDetails["Revealed Card"];
+  const isGuardEffect = selectedCardId === 1;
+  const isPriestEffect = selectedCardId === 2;
   const isCourtWhispererEffect = selectedCardId === 12;
   const isInquisitorEffect = selectedCardId === 9;
   const isChamberlainEffect = selectedCardId === 10;
@@ -159,9 +163,13 @@ export default function EffectResultModal({
     isCourtWhispererEffect && role === "attacker";
   const isCourtWhispererTarget = isCourtWhispererEffect && role === "target";
 
+  // Priest: distinguish between attacker and target for special styling
+  const isPriestAttacker = isPriestEffect && role === "attacker";
+  const isPriestTarget = isPriestEffect && role === "target";
+
   // Extract card information for Priest effect
   let revealedCard = null;
-  if (isPriestEffect && cardDetails) {
+  if (isPriestAttacker && cardDetails) {
     revealedCard = cardDetails["Revealed Card"];
   }
 
@@ -174,7 +182,8 @@ export default function EffectResultModal({
           style={{
             ...modalContentStyle,
             ...(isHandmaidProtection ? handmaidModalStyle : {}),
-            ...(isPriestEffect ? priestModalStyle : {}),
+            ...(isPriestTarget ? priestTargetModalStyle : {}),
+            ...(isPriestAttacker ? priestModalStyle : {}),
             ...(isJesterEffect ? jesterModalStyle : {}),
             ...(isCourtWhispererEffect ? courtWhispererModalStyle : {}),
             ...(isPhantomKingEffect ? phantomKingModalStyle : {}),
@@ -191,7 +200,7 @@ export default function EffectResultModal({
               left: "50%",
               transform: "translateX(-50%)",
               background: isPriestEffect
-                ? "#6a4c93"
+                ? "rgb(41 17 69)"
                 : isJesterEffect
                 ? "rgb(22 3 3)"
                 : isCourtWhispererEffect
@@ -237,7 +246,9 @@ export default function EffectResultModal({
               zIndex: 1001,
             }}
           >
-            {isPriestEffect
+            {isPriestTarget
+              ? "👁️"
+              : isPriestAttacker
               ? "🔍"
               : isInquisitorEffect
               ? "🕵️"
@@ -257,6 +268,8 @@ export default function EffectResultModal({
               ? "💰"
               : isHandmaidProtection
               ? "🛡️"
+              : isGuardEffect
+              ? "⚔️"
               : "📜"}
           </div>
           <h3
@@ -297,7 +310,7 @@ export default function EffectResultModal({
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
-          {isPriestEffect && revealedCard ? (
+          {isPriestAttacker && revealedCard ? (
             <div style={priestLayoutStyle}>
               {/* Left side - The revealed card */}
               <div style={priestCardContainerStyle}>
@@ -338,20 +351,22 @@ export default function EffectResultModal({
                     onClick={onClose}
                     style={{
                       ...buttonStyle,
-                      ...priestButtonStyle,
+                      ...(isPriestEffect && priestButtonStyle),
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.color = "#8b0000";
-                      e.target.style.background =
-                        "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(255, 215, 0, 0.5)";
-                    }}
-                    onMouseLeave={(e) => {
                       e.target.style.color = "#ffd700";
                       e.target.style.background =
+                        "linear-gradient(135deg, rgb(106, 76, 147) 0%, rgb(74, 0, 40) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.7)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background =
                         "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                      e.target.style.transform = "translateY(0px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
                     }}
                   >
                     Continue
@@ -736,6 +751,7 @@ export default function EffectResultModal({
                       ? courtWhispererButtonStyle
                       : {}),
                     ...(isDukeEffect ? dukeButtonStyle : {}),
+                    ...(isPriestTarget ? priestButtonStyle : {}),
                   }}
                   onMouseEnter={(e) => {
                     if (isJesterEffect) {
@@ -765,6 +781,13 @@ export default function EffectResultModal({
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(76, 175, 80, 0.5)";
+                    } else if (isPriestTarget) {
+                      e.target.style.color = "#ffd700";
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(106, 76, 147) 0%, rgb(74, 0, 40) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.7)";
                     } else {
                       e.target.style.background =
                         "linear-gradient(135deg, #fff 0%, #ffd700 100%)";
@@ -803,6 +826,12 @@ export default function EffectResultModal({
                       e.target.style.transform = "translateY(0)";
                       e.target.style.boxShadow =
                         "0 4px 15px rgba(0, 0, 0, 0.4)";
+                    } else if (isPriestTarget) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(74, 0, 40) 0%, rgb(106, 76, 147) 100%)";
+                      e.target.style.transform = "translateY(0px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(255, 215, 0, 0.5)";
                     } else {
                       e.target.style.background =
                         "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)";
@@ -1058,6 +1087,16 @@ const priestModalStyle = {
   border: "4px solid #9b59b6",
   boxShadow:
     "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(155, 89, 182, 0.4)",
+};
+
+// Priest TARGET-specific modal styles - Holy Revelation theme
+const priestTargetModalStyle = {
+  width: "90%",
+  maxWidth: "80%",
+  background: "linear-gradient(135deg, #8b0051 0%, #4a0028 50%, #2a0015 100%)",
+  border: "4px solid rgb(155, 89, 182)",
+  boxShadow:
+    "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 249, 196, 0.3)",
 };
 
 const priestLayoutStyle = {
