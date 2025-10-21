@@ -614,17 +614,13 @@ export default function Play() {
     // First, always set the UI state to show which card was selected
     setSelectedCardForUI(index);
 
-    if ([0, 1, 2, 3, 6, 9, 11, 12, 13, 15].includes(card.id)) {
+    if ([0, 1, 2, 3, 5, 6, 9, 11, 12, 13, 15].includes(card.id)) {
       // Cards that need target selection (Jester, Guard, Priest, Baron, Phantom King, Inquisitor, Regent Queen, Court Whisperer, Baroness)
       setSelectedCardIndex(index);
       setShowTargetModal(true);
     } else if (card.id === 4) {
       // HANDMAID CARD - No target needed, apply effect immediately
       playHandmaid(index);
-    } else if (card.id === 5) {
-      // PRINCE CARD - Needs target selection (including "Yourself" option)
-      setSelectedCardIndex(index);
-      setShowTargetModal(true);
     } else if (card.id === 7) {
       // COUNTESS CARD - No target needed, royal presence effect immediately
       playCountess(index);
@@ -1531,13 +1527,6 @@ export default function Play() {
       return;
     }
 
-    // Special handling for Handmaid - protection effect is already applied
-    /*     if (resultModalData?.isHandmaidProtection) {
-      console.log("🛡️ HANDMAID: Using special turn completion");
-      await completeHandmaidTurn();
-      return;
-    } */
-
     // Special handling for Court Whisperer - effect must be applied now
     if (resultModalData?.isCourtWhispererEffect) {
       console.log("🗣️ COURT WHISPERER: Using special turn completion");
@@ -2106,88 +2095,6 @@ export default function Play() {
     setSelectedCardIndex(null);
   };
 
-  /**
-   * Completes the Handmaid turn - protection effect has already been applied
-   * Just need to discard the card and advance the turn
-   */
-  /*   const completeHandmaidTurn = async () => {
-    console.log(
-      "🛡️ HANDMAID TURN COMPLETION: Protection granted, completing turn"
-    );
-
-    // Validate selectedCardIndex and get the Handmaid card
-    if (
-      selectedCardIndex === null ||
-      selectedCardIndex === undefined ||
-      !player.hand ||
-      selectedCardIndex >= player.hand.length
-    ) {
-      console.error(
-        "🛡️ HANDMAID ERROR: Cannot complete turn - invalid selectedCardIndex:",
-        { selectedCardIndex, handLength: player.hand?.length }
-      );
-      return;
-    }
-
-    const handmaidCard = player.hand[selectedCardIndex];
-
-    if (!handmaidCard || handmaidCard.id !== 4) {
-      console.error(
-        "🛡️ HANDMAID ERROR: Cannot complete turn - invalid Handmaid card:",
-        handmaidCard
-      );
-      return;
-    }
-
-    // Remove Handmaid from hand and add to discard pile
-    const newHand = player.hand.filter(
-      (_, index) => index !== selectedCardIndex
-    );
-    const newDiscard = [...(player.discard || []), handmaidCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
-    // Update game state: discard Handmaid, advance turn, clear protection
-    await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/hand`]: newHand,
-      [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
-    });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The protective charm is cast. The crown now passes to ${nextPlayer}. 🛡️`
-    );
-
-    // Reset local state
-    console.log(
-      "🔄 HANDMAID TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
-    );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
-  }; */
-
   const completeDukeTurn = async () => {
     console.log(
       "👑🐕 DUKE TURN COMPLETION: Noble favor granted, completing turn"
@@ -2598,6 +2505,9 @@ export default function Play() {
                     onMouseEnter={() => setHoveredPlayer(name)}
                     onMouseLeave={() => setHoveredPlayer(null)}
                   >
+                    <div className="player-tokens">
+                      <span>❤️</span> <span>{p.tokens || 0}</span>
+                    </div>
                     {/* Player Header */}
                     <div className="player-header">
                       <div className={`player-name ${isYou ? "is-you" : ""}`}>
@@ -2608,9 +2518,6 @@ export default function Play() {
                             ({isYou ? "You" : p.realName})
                           </div>
                         )}
-                      </div>
-                      <div className="player-tokens">
-                        <span>❤️</span> <span>{p.tokens || 0}</span>
                       </div>
                     </div>
 

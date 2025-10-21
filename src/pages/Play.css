@@ -269,17 +269,21 @@
 }
 
 .player-tokens {
+  position: absolute;
+  top: 0;
+  right: 0;
   background: linear-gradient(45deg, #8b0000, #b8860b);
   color: #ffd700;
-  padding: 0.25rem 0.4rem;
-  border-radius: 15px;
+  padding: 0.2rem 0.7rem 0.27em 0.4rem;
+  border-radius: 0 10px 0 15px;
   font-size: 0.85rem;
   font-weight: bold;
-  border: 1px solid #ffd700;
+  border: 1px outset #ffd700;
+  border-top: none;
+  border-right: none;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  gap: 0.3rem;
   width: 20%;
 }
 
