@@ -56,12 +56,6 @@ export default function TargetModal({
   return (
     <div className="modal" style={cardOptionsContainerStyle}>
       <div className="modal-content" style={cardOptionsContentStyle}>
-        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
-          <p style={noTargetMessageStyle}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid
-            and cannot be targeted.
-          </p>
-        )}
         {isPrince && validTargets.length === 0 && (
           <p
             style={{
@@ -104,6 +98,13 @@ export default function TargetModal({
             )}
           </select>
         </div>
+
+        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
+          <p style={{ ...noTargetMessageStyle, color: "#f3b5bb" }}>
+            🫖 All other players are enjoying tea with the Princess' Handmaid
+            and cannot be targeted.
+          </p>
+        )}
 
         {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
         {isTargetingForced && !hasNoTargets && (
@@ -227,7 +228,7 @@ const noTargetMessageStyle = {
   marginTop: 0,
   fontFamily: "Lora, serif",
   fontSize: "1.2rem",
-  lineHeight: "1.5rem",
+  lineHeight: "1.6rem",
 };
 
 const cardOptionsContainerStyle = {

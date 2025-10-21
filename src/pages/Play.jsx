@@ -1103,7 +1103,6 @@ export default function Play() {
         resultText: princeResult.attackerMessage,
         isInfoOnly: !princeResult.isSelfTarget, // For self-targeting, modal should advance turn
         isPrinceModal: true, // Flag to identify this as a Prince modal
-        originalCardId: 5, // The Prince card ID
         originalAttackerHand: originalAttackerHand, // Store original hand for turn completion
       });
 
@@ -1533,11 +1532,11 @@ export default function Play() {
     }
 
     // Special handling for Handmaid - protection effect is already applied
-    if (resultModalData?.isHandmaidProtection) {
+    /*     if (resultModalData?.isHandmaidProtection) {
       console.log("🛡️ HANDMAID: Using special turn completion");
       await completeHandmaidTurn();
       return;
-    }
+    } */
 
     // Special handling for Court Whisperer - effect must be applied now
     if (resultModalData?.isCourtWhispererEffect) {
@@ -2111,7 +2110,7 @@ export default function Play() {
    * Completes the Handmaid turn - protection effect has already been applied
    * Just need to discard the card and advance the turn
    */
-  const completeHandmaidTurn = async () => {
+  /*   const completeHandmaidTurn = async () => {
     console.log(
       "🛡️ HANDMAID TURN COMPLETION: Protection granted, completing turn"
     );
@@ -2187,7 +2186,7 @@ export default function Play() {
     );
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
-  };
+  }; */
 
   const completeDukeTurn = async () => {
     console.log(
@@ -3655,75 +3654,33 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                     setSelectedCardForUI(null);
 
                     // Only advance turn if this is NOT an info-only modal (like Prince attacker modal)
-                    if (!resultModalData.isInfoOnly) {
+                    if (
+                      !resultModalData.isInfoOnly &&
+                      selectedCardIndex !== null
+                    ) {
                       console.log(
                         "⚔️ RESULT MODAL DEBUG: Not info-only, checking if should advance turn"
                       );
 
-                      // Special handling for Handmaid protection
-                      if (resultModalData.isHandmaidProtection) {
+                      // Special handling for Prince self-targeting
+                      if (
+                        resultModalData.isPrinceModal &&
+                        resultModalData.selectedCardId === 5
+                      ) {
                         console.log(
-                          "🛡️ HANDMAID MODAL: Using special turn completion"
+                          "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
                         );
+                        await completePrinceTurn(
+                          selectedCardIndex,
+                          nickname,
+                          resultModalData.originalAttackerHand
+                        );
+                      } else {
                         handleEffectResultClose();
-                        return;
-                      }
-
-                      // Special handling for Countess royalty
-                      if (resultModalData.isCountessRoyalty) {
-                        console.log(
-                          "🎭 COUNTESS MODAL: Using special turn completion"
-                        );
-                        handleEffectResultClose();
-                        return;
-                      }
-
-                      // Special handling for Princess elimination
-                      if (resultModalData.isPrincessElimination) {
-                        console.log(
-                          "👑 PRINCESS MODAL: Using special turn completion"
-                        );
-                        handleEffectResultClose();
-                        return;
-                      }
-
-                      // Special handling for Assassin shadow effect
-                      if (resultModalData.isAssassinShadow) {
-                        console.log(
-                          "🗡️ ASSASSIN MODAL: Using special turn completion"
-                        );
-                        handleEffectResultClose();
-                        return;
-                      }
-
-                      // Only call handleEffectResultClose if selectedCardIndex is valid
-                      // For Guard effects that went through AssassinPromptModal, selectedCardIndex will be null
-                      if (selectedCardIndex !== null) {
-                        console.log(
-                          "⚔️ RESULT MODAL DEBUG: Advancing turn for selectedCardIndex:",
-                          selectedCardIndex
-                        );
-
-                        // Special handling for Prince self-targeting
-                        if (
-                          resultModalData.isPrinceModal &&
-                          resultModalData.originalCardId === 5
-                        ) {
-                          console.log(
-                            "👑 RESULT MODAL: Prince self-targeting, using completePrinceTurn"
-                          );
-                          await completePrinceTurn(
-                            selectedCardIndex,
-                            nickname,
-                            resultModalData.originalAttackerHand
-                          );
-                        } else {
-                          handleEffectResultClose();
-                        }
                       }
                     } else {
                       console.log(
-                        "⚔️ RESULT MODAL DEBUG: Info-only modal (Prince attacker), NOT advancing turn"
+                        "⚔️ RESULT MODAL DEBUG: Info-only modal, NOT advancing turn"
                       );
                     }
                   })

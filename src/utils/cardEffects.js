@@ -797,15 +797,15 @@ export async function applyHandmaidEffect({ roomCode, player }) {
     result: "protection",
     protectedPlayer: player,
     // Cozy medieval notification for everyone
-    publicMessage: `<div class="effect-description">🫖✨ <span class="effect-player">${
+    publicMessage: `<div class="effect-description">🫖✨ The Princess' Handmaid graciously invites <span class="effect-player">${
       data.players[player]?.name || player
-    }</span> calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
+    }</span> for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
     // Personal message for the protected player's modal
     playerMessage: `<div class="effect-description">The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.</div>
     <div class="effect-success">☕ Protection Status: ACTIVE ☕</div>
     <div class="effect-description">⏰ Duration: Until your next turn begins</div>
     <div class="effect-description">🛡️ Effect: You cannot be targeted by any cards</div>
-    <div class="effect-quote">"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"</div>
+    <div class="effect-quote">"Come, dear. Let us chat by the fireplace while the others play their games. You're safe with me!"</div>
     <div class="effect-signature">- The Princess' Handmaid</div>`,
   };
 }

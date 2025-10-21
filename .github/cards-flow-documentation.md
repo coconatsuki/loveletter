@@ -108,3 +108,11 @@ if eliminatedPlayer (!isTie) => handlePlayerElimination() & update Firebase.
 Then => handleEffectResultClose() => completeTurnWithCardIndex() => checkRoundEndConditions()
 
 ### Handmaid
+
+2 - Handmaid
+
+PlayCard() => playHandmaid() - special Handling (no target selection)
+
+applyHandmaidEffect() (in cardEffects.js) => add currentPlayer to protectedPlayer array & update firebase. + send back public message & playerMessage
+
+=> handleEffectResultClose() => completeTurnWithCardIndex()

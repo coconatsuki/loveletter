@@ -63,7 +63,7 @@ export const cards = [
     countNormal: 2,
     countPremium: 2,
     effectDetails:
-      "Choose another player, then secretly compare your second card with your target's one. The player with the lower number is knocked out of the round. In case of a tie, nothing happens.",
+      "Choose another player, then secretly compare your second card with theirs. The player with the lower number is knocked out of the round. In case of a tie, nothing happens.",
     effect: "Compare hands. Player with the lower card is eliminated.",
   },
   {
@@ -72,7 +72,8 @@ export const cards = [
     strength: 4,
     countNormal: 2,
     countPremium: 2,
-    effectDetails: "",
+    effectDetails:
+      "Become immune to the other players’ cards effects until the start of your next turn. If, on someone's turn, all other players are protected, the current player must target themselves, if possible.",
     effect: "You are protected until your next turn.",
   },
   {
