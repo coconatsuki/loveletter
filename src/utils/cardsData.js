@@ -31,7 +31,7 @@ export const cards = [
     countNormal: 0,
     countPremium: 1,
     effectDetails:
-      "Choose another player — ideally, the one you believe is most likely to win the round. If you're correct (and your chosen player does win the round), you'll also gain a Love Token!",
+      "Choose another player — ideally, the one you believe is most likely to win the round. If they win, you also gain a Love Token!",
     effect: "Choose a player. If they win, you gain a love token.",
   },
   {
@@ -43,7 +43,7 @@ export const cards = [
     effectDetails:
       "Guess a strength (≠1). If correct, your target is eliminated.",
     effectDetails:
-      "Choose a player and select a Strength number (other than 1). If that player has a card with that Strength, they are eliminated. On target selection, if no player can be be chosen (eg. due to Handmaid or Court Whisperer), your Guard will be discarded without effect.",
+      "Select a Player and a number (other than 1). If that player has a card with that Strength, they are eliminated. On target selection, if no player can be be chosen, your Guard will be discarded without effect.",
     effect: "Guess a strength (≠1). If correct, target is eliminated.",
   },
   {

@@ -15,6 +15,8 @@ import RoundEndModal from "../components/RoundEndModal";
 import DiscardPilePopover from "../components/DiscardPilePopover";
 import DiscardHistoryModal from "../components/DiscardHistoryModal";
 import CardCountStars from "../components/CardCountStars";
+import CardEffectPopover from "../components/CardEffectPopover";
+import "../components/CardEffectPopover.css";
 import {
   applyJesterEffect,
   applyChamberlainEffect,
@@ -106,6 +108,7 @@ export default function Play() {
   const [hoveredPlayer, setHoveredPlayer] = useState(null);
   const [showDiscardHistory, setShowDiscardHistory] = useState(false); // For discard pile popover
   const [isModalTransitioning, setIsModalTransitioning] = useState(false);
+  const [hoveredCardIndex, setHoveredCardIndex] = useState(null); // For card effect popover
 
   // Total players count for popover positioning
   const totalPlayers = roomData?.players
@@ -2691,7 +2694,7 @@ export default function Play() {
                 <div className="royal-action-area-overlay">
                   <div className="royal-actions-area">
                     {/* Discard History Link - Top Right */}
-                    {player.hand?.length === 2 && (
+                    {player.hand?.length === 2 && hoveredCardIndex !== 1 && (
                       <button
                         className="discard-history-link"
                         onClick={() => setShowDiscardHistory(true)}
@@ -2832,6 +2835,13 @@ export default function Play() {
                                                 ? `Cannot play ${card.name} - Countess demands precedence!`
                                                 : ""
                                             }
+                                            onMouseEnter={() =>
+                                              setHoveredCardIndex(index)
+                                            }
+                                            onMouseLeave={() =>
+                                              setHoveredCardIndex(null)
+                                            }
+                                            style={{ position: "relative" }}
                                           >
                                             <div className="card-strength">
                                               {card.strength}
@@ -2861,6 +2871,18 @@ export default function Play() {
                                                 count={card.count}
                                               />
                                             </div>
+
+                                            {/* Card Effect Details Popover */}
+                                            <CardEffectPopover
+                                              card={card}
+                                              position={
+                                                index === 0 ? "left" : "right"
+                                              }
+                                              isVisible={
+                                                hoveredCardIndex === index &&
+                                                !hasActiveModal()
+                                              }
+                                            />
                                           </button>
                                         );
                                       })
