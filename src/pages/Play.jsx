@@ -3120,7 +3120,6 @@ export default function Play() {
                 onConfirm={() =>
                   handleModalTransition(async () => {
                     // Only attacker can confirm to proceed with the game
-
                     // If there was an elimination, apply it now
                     if (
                       baronResultModalData.eliminatedPlayer &&
@@ -3146,12 +3145,6 @@ export default function Play() {
                       pushNotification(
                         roomCode,
                         `⚔️💥 ${baronResultModalData.eliminatedPlayer} has been eliminated in the Baron's duel!`
-                      );
-
-                      // 🎯 FIXED: Use protected trigger instead of just logging
-                      await triggerRoundEndIfNeeded(
-                        "After Baron Elimination",
-                        roomCode
                       );
                     }
 

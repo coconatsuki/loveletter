@@ -89,3 +89,22 @@ EffectResultModal onClose => handleEffectResultClose() => completeTurnWithCardIn
 Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextPlayer
 
 ### 3 - BARON
+
+calls applyBaronEffect() (cardEffects) =>
+
+- Get attacker & target cards
+- return attackerMessage,targetMessage, publicMessage, winner, isTie, result
+
+## set /baronTarget & setBaronResultModalData
+
+baronResultModalData triggers <BaronResultModal> with useRole, attacker/target names & card names, eliminatedPlayer, isTie + message.
+
+onConfirm =>
+
+if eliminatedPlayer (!isTie) => handlePlayerElimination() & update Firebase.
+
+& publicNotification.
+
+Then => handleEffectResultClose() => completeTurnWithCardIndex() => checkRoundEndConditions()
+
+### Handmaid

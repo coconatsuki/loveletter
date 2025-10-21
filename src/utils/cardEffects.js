@@ -316,12 +316,6 @@ export async function applyBaronEffect({
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
 
-  // Enrich card data with names and effects from cardsData
-  const enrichedAttackerCard =
-    cards.find((c) => c.id === attackerCard.id) || attackerCard;
-  const enrichedTargetCard =
-    cards.find((c) => c.id === targetCard.id) || targetCard;
-
   let eliminatedPlayer = null;
   let winner = null;
   let winnerCard = null;
@@ -331,13 +325,13 @@ export async function applyBaronEffect({
   if (attackerCard.strength > targetCard.strength) {
     eliminatedPlayer = target;
     winner = attacker;
-    winnerCard = enrichedAttackerCard;
-    loserCard = enrichedTargetCard;
+    winnerCard = attackerCard;
+    loserCard = targetCard;
   } else if (targetCard.strength > attackerCard.strength) {
     eliminatedPlayer = attacker;
     winner = target;
-    winnerCard = enrichedTargetCard;
-    loserCard = enrichedAttackerCard;
+    winnerCard = targetCard;
+    loserCard = attackerCard;
   }
   // If strengths are equal, it's a tie - no elimination
 
@@ -349,8 +343,8 @@ export async function applyBaronEffect({
     requiresPrompt: false,
     attacker,
     target,
-    attackerCard: enrichedAttackerCard,
-    targetCard: enrichedTargetCard,
+    attackerCard,
+    targetCard,
     eliminatedPlayer,
     winner,
     isTie: !eliminatedPlayer,
@@ -359,46 +353,46 @@ export async function applyBaronEffect({
     attackerMessage:
       eliminatedPlayer === target
         ? `<div class="effect-description">⚔️🏆 Your Baron's duel is victorious! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) defeats <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). <span class="effect-warning">They are eliminated from the round!</span></div>`
         : eliminatedPlayer === attacker
         ? `<div class="effect-description">⚔️💀 Your Baron's duel ends in defeat! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) falls to <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). <span class="effect-warning">You are eliminated!</span></div>`
         : `<div class="effect-description">⚔️🤝 An honorable draw! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) matches <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). Both knights live to fight another day!</div>`,
 
     targetMessage:
       eliminatedPlayer === target
-        ? `<div class="effect-description">⚔️💀 A Baron challenges you to a duel and emerges victorious! Their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>) defeats your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>). <span class="effect-warning">You are eliminated from the round!</span></div>`
+        ? `<div class="effect-description top">⚔️💀 A Baron challenges you to a duel and emerges victorious! Their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>) defeats your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>). <span class="effect-warning">You are eliminated from the round!</span></div>`
         : eliminatedPlayer === attacker
-        ? `<div class="effect-description">⚔️🏆 A Baron challenges you to a duel but you triumph! Your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>) defeats their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>). <span class="effect-success">The challenger is eliminated!</span></div>`
-        : `<div class="effect-description">⚔️🤝 A Baron challenges you to an honorable duel! Your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>) matches their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>). 'Tis a tie - both knights stand strong!</div>`,
+        ? `<div class="effect-description">⚔️🏆 A Baron challenges you to a duel but you triumph! Your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>) defeats their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>). <span class="effect-success">The challenger is eliminated!</span></div>`
+        : `<div class="effect-description">⚔️🤝 A Baron challenges you to an honorable duel! Your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>) matches their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>). 'Tis a tie - both knights stand strong!</div>`,
 
     publicMessage: eliminatedPlayer
       ? `<div class="effect-description">⚖️💥 <span class="effect-player">${
