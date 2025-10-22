@@ -32,7 +32,7 @@ export const cards = [
     countPremium: 1,
     effectDetails:
       "Choose another player — ideally, the one you believe is most likely to win the round. If they win, you also gain a Love Token!",
-    effect: "Choose a player. If they win, you gain a love token.",
+    effect: "Choose a player. If they win, you also gain a love token.",
   },
   {
     id: 1,
@@ -53,7 +53,7 @@ export const cards = [
     countNormal: 2,
     countPremium: 2,
     effectDetails:
-      "You can look at another player’s hand (it won't be revealed to any other players).",
+      "Look at another player’s hand (it won't be revealed to any other players).",
     effect: "Look at another player's hand.",
   },
   {
@@ -64,7 +64,8 @@ export const cards = [
     countPremium: 2,
     effectDetails:
       "Choose another player, then secretly compare your second card with theirs. The player with the lower number is knocked out of the round. In case of a tie, nothing happens.",
-    effect: "Compare hands. Player with the lower card is eliminated.",
+    effect:
+      "Compare hands with someone. Player with the lower card is eliminated.",
   },
   {
     id: 4,
@@ -93,7 +94,8 @@ export const cards = [
     strength: 6,
     countNormal: 1,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "You can trade the card in your hand with the card held by another player of your choice. You cannot trade with a player who is protected by a Handmaid, or eliminated.",
     effect: "You may trade hands with another player.",
   },
   {
@@ -102,7 +104,8 @@ export const cards = [
     strength: 7,
     countNormal: 1,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "This card has no effect when played (better keeping it until the Round ends, as it's powerful!), but you'll be forced to play it if your 2nd card is Phantom King or Prince.",
     effect: "Must be played if you also have a Prince or the Phantom King.",
   },
   {
@@ -111,16 +114,18 @@ export const cards = [
     strength: 8,
     countNormal: 1,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "Try to keep this card until the end of the Round. If you discard it —no matter how or why, you'll immediately be knocked out of the round.",
     effect: "If discarded (by you, or by force), you are eliminated.",
   },
   {
     id: 9,
     name: "Inquisitor",
-    strength: 9,
+    strength: 7,
     countNormal: 0,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "Select a player and a strength number. If you guess well, your target discards their card, draws a new one, and you get a love token. At round-end, only the Princess can beat the Inquisitor.",
     effect:
       "Guess a strength other than 1. If correct, gain an affection token.",
   },
@@ -130,8 +135,9 @@ export const cards = [
     strength: 6,
     countNormal: 0,
     countPremium: 1,
-    effectDetails: "",
-    effect: "If eliminated, gain 1 affection token.",
+    effectDetails:
+      "If you're knocked out of the round (eliminated) while having the Chamberlain in your discard pile (from a previous turn), you'll gain a love token when the round ends.",
+    effect: "If you're eliminated before round ends, gain 1 love token.",
   },
   {
     id: 11,
@@ -139,7 +145,8 @@ export const cards = [
     strength: 7,
     countNormal: 0,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "Secretly compare your hand with another player of your choice. The player with the HIGHER number is knocked out of the round. In case of a tie, nothing happens.",
     effect: "Compare hands. Player with higher strength is eliminated.",
   },
   {
@@ -148,7 +155,8 @@ export const cards = [
     strength: 4,
     countNormal: 0,
     countPremium: 2,
-    effectDetails: "",
+    effectDetails:
+      "Select a player (or yourself) as the next turn's target. If the next player (whose turn come after yours) plays a card requiring some target(s) selection, those targets must include the player your selected.",
     effect: "Choose who the next player must target.",
   },
   {
@@ -157,8 +165,9 @@ export const cards = [
     strength: 2,
     countNormal: 0,
     countPremium: 2,
-    effectDetails: "",
-    effect: "Trade hands. View the new card if you wish.",
+    effectDetails:
+      "Choose 2 players (one can be you), who will switch hands. If you didn't include yourself, you can look at one of the cards. If less than 2 players can be chosen, this card has no effect.",
+    effect: "2 players (or you and someone else) switch hands.",
   },
   {
     id: 14,
@@ -166,7 +175,8 @@ export const cards = [
     strength: 0,
     countNormal: 0,
     countPremium: 1,
-    effectDetails: "",
+    effectDetails:
+      "This card has no effect when played. However, if you are targeted with a Guard while holding this card, you can eliminate the attacker as a reaction.",
     effect: "If targeted with Guard, eliminate attacker instead.",
   },
 
@@ -176,8 +186,9 @@ export const cards = [
     strength: 3,
     countNormal: 0,
     countPremium: 2,
-    effectDetails: "",
-    effect: "View the hands of two players.",
+    effectDetails:
+      "Look at the hands of up to 2 players (depending on how many other players can be targeted). They will only be revealed to you.",
+    effect: "Look at the hands of up to two players.",
   },
   {
     id: 16,
@@ -185,7 +196,8 @@ export const cards = [
     strength: 5,
     countNormal: 0,
     countPremium: 2,
-    effectDetails: "",
+    effectDetails:
+      "If you played/discarded the Duke before the round ends, add +1 to the strength of your last card when comparing it with the other players' hands when the round ends.",
     effect: "If discarded or played, add +1 to your hand strength.",
   },
 ];

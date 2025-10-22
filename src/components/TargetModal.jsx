@@ -151,7 +151,7 @@ export default function TargetModal({
               value={guess}
               onChange={(e) => setGuess(Number(e.target.value))}
             >
-              {[0, 2, 3, 4, 5, 6, 7, 8, 9].map((str) => (
+              {[0, 2, 3, 4, 5, 6, 7, 8].map((str) => (
                 <option key={str} value={str}>
                   {str}
                 </option>
