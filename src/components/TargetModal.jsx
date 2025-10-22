@@ -85,7 +85,7 @@ export default function TargetModal({
             onChange={(e) => setSelectedTarget(e.target.value)}
           >
             <option value="">-- Choose a player --</option>
-            {isPhantomKing && !isTargetingForced && (
+            {isPhantomKing && !isTargetingForced && !hasNoTargets && (
               <option value="SKIP_TURN">👻 Nobody (skip effect)</option>
             )}
             {finalValidTargets.map(([name, p]) => (
@@ -174,7 +174,7 @@ export default function TargetModal({
           </div>
         )}
 
-        {isPhantomKing && !isTargetingForced && (
+        {isPhantomKing && !isTargetingForced && !hasNoTargets && (
           <div style={specialQuoteContainerStyle}>
             <em>
               <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>

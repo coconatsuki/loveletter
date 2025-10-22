@@ -867,9 +867,92 @@ export async function applyAssassinEffect({ roomCode, player }) {
   }
 }
 
-export async function applyPhantomKingEffect({ attacker, target }) {
+export async function applyPhantomKingEffect({
+  roomCode,
+  attacker,
+  target,
+  selectedCardIndex,
+}) {
+  const gameRef = ref(db, `rooms/${roomCode}`);
+  const snapshot = await get(gameRef);
+
+  if (!snapshot.exists()) {
+    throw new Error("The royal chambers have vanished...");
+  }
+
+  const gameData = snapshot.val();
+
+  const attackerData = gameData.players[attacker];
+  const targetData = gameData.players[target];
+  const attackerHand = attackerData.hand;
+  const targetHand = targetData.hand;
+  const phantomKingCard = attackerHand[selectedCardIndex];
+  const attackerSecondCardIndex = selectedCardIndex === 0 ? 1 : 0;
+  const attackerCard = attackerHand[attackerSecondCardIndex]; // Attacker's remaining card
+  const targetCard = targetHand[0]; // Target's card
+
+  if (
+    !targetHand ||
+    targetHand.length !== 1 ||
+    !attackerHand ||
+    attackerHand.length !== 2
+  ) {
+    throw new Error(
+      "The Phantom King requires the target to have exactly one card and the attacker to have exactly two cards..."
+    );
+  }
+
+  console.log("👻 PHANTOM KING DEBUG: Game data loaded", {
+    phantomKingCard,
+    targetHand,
+    attackerHand,
+  });
+
+  // ----------
+  try {
+    // STEP 1: Apply hand swap effect
+    console.log("🎭 PHANTOM KING STEP 1: Before swaping hands...");
+
+    const newAttackerHand =
+      selectedCardIndex === 0
+        ? [phantomKingCard, targetCard]
+        : [targetCard, phantomKingCard];
+    const newTargetHand = [attackerCard];
+
+    console.log("🎭 PHANTOM KING: Preparing mystical exchange between:", {
+      attackerCard: attackerCard.name,
+      targetCard: targetCard.name,
+    });
+
+    // Normal swap case - check if we have the required data
+    if (!attackerCard || !targetCard) {
+      console.error("👻 PHANTOM KING ERROR: Missing card data");
+      setResultModalData({
+        resultText:
+          "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
+      });
+      return;
+    }
+
+    // Apply the hand swap in Firebase (moved from cardEffects.js)
+    console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
+    const updates = {
+      [`players/${attacker}/hand`]: newAttackerHand, // Attacker gets target's card
+      [`players/${target}/hand`]: newTargetHand, // Target gets attacker's card
+    };
+    await update(ref(db, `rooms/${roomCode}`), updates);
+    console.log("👻 PHANTOM KING: Hand swap completed");
+  } catch (error) {
+    console.error("👻 PHANTOM KING ERROR: Mystical exchange failed!", error);
+    throw new Error("The Phantom King's power faltered...");
+  }
+
+  // ---------------------
+
   const returnValue = {
     result: "success",
+    newAttackerCard: targetCard,
+    newTargetCard: attackerCard,
 
     // New formatted messages
     attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>

@@ -132,3 +132,11 @@ if (cardSelectedId == 5 && SelfTarget && princessDiscarded) => Eliminate player 
 If (SelfTarget && princessDiscarded), the prince card should be discarded in completeTurnWithCardIndex() function, that also checks for roundEnd & advance turn.
 
 ### Phantom King
+
+PlayCard() => showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 6) =>
+
+applyPhantomKingEffect (in cardEffect.js) => get phantomKingCard, secondAttackerCard, targetCard,
+
+then swap hands (secondAttackerCard & targetCard) while respecting the original phantomKingCardIndex (to make sure we don't mess up when it's discarded later, in completeTurnWithCardIndex()) & update Firebase
+
+handleEffectResultClose => completeTurnWithCardIndex() - Phantom King is discarded here)

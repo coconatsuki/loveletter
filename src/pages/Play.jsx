@@ -1131,6 +1131,7 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
+        selectedCardIndex,
       });
 
       if (princeResult.result === "error") {
@@ -1177,166 +1178,47 @@ export default function Play() {
 
     // === PHANTOM KING CARD LOGIC (ID: 6) ===
     else if (cardPlayed.id === 6) {
-      console.log(
-        "👻 PHANTOM KING: GOING TO handleTargetConfirm / Starting effect with target:",
-        target
-      );
+      const result = await applyPhantomKingEffect({
+        roomCode,
+        attacker: nickname,
+        target,
+        selectedCardIndex,
+      });
 
-      try {
-        // STEP 1: Discard Phantom King FIRST, before any effect processing
-        console.log(
-          "🎭 PHANTOM KING STEP 1: Discarding the ethereal sovereign... Player name: ",
-          player
-        );
+      // Show target message to the target
+      console.log("👻 PHANTOM KING: Sending target message to:", target);
 
-        const newHand = player.hand.filter(
-          (_, index) => index !== selectedCardIndex
-        );
-        const newDiscard = [...(player.discard || []), cardPlayed];
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        message: result.targetMessage,
+        swappedCards: {
+          attackerGave: result.newTargetCard, // Card the attacker gave away
+          attackerReceived: result.newAttackerCard, // Card the attacker received
+          targetGave: result.newAttackerCard, // Card the target gave away
+          targetReceived: result.newTargetCard, // Card the target received
+        },
+        timestamp: Date.now(),
+      });
+      console.log("👻 PHANTOM KING: Target message sent successfully");
 
-        console.log(
-          "🎭 PHANTOM KING STEP 1.5: newHand: ",
-          newHand[0],
-          " / newDiscard: ",
-          newDiscard[-1]
-        );
+      setResultModalData({
+        selectedCardId: 6, // Phantom King card ID
+        resultText: result.attackerMessage,
+        cardPlayed: 6, // Special flag for Phantom King
+        swappedCards: {
+          attackerGave: result.newTargetCard, // Card the attacker gave away
+          attackerReceived: result.newAttackerCard, // Card the attacker received
+          targetGave: result.newAttackerCard, // Card the target gave away
+          targetReceived: result.newTargetCard, // Card the target received
+        },
+        role: "attacker", // For the EffectResultModal to know which perspective
+      });
 
-        // Apply the discard immediately to Firebase
-        await update(ref(db, `rooms/${roomCode}`), {
-          [`players/${nickname}/hand`]: newHand,
-          [`players/${nickname}/discard`]: newDiscard,
-        });
+      pushNotification(roomCode, result.publicMessage);
 
-        console.log(
-          "🎭 PHANTOM KING STEP 1 COMPLETE: Phantom King banished to",
-          player,
-          "'s discard pile"
-        );
-
-        // STEP 2: Apply hand swap effect (now both players have exactly 1 card)
-        console.log(
-          "🎭 PHANTOM KING STEP 2: Weaving mystical hand exchange..."
-        );
-
-        const gameRef = ref(db, `rooms/${roomCode}`);
-        const snapshot = await get(gameRef);
-
-        if (!snapshot.exists()) {
-          throw new Error(
-            "The royal chambers have vanished into the ethereal void..."
-          );
-        }
-
-        const gameData = snapshot.val();
-        const attackerData = gameData.players[nickname];
-
-        console.log("🎭 PHANTOM KING DEBUG: Game data loaded", {
-          hasGameData: !!gameData,
-          hasAttackerData: !!attackerData,
-          attackerHand: attackerData?.hand,
-        });
-
-        const targetData = gameData.players[target];
-
-        if (!targetData || targetData.isOut) {
-          throw new Error(
-            "The chosen soul has already departed from this realm..."
-          );
-        }
-
-        // Get the cards to trade - at this point Phantom King should already be discarded
-        if (!attackerData.hand || attackerData.hand.length !== 1) {
-          throw new Error(
-            "The phantom requires exactly one card remaining after playing the Phantom King..."
-          );
-        }
-
-        if (!targetData.hand || targetData.hand.length !== 1) {
-          throw new Error(
-            "The target must have exactly one card to exchange..."
-          );
-        }
-
-        // Get the remaining cards
-        const attackerCard = attackerData.hand[0]; // Attacker's remaining card
-        const targetCard = targetData.hand[0]; // Target's card
-
-        console.log("🎭 PHANTOM KING: Preparing mystical exchange between:", {
-          attackerCard: attackerCard.name,
-          targetCard: targetCard.name,
-        });
-
-        // Normal swap case - check if we have the required data
-        if (!attackerCard || !targetCard) {
-          console.error("👻 PHANTOM KING ERROR: Missing card data");
-          setResultModalData({
-            resultText:
-              "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
-          });
-          return;
-        }
-
-        // Apply the hand swap in Firebase (moved from cardEffects.js)
-        console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
-        const updates = {
-          [`players/${nickname}/hand`]: [targetCard], // Attacker gets target's card
-          [`players/${target}/hand`]: [attackerCard], // Target gets attacker's card
-        };
-        await update(ref(db, `rooms/${roomCode}`), updates);
-        console.log("👻 PHANTOM KING: Hand swap completed");
-
-        const newAttackerCard = targetCard;
-        const newTargetCard = attackerCard;
-
-        const result = await applyPhantomKingEffect({
-          roomCode,
-          attacker: nickname,
-          target,
-          targetCard: newTargetCard,
-          attackerCard: newAttackerCard,
-        });
-
-        // Show target message to the target
-        console.log("👻 PHANTOM KING: Sending target message to:", target);
-
-        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-          selectedCardId: cardPlayed.id,
-          visibleTo: target,
-          attacker: nickname,
-          message: result.targetMessage,
-          swappedCards: {
-            attackerGave: attackerCard, // Card the attacker gave away
-            attackerReceived: targetCard, // Card the attacker received
-            targetGave: targetCard, // Card the target gave away
-            targetReceived: attackerCard, // Card the target received
-          },
-          timestamp: Date.now(),
-        });
-        console.log("👻 PHANTOM KING: Target message sent successfully");
-
-        setResultModalData({
-          selectedCardId: 6, // Phantom King card ID
-          resultText: result.attackerMessage,
-          cardPlayed: 6, // Special flag for Phantom King
-          swappedCards: {
-            attackerGave: attackerCard, // Card the attacker gave away
-            attackerReceived: targetCard, // Card the attacker received
-            targetGave: targetCard, // Card the target gave away
-            targetReceived: attackerCard, // Card the target received
-          },
-          role: "attacker", // For the EffectResultModal to know which perspective
-        });
-        pushNotification(roomCode, result.publicMessage);
-        return;
-      } catch (error) {
-        console.error("👻 PHANTOM KING EXCHANGE ERROR:", error);
-        setResultModalData({
-          resultText: `❌ The Phantom King's power faltered... ${
-            error.message || "Unknown error"
-          }`,
-        });
-        return;
-      }
+      return;
     } else if (cardPlayed.id === 13) {
       const result = await applyRoyalConfessorEffect({
         roomCode,
@@ -1562,13 +1444,6 @@ export default function Play() {
       selectedCardIndex,
       player,
     });
-
-    // Special handling for Phantom King - effect is already complete
-    if (resultModalData?.cardPlayed === 6) {
-      console.log("👻 PHANTOM KING: Using special turn completion");
-      await completePhantomKingTurn();
-      return;
-    }
 
     // Special handling for Countess - simple discard and turn advancement
     if (resultModalData?.isCountessRoyalty) {
@@ -1922,53 +1797,6 @@ export default function Play() {
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
     setSelectedCardForUI(null);
-  };
-
-  /**
-   * Completes the Phantom King turn - special logic since the effect has already been applied
-   * The Phantom King card is already discarded and hands are already swapped
-   */
-  const completePhantomKingTurn = async () => {
-    console.log(
-      "👻 PHANTOM KING TURN COMPLETION: The ethereal sovereign completes their mystical work"
-    );
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
-    // Update only the current player and protection (hands are already updated by the effect)
-    await update(ref(db, `rooms/${roomCode}`), {
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
-    });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-    );
-
-    // Reset local state
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
   };
 
   /**
