@@ -529,6 +529,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   let newCard = null;
   let newTargetDiscard;
   let princeCard;
+  let princeCardIndex;
 
   if (isSelfTarget) {
     // SELF-TARGET: Attacker has 2 cards: Prince + another. We should discard the other.
@@ -537,7 +538,9 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     // Find the card that is NOT the Prince (id: 5)
     const secondCard = playerHand.find((card) => card.id !== 5);
     targetCard = secondCard; // The card will be discarded
+
     princeCard = playerHand.find((card) => card.id === 5);
+    princeCardIndex = princeCard && playerHand.indexOf(princeCard);
 
     // Check if the second card is a Princess
     wasPrincessDiscarded = secondCard.id === 8;
@@ -552,9 +555,18 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
 
   // Draw new card if deck isn't empty and Princess wasn't discarded
   if (!wasPrincessDiscarded && deck.length > 0) {
+    let selfTargetNewHand;
     newCard = deck.pop(); // Draw from top
-    newHand = isSelfTarget ? [princeCard, newCard] : [newCard];
+
+    if (isSelfTarget) {
+      selfTargetNewHand =
+        princeCardIndex === 0 ? [princeCard, newCard] : [newCard, princeCard];
+    }
+
+    newHand = isSelfTarget ? selfTargetNewHand : [newCard];
     drewNewCard = true;
+  } else if (wasPrincessDiscarded) {
+    newHand = isSelfTarget ? [princeCard] : []; // No new card if Princess discarded
   }
 
   // Update Firebase
@@ -564,24 +576,27 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     [`round/deck`]: deck,
   };
 
-  // Handle card discard and check for special tokens (like Chamberlain)
-  let finalUpdates = handleCardDiscard({
-    roomCode,
-    playerName: target,
-    card: targetCard,
-    gameMode: data?.mode,
-    existingUpdates: baseUpdates,
-  });
+  let finalUpdates;
 
-  // If Princess was discarded, eliminate the target
-  if (wasPrincessDiscarded) {
+  // If Princess was discarded, eliminate the target (if not self-target)
+  // If it's self-target, we'll do it on EffectResultModal onClose.
+  if (wasPrincessDiscarded && !isSelfTarget) {
     finalUpdates = handlePlayerElimination(
       roomCode,
       target,
       data?.mode,
       data.players[target],
-      finalUpdates
+      baseUpdates
     );
+  } else {
+    // Handle card discard and check for special tokens (like Chamberlain)
+    finalUpdates = handleCardDiscard({
+      roomCode,
+      playerName: target,
+      card: targetCard,
+      gameMode: data?.mode,
+      existingUpdates: baseUpdates,
+    });
   }
 
   await update(ref(db, `rooms/${roomCode}`), finalUpdates);
@@ -613,7 +628,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
       attackerMessage = `
 <div class="effect-description"> You lean close to the Prince's ear, <span class="effect-player">${attackerName}</span>, voice low with concern:</div>
 <div class="effect-description"><span class="quotation">“Your Highness, rumors point to <span class="effect-player">${targetName}</span> near your sister.”</span> 🕵️</div>
-<div class="effect-description">The Prince’s face darkens. <span class="quotation">“My sister? Without my leave?”</span> ⛈️</div>
+<div class="effect-description">The Prince’s face darkens. <span class="quotation">“They are courting my sister? Without my leave?”</span> ⛈️</div>
 <div class="effect-description effect-warning">His decree falls; <span class="effect-player">${targetName}</span> goes to the gates at once.</div>
 <div class="effect-description">Bootsteps fade over marble… and your plan holds firm ❤️‍🔥.</div>
 `;

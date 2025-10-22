@@ -1035,7 +1035,6 @@ export default function Play() {
       // Send target message to the target
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
         selectedCardId: cardPlayed.id,
-        shouldAdvanceTurn: false, // Attacker modal controls turn advancement
         visibleTo: target,
         attacker: nickname,
         message: courtWhispererResult.targetMessage,
@@ -1498,6 +1497,12 @@ export default function Play() {
    * This handles discarding the played card and advancing to the next player
    */
   const handleEffectResultClose = async () => {
+    console.log("🔔 handleEffectResultClose: Starting with resultModalData:", {
+      resultModalData,
+      selectedCardIndex,
+      player,
+    });
+
     // Special handling for Phantom King - effect is already complete
     if (resultModalData?.cardPlayed === 6) {
       console.log("👻 PHANTOM KING: Using special turn completion");
@@ -1533,35 +1538,26 @@ export default function Play() {
       return;
     }
 
-    // If the Prince's player has targeted themselves, they got a new hand, so the Prince card index might have changed.
-    // We want to find it again:
-    if (
-      resultModalData?.selectedCardId === 5 &&
-      resultModalData?.isSelfTarget
-    ) {
-      console.log(
-        "handleEffectResultClose / Prince played and Self-Targeted: changing the SelectedCardIndex. Previous: ",
-        selectedCardIndex
-      );
-      const playerHand = player?.hand;
+    if (resultModalData?.selectedCardId === 5) {
+      // PRINCE
 
-      console.log(
-        "handleEffectResultClose / Prince / playerHand: ",
-        playerHand
-      );
+      const princeSelfElimination =
+        resultModalData?.isSelfTarget && resultModalData?.princessDiscarded;
 
-      const princeCardIndex = playerHand.findIndex((card) => card.id === 5);
-      console.log(
-        "handleEffectResultClose / Prince played and Self-Targeted: found PrinceCardIndex: ",
-        princeCardIndex
-      );
+      let finalUpdates = {};
 
-      setSelectedCardIndex(princeCardIndex);
+      if (princeSelfElimination) {
+        finalUpdates = handlePlayerElimination(
+          roomCode,
+          player?.name,
+          roomData?.mode,
+          roomData.players[player],
+          finalUpdates,
+          { discardRemainingHand: false }
+        );
 
-      console.log(
-        "handleEffectResultClose / Prince played and Self-Targeted: SelectedCardIndex AFTER change: ",
-        selectedCardIndex
-      );
+        await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+      }
     }
 
     // Standard validation for other cards
@@ -1779,57 +1775,35 @@ export default function Play() {
   /**
    * Completes the Prince turn - special logic since Prince effect has already been applied
    */
-  const completePrinceTurn = async (
-    cardIndex,
-    attackerNickname,
-    originalAttackerHand
-  ) => {
-    console.log("👑 PRINCE TURN COMPLETION DEBUG: Starting with data:", {
-      cardIndex,
-      attackerNickname,
-      currentNickname: nickname,
-      originalAttackerHand,
-      players,
-      roomData,
-    });
+  const checkRoundEndAndAdvanceTurn = async () => {
+    // Checking if the round should end now
+    const roundEndResult = await checkRoundEndConditions(roomCode);
 
-    const isSelfTargeting = attackerNickname === nickname;
+    // Also check if this was the final turn (deck empty flag)
+    const isFinalTurn = roomData?.round?.isFinalTurn;
 
-    console.log("👑 PRINCE TURN: isSelfTargeting? => ", isSelfTargeting);
+    if (roundEndResult.isRoundEnd || isFinalTurn) {
+      console.log("🏆 completeTurnWithCardIndex - ROUND END DETECTED:", {
+        roundEndResult,
+        isFinalTurn,
+      });
 
-    // For self-targeting, the Prince effect has already been applied and the hand is correct
-    // We only need to update the discard pile and advance the turn
-    if (isSelfTargeting) {
-      console.log(
-        "👑 PRINCE TURN: Self-targeting - Prince effect already applied, only completing turn"
-      );
-
-      // Validate card index for discard calculation
-      if (
-        cardIndex === null ||
-        cardIndex === undefined ||
-        !originalAttackerHand ||
-        originalAttackerHand.length !== 2
-      ) {
-        console.error(
-          "👑 PRINCE TURN COMPLETION ERROR: Invalid data for self-targeting:",
-          {
-            cardIndex,
-            originalAttackerHand,
-          }
+      // Add a delay to allow modals to be displayed and players to read effects
+      setTimeout(async () => {
+        console.log(
+          "🏆 completeTurnWithCardIndex - TRIGGERING ROUND END after delay"
         );
-        return;
-      }
+        await triggerRoundEnd(roomCode);
+      }, 2000);
 
-      const playedCard = originalAttackerHand[cardIndex];
-      const attackerData = players[attackerNickname];
-      const newDiscard = [...(attackerData.discard || []), playedCard];
-
+      return; // Don't reset isPlaying yet, let the round end handle it
+    } else {
+      console.log("🔄 completeTurnWithCardIndex - ADVANCING TO NEXT PLAYER");
       // Calculate next player in turn order (skip eliminated players)
       const activePlayers = Object.keys(players).filter(
         (p) => !players[p].isOut
       );
-      const currentIndex = activePlayers.indexOf(attackerNickname);
+      const currentIndex = activePlayers.indexOf(nickname);
       let nextIndex = (currentIndex + 1) % activePlayers.length;
 
       // Skip any players that got eliminated during this turn
@@ -1841,39 +1815,24 @@ export default function Play() {
       }
       const nextPlayer = activePlayers[nextIndex];
 
-      // Clean up Handmaid protection for the next player
+      // Final validation before Firebase update
+      if (!nextPlayer) {
+        console.error("Invalid values detected before Firebase update:", {
+          nextPlayer,
+        });
+        return;
+      }
+
+      // Clean up Handmaid protection for the next player (protection expires when their turn starts)
       const currentProtected = roomData?.protectedPlayers || [];
       const updatedProtected = currentProtected.filter(
         (player) => player !== nextPlayer
       );
 
-      console.log(
-        "👑 PRINCE TURN COMPLETION: Self-targeting - updating discard and advancing turn:",
-        {
-          newDiscard,
-          nextPlayer,
-        }
-      );
-
-      // Handle card discard and check for special tokens (like Chamberlain)
-      const baseUpdates = {
-        [`players/${attackerNickname}/discard`]: newDiscard,
+      const playersUpdates = {
         [`round/currentPlayer`]: nextPlayer,
         protectedPlayers: updatedProtected,
       };
-
-      const finalUpdates = handleCardDiscard({
-        roomCode,
-        playerName: attackerNickname,
-        card: playedCard,
-        gameMode: roomData?.mode,
-        existingUpdates: baseUpdates,
-      });
-
-      // TODO CHECK IF IT SHOULD ALWAYS BE attackerNickname discard that we update
-      // For self-targeting: ONLY update discard and advance turn
-      // DO NOT modify hand - it was already correctly updated by applyPrinceEffect
-      await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
       // Notify all players about the turn change
       pushNotification(
@@ -1881,119 +1840,17 @@ export default function Play() {
         `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
       );
 
-      return;
+      // Update Firebase with the turn completion
+      await update(ref(db, `rooms/${roomCode}`), playersUpdates);
     }
 
-    // For external targeting, use current attacker data (original logic)
-    const attackerData = players[attackerNickname];
-    const attackerHand = attackerData?.hand;
-
+    // Reset local state only if round didn't end
     console.log(
-      "👑 PRINCE TURN: Using current attacker hand for external targeting:",
-      attackerHand
+      "🔄 completeTurnWithCardIndex - TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
     );
-
-    // Validate that we have the necessary data to complete the turn
-    if (
-      cardIndex === null ||
-      cardIndex === undefined ||
-      !attackerHand ||
-      attackerHand.length !== 2
-    ) {
-      console.error(
-        "👑 PRINCE TURN COMPLETION ERROR: Cannot complete turn - invalid data:",
-        {
-          cardIndex,
-          cardIndexType: typeof cardIndex,
-          attackerHand,
-          attackerHandLength: attackerHand?.length,
-          isSelfTargeting,
-          originalAttackerHand,
-        }
-      );
-      return;
-    }
-
-    const playedCard = attackerHand[cardIndex];
-    const remainingCard = attackerHand[1 - cardIndex];
-    const newDiscard = [...(attackerData.discard || []), playedCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(attackerNickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Final validation before Firebase update
-    if (!playedCard || !remainingCard || !nextPlayer) {
-      console.error(
-        "👑 PRINCE Invalid values detected before Firebase update:",
-        {
-          playedCard,
-          remainingCard,
-          nextPlayer,
-        }
-      );
-      return;
-    }
-
-    console.log(
-      "👑 PRINCE TURN COMPLETION: Updating Firebase for external targeting:",
-      {
-        attackerNickname,
-        remainingCard,
-        newDiscard,
-        nextPlayer,
-      }
-    );
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
-    // Handle card discard and check for special tokens (like Chamberlain)
-    const baseUpdates = {
-      [`players/${attackerNickname}/hand`]: [remainingCard],
-      [`players/${attackerNickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
-    };
-
-    const finalUpdates = handleCardDiscard({
-      roomCode,
-      playerName: attackerNickname,
-      card: playedCard,
-      gameMode: roomData?.mode,
-      existingUpdates: baseUpdates,
-    });
-
-    // Update Firebase with the turn completion for external targeting
-    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-    );
-
-    // Reset local state (only if we're the attacker)
-    if (nickname === attackerNickname) {
-      console.log(
-        "🔄 GUARD TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
-      );
-      // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-      setSelectedCardIndex(null);
-    }
+    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
+    setSelectedCardIndex(null);
+    setSelectedCardForUI(null);
   };
 
   /**
@@ -2946,8 +2803,6 @@ export default function Play() {
                       "🎯 TARGET MODAL DEBUG: Target modal closing with data:",
                       {
                         targetMessageModalData,
-                        shouldAdvanceTurn:
-                          targetMessageModalData.shouldAdvanceTurn,
                         selectedCardIndex:
                           targetMessageModalData.selectedCardIndex,
                         currentPlayer: player,
