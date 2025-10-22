@@ -322,9 +322,9 @@ export default function Landing() {
   // Clear validation errors when user types
   const handleInputChange = (setter, value) => {
     setter(value);
-    if (validationErrors.length > 0) {
-      setValidationErrors([]); // Clear errors when user starts typing
-    }
+    // Always clear validation errors when user makes any change
+    // This ensures the button becomes enabled again when user fixes their input
+    setValidationErrors([]);
   };
 
   const handleJoin = async () => {
@@ -339,6 +339,8 @@ export default function Landing() {
   const handleGenerateName = () => {
     const generatedName = generateNickname(preferredGender);
     setNickname(generatedName);
+    // Clear validation errors since we're changing the nickname
+    setValidationErrors([]);
     // Add visual feedback
     const button = document.querySelector(".generate-name-btn");
     if (button) {

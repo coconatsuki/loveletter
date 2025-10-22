@@ -897,14 +897,6 @@ export default function Play() {
       // Send notifications with medieval fun! 🏰
       pushNotification(roomCode, priestResult.publicMessage);
 
-      // Show the target modal to the target (no button needed)
-      /*       await update(ref(db, `rooms/${roomCode}/priestTarget`), {
-        visibleTo: target,
-        attacker: nickname,
-        targetCard: priestResult.targetCard,
-      });
- */
-
       // Show the target message to the target
       await update(ref(db, `rooms/${roomCode}/targetMessage`), {
         selectedCardId: cardPlayed.id,
@@ -1105,6 +1097,7 @@ export default function Play() {
         resultText: princeResult.attackerMessage,
         isSelfTarget: princeResult.isSelfTarget, // Store self-target flag for turn completion
         originalAttackerHand: originalAttackerHand, // Store original hand for turn completion
+        princessDiscarded: princeResult.wasPrincessDiscarded,
       });
 
       // Only send target message via Firebase for external targeting
@@ -1115,17 +1108,11 @@ export default function Play() {
           message: princeResult.targetMessage,
           from: nickname,
           cardName: "Prince",
-          /* shouldAdvanceTurn: true, // This modal controls turn advancement for external targeting */
           selectedCardIndex: selectedCardIndex,
           originalAttackerHand: originalAttackerHand,
+          princessDiscarded: princeResult.wasPrincessDiscarded,
         });
       }
-
-      console.log(
-        "🤴 PRINCE DEBUG: Target message sent to Firebase for player:",
-        target
-      ); // Prince effect is complete - return early, turn will be completed when result modal is closed
-
       return;
     }
 
@@ -1544,6 +1531,37 @@ export default function Play() {
       console.log("👑🐕 DUKE: Using special turn completion");
       await completeDukeTurn();
       return;
+    }
+
+    // If the Prince's player has targeted themselves, they got a new hand, so the Prince card index might have changed.
+    // We want to find it again:
+    if (
+      resultModalData?.selectedCardId === 5 &&
+      resultModalData?.isSelfTarget
+    ) {
+      console.log(
+        "handleEffectResultClose / Prince played and Self-Targeted: changing the SelectedCardIndex. Previous: ",
+        selectedCardIndex
+      );
+      const playerHand = player?.hand;
+
+      console.log(
+        "handleEffectResultClose / Prince / playerHand: ",
+        playerHand
+      );
+
+      const princeCardIndex = playerHand.findIndex((card) => card.id === 5);
+      console.log(
+        "handleEffectResultClose / Prince played and Self-Targeted: found PrinceCardIndex: ",
+        princeCardIndex
+      );
+
+      setSelectedCardIndex(princeCardIndex);
+
+      console.log(
+        "handleEffectResultClose / Prince played and Self-Targeted: SelectedCardIndex AFTER change: ",
+        selectedCardIndex
+      );
     }
 
     // Standard validation for other cards
@@ -2565,6 +2583,7 @@ export default function Play() {
                       gameMode={roomData?.mode || "normal"}
                       isVisible={hoveredPlayer === name && !shouldBlockPopover}
                       showOnLeft={shouldShowPopoverOnLeftSide}
+                      isYou={isYou}
                     />
                   </div>
                 );
@@ -2918,6 +2937,9 @@ export default function Play() {
                 resultText={targetMessageModalData.message}
                 isSelfTarget={targetMessageModalData.isSelfTarget || false}
                 swappedCards={targetMessageModalData.swappedCards || null}
+                princessDiscarded={
+                  targetMessageModalData.princessDiscarded || false
+                }
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(
@@ -3467,6 +3489,7 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                 cardDetails={resultModalData.cardDetails || null}
                 swappedCards={resultModalData.swappedCards || null}
                 isSelfTarget={resultModalData.isSelfTarget || false}
+                princessDiscarded={resultModalData.princessDiscarded || false}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(

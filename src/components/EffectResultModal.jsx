@@ -98,6 +98,7 @@ export default function EffectResultModal({
   role = "unknown", // Should never be "unknown" if properly called - will help us catch bugs
   swappedCards = null, // For Phantom King or Royal Confessor cards-swap details
   isSelfTarget = false, // To identify self-targeting effects (for Royal Confessor)
+  princessDiscarded = false, // To indicate if the Princess was eliminated (for Duke)
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
@@ -276,8 +277,10 @@ export default function EffectResultModal({
               ? "🛡️"
               : isGuardEffect
               ? "⚔️"
-              : isPrinceEffect
+              : isPrinceEffect && !princessDiscarded
               ? "🤴"
+              : isPrinceEffect && princessDiscarded
+              ? "💔"
               : "📜"}
           </div>
           <h3
@@ -315,12 +318,14 @@ export default function EffectResultModal({
               ? "🐾 A Noble Pat and a Loyal Paw 🐾"
               : isHandmaidProtection
               ? "Protected by the Handmaid"
-              : isPrinceSelfTarget
+              : isPrinceSelfTarget && !princessDiscarded
               ? "👑✨ ROYAL SELF-REFLECTION! ✨👑"
-              : isPrinceExternalTarget
+              : isPrinceExternalTarget && !princessDiscarded
               ? "👑✨ ROYAL DECREE EXECUTED! ✨👑"
               : isPrinceAttacker
               ? "👑✨ ROYAL COMMAND! ✨👑"
+              : isPrinceEffect && princessDiscarded && !isPrinceAttacker
+              ? "😱💔 ROYAL CATASTROPHE! 💔😱"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}

@@ -528,36 +528,32 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   let drewNewCard = false;
   let newCard = null;
   let newTargetDiscard;
+  let princeCard;
 
   if (isSelfTarget) {
-    // SELF-TARGET: Attacker discards their entire hand (2 cards: Prince + another)
+    // SELF-TARGET: Attacker has 2 cards: Prince + another. We should discard the other.
     const playerHand = targetPlayer.hand;
 
     // Find the card that is NOT the Prince (id: 5)
     const secondCard = playerHand.find((card) => card.id !== 5);
-    targetCard = secondCard; // The card being discarded
+    targetCard = secondCard; // The card will be discarded
+    princeCard = playerHand.find((card) => card.id === 5);
 
     // Check if the second card is a Princess
     wasPrincessDiscarded = secondCard.id === 8;
-
-    // Discard both cards from attacker's hand
-    newTargetDiscard = [
-      ...(targetPlayer.discard || []),
-      ...playerHand, // Discard entire hand (Prince + other card)
-    ];
   } else {
     // EXTERNAL TARGET: Target discards their single card
     targetCard = targetPlayer.hand[0]; // Target's only card
     wasPrincessDiscarded = targetCard.id === 8;
-
-    // Discard target's card
-    newTargetDiscard = [...(targetPlayer.discard || []), targetCard];
   }
+
+  // Discard target's card
+  newTargetDiscard = [...(targetPlayer.discard || []), targetCard];
 
   // Draw new card if deck isn't empty and Princess wasn't discarded
   if (!wasPrincessDiscarded && deck.length > 0) {
     newCard = deck.pop(); // Draw from top
-    newHand = [newCard];
+    newHand = isSelfTarget ? [princeCard, newCard] : [newCard];
     drewNewCard = true;
   }
 
@@ -605,8 +601,8 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
 <div class="effect-description">👑 The Prince roared at <span class="effect-player">${attackerName}</span> for courting his sister in secret. They are cast from the court!</div>
 `;
       attackerMessage = `
-<div class="effect-description">You thought your bond with the Princess was safe… yet her brother saw through it 😠.</div>
-<div class="effect-description">His hand cut the air: <span class="quotation">“You courted my sister behind my leave?”</span></div>
+<div class="effect-description">You thought your bond with the Princess was safe… yet her brother saw through it.</div>
+<div class="effect-description">His hand cut the air: <span class="quotation">“You courted my sister behind my leave?”</span> 😠</div>
 <div class="effect-description effect-warning">Guards move at once: you are cast out of court! And your love turns to whispers and shame...</div>
 `;
     } else {
@@ -637,7 +633,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
       attackerMessage = `
 <div class="effect-description">The Prince clasps your shoulder. <span class="quotation">“You suit my sister better than most… yet your company falls short!”</span></div>
 <div class="effect-description ">Before you can protest, he waves his hand, and your ally (the <span class="effect-card">${discardedCardName}</span>) is escorted out.</div>
-<div class="effect-description"><span class="quotation">“Let me introduce you to someone of better standing,”</span> he adds, summoning a new courtier.</div>
+<div class="effect-description"><span class="quotation">“Let me introduce you to someone of better standing,”</span> he adds, summoning a new courtier: the <span class="effect-card">${newCardName}</span>.</div>
 <div class="effect-description">Will this change bring you closer to the throne ? ...or to ruin ?</div>
 `;
     } else {
@@ -648,7 +644,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
       attackerMessage = `
 <div class="effect-description"><span class="quotation">“Your Highness,”</span> you begin softly, <span class="quotation">“some rumors say that ${targetName} has been using the <span class="effect-card">${discardedCardName}</span>'s help to get close to your sister.”</span></div>
 <div class="effect-description">The Prince’s brow tightens, fury and jealousy gleaming in his eyes.</div>
-<div class="effect-description effect-warning"><span class="effect-card">${discardedCardName}</span> is cast from the court at once.</div>
+<div class="effect-description effect-warning">The <span class="effect-card">${discardedCardName}</span> is cast from the court at once.</div>
 <div class="effect-description quotation">“Thank you, my friend. I shall remember that.”</div>
 `;
       targetMessage = `
