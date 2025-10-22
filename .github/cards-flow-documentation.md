@@ -93,15 +93,16 @@ Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextP
 calls applyBaronEffect() (cardEffects) =>
 
 - Get attacker & target cards
+
+If attacker looses, we discard their second card (they only have Baron in hand now & update the selectedCardIndex, just in case)
+
 - return attackerMessage,targetMessage, publicMessage, winner, isTie, result
 
-## set /baronTarget & setBaronResultModalData
+set /baronTarget & setBaronResultModalData that triggers <BaronResultModal> which, onConfirm =>
 
-baronResultModalData triggers <BaronResultModal> with useRole, attacker/target names & card names, eliminatedPlayer, isTie + message.
+handlePlayerElimination(loser) (with discardRemainingHand: false if attacker==loser, as it will be done later)
 
-onConfirm =>
-
-if eliminatedPlayer (!isTie) => handlePlayerElimination() & update Firebase.
+& update Firebase.
 
 & publicNotification.
 
