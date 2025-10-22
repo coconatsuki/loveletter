@@ -109,10 +109,25 @@ Then => handleEffectResultClose() => completeTurnWithCardIndex() => checkRoundEn
 
 ### Handmaid
 
-2 - Handmaid
-
 PlayCard() => playHandmaid() - special Handling (no target selection)
 
 applyHandmaidEffect() (in cardEffects.js) => add currentPlayer to protectedPlayer array & update firebase. + send back public message & playerMessage
 
 => handleEffectResultClose() => completeTurnWithCardIndex()
+
+### Prince
+
+PlayCard() => showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 5) {
+
+calls applyPrince() (cardEffects) => discard hand (that is NOT the prince, for SelfTarget)
+
+If discarded card is princess => trigger elimination right away for external target (for selfTarget: on EffectResultModal onClose())
+
+If discarded card is NOT princess => draw new card (if SelfTarget: use the original princeCardIndex, so we don't discard the wrong card later)
+
+handleEffectResultClose =>
+if (cardSelectedId == 5 && SelfTarget && princessDiscarded) => Eliminate player NOW, but WITHOUT CLEANING THEIR HAND ({discardRemainingHand: false})
+
+If (SelfTarget && princessDiscarded), the prince card should be discarded in completeTurnWithCardIndex() function, that also checks for roundEnd & advance turn.
+
+### Phantom King
