@@ -215,7 +215,7 @@ export default function Play() {
           setPlayer(data.players[nickname]);
         }
 
-        // CRITICAL FIX: If current player is eliminated, immediately advance turn
+        /*         // CRITICAL FIX: If current player is eliminated, immediately advance turn
         if (data?.round?.currentPlayer && data?.players) {
           const currentPlayerData = data.players[data.round.currentPlayer];
           if (currentPlayerData?.isOut) {
@@ -254,10 +254,10 @@ export default function Play() {
               return; // Exit early to prevent further processing
             }
           }
-        }
+        } */
 
         // Check if round ended and show round end modal
-        if (data?.gameState === "roundScoring" && data?.roundResult) {
+        /*         if (data?.gameState === "roundScoring" && data?.roundResult) {
           console.log(
             "🏆 ROUND ENDED - Showing round end modal",
             data.roundResult
@@ -266,7 +266,7 @@ export default function Play() {
           // Show the round end modal with the round result data
           setRoundEndModalData(data.roundResult);
           return; // Exit early to prevent further processing
-        }
+        } */
 
         // Redirect to Game Scoring if host ends the game
         if (data?.gameState === "gameEnd") {
@@ -983,7 +983,10 @@ export default function Play() {
         roomCode,
         attacker: nickname,
         target,
-        playedCardIndex: selectedCardIndex, // Pass the index of the played card
+        playedCardIndex: selectedCardIndex,
+        updatePlayedCardIndex: (index) => {
+          setSelectedCardIndex(index);
+        },
       });
 
       if (baronResult.result === "error") {
@@ -1695,8 +1698,19 @@ export default function Play() {
     // Update Firebase with the turn completion
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
+    console.log(
+      "🔄 completeTurnWithCardIndex - Card discarded, checking round end:"
+    );
+
     // Checking if the round should end now
     const roundEndResult = await checkRoundEndConditions(roomCode);
+
+    console.log(
+      "🔄 completeTurnWithCardIndex - Card discarded, AFTER checking round end:",
+      {
+        roundEndResult,
+      }
+    );
 
     // Also check if this was the final turn (deck empty flag)
     const isFinalTurn = roomData?.round?.isFinalTurn;
@@ -2944,7 +2958,13 @@ export default function Play() {
                         baronResultModalData.eliminatedPlayer,
                         roomData?.mode,
                         eliminatedPlayerData,
-                        {}
+                        {},
+                        {
+                          discardRemainingHand:
+                            baronResultModalData.eliminatedPlayer === nickname
+                              ? false
+                              : true,
+                        }
                       );
 
                       await update(

@@ -250,6 +250,7 @@ export async function applyBaronEffect({
   attacker,
   target,
   playedCardIndex,
+  updatePlayedCardIndex,
 }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
@@ -261,6 +262,7 @@ export async function applyBaronEffect({
   const attackerCard =
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
+  const baronCard = attackerHand[playedCardIndex];
 
   let eliminatedPlayer = null;
   let winner = null;
@@ -284,6 +286,36 @@ export async function applyBaronEffect({
   // NOTE: We do NOT eliminate the player here - that will be done when the modal is confirmed
   // The Baron effect only compares cards and returns the result
   // Elimination happens in the modal confirmation flow to maintain proper game state
+
+  if (eliminatedPlayer === attacker) {
+    // Discard second card now, and the Baron card later, in completeTurnWithCardIndex()
+    const baseDiscardUpdates = {
+      [`players/${attacker}/discard`]: [
+        ...(data.players[attacker].discard || []),
+        attackerCard,
+      ],
+      [`players/${attacker}/hand`]: [baronCard],
+    };
+
+    const discardUpdate = handleCardDiscard({
+      roomCode,
+      playerName: attacker,
+      card: attackerCard,
+      gameMode: data?.mode,
+      existingUpdates: baseDiscardUpdates,
+    });
+
+    await update(ref(db, `rooms/${roomCode}`), discardUpdate);
+
+    updatePlayedCardIndex(0); // Reset played card index after discarding
+
+    console.log(
+      "Apply Baron effect / attacker will be eliminated / updatePlayedCardIndex to 0 / second card discarded: ",
+      attackerCard,
+      " discardUpdates: ",
+      discardUpdate
+    );
+  }
 
   return {
     requiresPrompt: false,

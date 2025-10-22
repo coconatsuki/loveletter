@@ -162,7 +162,11 @@ export function handlePlayerElimination(
     );
   } else {
     console.log(
-      `🃏 No hand cleanup needed for ${playerName} - hand is empty or undefined`
+      `🃏 No hand cleanup needed for ${playerName} - ${
+        discardRemainingHand
+          ? "hand is empty or undefined"
+          : "discardRemainingHand option is false"
+      }`
     );
   }
 
