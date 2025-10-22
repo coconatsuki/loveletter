@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update, set, get } from "firebase/database";
@@ -108,6 +108,9 @@ export default function Play() {
   const [showDiscardHistory, setShowDiscardHistory] = useState(false); // For discard pile popover
   const [isModalTransitioning, setIsModalTransitioning] = useState(false);
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null); // For card effect popover
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false); // Track if user manually scrolled up
+  const [newNotificationsCount, setNewNotificationsCount] = useState(0); // Count of unread notifications
+  const chronicleContentRef = useRef(null); // Ref for the chronicle content div
 
   // Total players count for popover positioning
   const totalPlayers = roomData?.players
@@ -346,6 +349,60 @@ export default function Play() {
     });
     return () => unsubscribe();
   }, [roomCode]);
+
+  // Smart auto-scroll for chronicle: scroll to bottom on new notifications (unless user scrolled up)
+  useEffect(() => {
+    const chronicleDiv = chronicleContentRef.current;
+    if (!chronicleDiv) return;
+
+    // Check if user is at/near the bottom (within 50px threshold)
+    const isNearBottom =
+      chronicleDiv.scrollHeight -
+        chronicleDiv.scrollTop -
+        chronicleDiv.clientHeight <
+      50;
+
+    if (!isUserScrolledUp || isNearBottom) {
+      // Auto-scroll to bottom
+      chronicleDiv.scrollTop = chronicleDiv.scrollHeight;
+      setNewNotificationsCount(0); // Reset unread count when auto-scrolling
+    } else {
+      // User is scrolled up, increment unread notifications count
+      setNewNotificationsCount((prev) => prev + 1);
+    }
+  }, [notifications, isUserScrolledUp]);
+
+  // Detect when user manually scrolls the chronicle
+  const handleChronicleScroll = () => {
+    const chronicleDiv = chronicleContentRef.current;
+    if (!chronicleDiv) return;
+
+    // Check if user is at/near the bottom (within 50px threshold)
+    const isNearBottom =
+      chronicleDiv.scrollHeight -
+        chronicleDiv.scrollTop -
+        chronicleDiv.clientHeight <
+      50;
+
+    if (isNearBottom) {
+      // User scrolled back to bottom
+      setIsUserScrolledUp(false);
+      setNewNotificationsCount(0);
+    } else {
+      // User is scrolled up
+      setIsUserScrolledUp(true);
+    }
+  };
+
+  // Function to scroll to bottom and reset state
+  const scrollToBottomAndReset = () => {
+    const chronicleDiv = chronicleContentRef.current;
+    if (chronicleDiv) {
+      chronicleDiv.scrollTop = chronicleDiv.scrollHeight;
+      setIsUserScrolledUp(false);
+      setNewNotificationsCount(0);
+    }
+  };
 
   // Listen to action results to show effect modals for card outcomes
   useEffect(() => {
@@ -3491,7 +3548,11 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
               </div>
               <h3>📜 Game Chronicle</h3>
             </div>
-            <div className="chronicle-content">
+            <div
+              className="chronicle-content"
+              ref={chronicleContentRef}
+              onScroll={handleChronicleScroll}
+            >
               {notifications.map((n, i) => (
                 <div key={i} className="chronicle-notification">
                   <span className="chronicle-arrow">➤</span>
@@ -3507,6 +3568,16 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                 </div>
               )}
             </div>
+
+            {/* New Notifications Button - shown when user scrolled up */}
+            {isUserScrolledUp && newNotificationsCount > 0 && (
+              <button
+                className="chronicle-new-notifications-btn"
+                onClick={scrollToBottomAndReset}
+              >
+                ↓ New notifications ({newNotificationsCount})
+              </button>
+            )}
           </div>
 
           {/* ROUND END MODAL */}
