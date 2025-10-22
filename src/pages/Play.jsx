@@ -257,7 +257,7 @@ export default function Play() {
         } */
 
         // Check if round ended and show round end modal
-        /*         if (data?.gameState === "roundScoring" && data?.roundResult) {
+        if (data?.gameState === "roundScoring" && data?.roundResult) {
           console.log(
             "🏆 ROUND ENDED - Showing round end modal",
             data.roundResult
@@ -266,7 +266,7 @@ export default function Play() {
           // Show the round end modal with the round result data
           setRoundEndModalData(data.roundResult);
           return; // Exit early to prevent further processing
-        } */
+        }
 
         // Redirect to Game Scoring if host ends the game
         if (data?.gameState === "gameEnd") {
