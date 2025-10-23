@@ -1964,7 +1964,7 @@ export default function Play() {
   const completePrincessTurn = async () => {
     console.log("👑 PRINCESS TURN COMPLETION: The royal tragedy concludes");
 
-    // Validate selectedCardIndex and get the Princess card
+    // Validate selectedCardIndex
     if (
       selectedCardIndex === null ||
       selectedCardIndex === undefined ||
@@ -1978,21 +1978,14 @@ export default function Play() {
       return;
     }
 
-    const princessCard = player.hand[selectedCardIndex];
+    const secondCardIndex = selectedCardIndex === 0 ? 1 : 0;
+    const secondCard = player.hand[secondCardIndex];
 
-    if (!princessCard || princessCard.id !== 8) {
-      console.error(
-        "👑 PRINCESS ERROR: Cannot complete turn - invalid Princess card:",
-        princessCard
-      );
-      return;
-    }
-
-    // Remove Princess from hand and add to discard pile
+    // Filter out princess card (we want to discard the second card now -and the princess later)
     const newHand = player.hand.filter(
-      (_, index) => index !== selectedCardIndex
+      (_, index) => index === selectedCardIndex
     );
-    const newDiscard = [...(player.discard || []), princessCard];
+    const newDiscard = [...(player.discard || []), secondCard];
 
     // Update game state: discard Princess, ELIMINATE PLAYER, advance turn, clear protection
     const baseUpdates = {
@@ -2005,9 +1998,10 @@ export default function Play() {
       nickname,
       roomData?.mode,
       player,
-      baseUpdates
+      baseUpdates,
+      { discardRemainingHand: false }
     );
-
+    // Just apply isOut=true for player (Princess discard is done later)
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
   };
 
