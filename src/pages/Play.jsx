@@ -634,7 +634,7 @@ export default function Play() {
         countessIndex: hand.findIndex((card) => card.id === 7),
         blockedCard: "Prince",
         reason:
-          "🎭 The Countess knows the Princess's preferences better than the Prince - she must handle this personally!",
+          "She cannot bear the company of such a pompous fool —you're forced to let her go.",
       };
     }
 
@@ -644,7 +644,7 @@ export default function Play() {
         countessIndex: hand.findIndex((card) => card.id === 7),
         blockedCard: "Phantom King",
         reason:
-          "🎭 The Countess is a master of court etiquette - she insists on handling this delicate matter herself!",
+          "She refuses to breathe the same air as such a notorious drunkard —you're forced to let her go.",
       };
     }
 
@@ -761,7 +761,6 @@ export default function Play() {
     setResultModalData({
       selectedCardId: 7, // Countess
       resultText: result.playerMessage,
-      isCountessRoyalty: true,
     });
 
     // Note: Turn will be completed when player closes the result modal
@@ -1445,13 +1444,6 @@ export default function Play() {
       player,
     });
 
-    // Special handling for Countess - simple discard and turn advancement
-    if (resultModalData?.isCountessRoyalty) {
-      console.log("🎭 COUNTESS: Using special turn completion");
-      await completeCountessTurn();
-      return;
-    }
-
     // Special handling for Court Whisperer - effect must be applied now
     if (resultModalData?.isCourtWhispererEffect) {
       console.log("🗣️ COURT WHISPERER: Using special turn completion");
@@ -1797,74 +1789,6 @@ export default function Play() {
     // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
     setSelectedCardIndex(null);
     setSelectedCardForUI(null);
-  };
-
-  /**
-   * Completes the Countess turn - simple discard and turn advancement
-   * The Countess has no effect other than royal presence
-   */
-  const completeCountessTurn = async () => {
-    console.log(
-      "🎭 COUNTESS TURN COMPLETION: Her royal majesty completes her audience"
-    );
-
-    // Get the Countess card from the player's hand
-    const countessCard = player.hand[selectedCardIndex];
-
-    if (!countessCard || countessCard.id !== 7) {
-      console.error(
-        "🎭 COUNTESS ERROR: Cannot complete turn - invalid Countess card"
-      );
-      return;
-    }
-
-    // Remove Countess from hand and add to discard pile
-    const newHand = player.hand.filter(
-      (_, index) => index !== selectedCardIndex
-    );
-    const newDiscard = [...(player.discard || []), countessCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
-    // Update game state: discard Countess, advance turn, clear protection
-    await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/hand`]: newHand,
-      [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
-    });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The royal audience concludes. The crown now passes to ${nextPlayer}. 👑`
-    );
-
-    // Reset local state
-    console.log(
-      "🔄 COUNTESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
-    );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
   };
 
   const completeDukeTurn = async () => {
@@ -2422,9 +2346,13 @@ export default function Play() {
                                   </p>
                                   {countessForce.forced && (
                                     <div className="countess-warning">
-                                      <strong>🎭 Royal Protocol Alert:</strong>
-                                      <br />
-                                      {countessForce.reason}
+                                      <p className="countess-warning-title">
+                                        🪭 The Countess’s pride is wounded!
+                                      </p>
+
+                                      <p className="countess-warning-reason">
+                                        {countessForce.reason}
+                                      </p>
                                     </div>
                                   )}
 

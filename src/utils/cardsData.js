@@ -105,7 +105,7 @@ export const cards = [
     countNormal: 1,
     countPremium: 1,
     effectDetails:
-      "This card has no effect when played (better keeping it until the Round ends, as it's powerful!), but you'll be forced to play it if your 2nd card is Phantom King or Prince.",
+      "This card has no effect when played (better keeping it until the Round ends, as it's powerful!), but you'll be forced to play it if your second card is Phantom King or Prince.",
     effect: "Must be played if you also have a Prince or the Phantom King.",
   },
   {

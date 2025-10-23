@@ -152,6 +152,7 @@ export default function EffectResultModal({
   const isInquisitorEffect = selectedCardId === 9;
   const isChamberlainEffect = selectedCardId === 10;
   const isPhantomKingEffect = selectedCardId === 6 && swappedCards;
+  const isCountessEffect = selectedCardId === 7;
   const isRoyalConfessorEffect = selectedCardId === 13 && swappedCards;
   const isBaronessEffect = selectedCardId === 15;
   const isBaronessAttacker =
@@ -281,6 +282,8 @@ export default function EffectResultModal({
               ? "🤴"
               : isPrinceEffect && princessDiscarded
               ? "💔"
+              : isCountessEffect
+              ? "🥀"
               : "📜"}
           </div>
           <h3
@@ -326,6 +329,8 @@ export default function EffectResultModal({
               ? "👑✨ ROYAL COMMAND! ✨👑"
               : isPrinceEffect && princessDiscarded && !isPrinceAttacker
               ? "😱💔 ROYAL CATASTROPHE! 💔😱"
+              : isCountessEffect
+              ? "🥀 The Countess turns away...🪭"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
@@ -427,6 +432,13 @@ export default function EffectResultModal({
                           ? swappedCards.attackerGave.effect
                           : swappedCards.targetGave.effect}
                       </div>
+                      <CardCountStars
+                        count={
+                          role === "attacker"
+                            ? swappedCards.attackerGave.count
+                            : swappedCards.targetGave.count
+                        }
+                      />
                     </div>
                     <p style={cardLabelStyle}>You Gave</p>
                   </div>
@@ -461,6 +473,13 @@ export default function EffectResultModal({
                           ? swappedCards.attackerReceived.effect
                           : swappedCards.targetReceived.effect}
                       </div>
+                      <CardCountStars
+                        count={
+                          role === "attacker"
+                            ? swappedCards.attackerReceived.count
+                            : swappedCards.targetReceived.count
+                        }
+                      />
                     </div>
                     <p style={cardLabelStyle}>You Received</p>
                   </div>

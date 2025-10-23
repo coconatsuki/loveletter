@@ -796,19 +796,14 @@ export async function applyCountessEffect({ roomCode, player }) {
       result: "countess_played",
       message: `The Countess has graced the court with her presence!`,
       // Royal notification for everyone in the court
-      publicMessage: `<div class="effect-description">🎭✨ The Countess herself has appeared in court with <span class="effect-player">${
+      publicMessage: `<div class="effect-description">💃 The graceful <span class="effect-card">Countess</span> turns on her heel, eyes aflame. Without a word, she leaves <span class="effect-player">${
         playerData.name || player
-      }</span>! Her regal presence commands attention as she whispers secrets of court intrigue. What royal machinations are afoot? 👑💫</div>`,
+      }</span> behind, her fan snapping shut with an icy hiss ❄️.</div>`,
       // Personal message for the player's modal (if needed)
-      playerMessage: `<div class="effect-title">🎭✨ THE COUNTESS ✨🎭</div>
-
-      <div class="effect-description">You have played the Countess!</div>
-
-      <div class="effect-description">👑 Royal Effect: None.</div>
-      <div class="effect-description">🎪 Protocol: Always takes precedence over the Prince or the King, for matters related to the Princess.</div>
-
-      <div class="effect-quote">"My dear, no one knows the Princess as I do. Let me handle that."</div>
-      <div class="effect-signature">- The Countess</div>`,
+      playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her expression caught between hurt and outrage 🔥.</div>
+<div class="effect-description"><span class="quotation">“I had faith in your judgment,”</span> she says, voice trembling with indignation. <span class="quotation">“But to seek counsel among such men?”</span> 😠</div>
+<div class="effect-description">Her fan closes with a sharp crack 🪭. <span class="quotation">“That drunkard of a King… that possessive fool of a Prince! You would lower yourself to their level? <strong>Then you no longer need *my* counsel.</strong>”</span></div>
+<div class="effect-description">She turns away, perfume and resentment trailing behind her 🥀. You just lost a precious ally whose pride burns brighter than any crown 👑.</div>`,
     };
   } catch (error) {
     console.error("🎭 COUNTESS ERROR: Royal scandal!", error);

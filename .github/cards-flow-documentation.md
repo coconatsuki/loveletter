@@ -140,3 +140,11 @@ applyPhantomKingEffect (in cardEffect.js) => get phantomKingCard, secondAttacker
 then swap hands (secondAttackerCard & targetCard) while respecting the original phantomKingCardIndex (to make sure we don't mess up when it's discarded later, in completeTurnWithCardIndex()) & update Firebase
 
 handleEffectResultClose => completeTurnWithCardIndex() - Phantom King is discarded here)
+
+### Countess
+
+playCard() => playCountess => setSelectedCardIndex() => applyCountessEffect() (cardEffects.js) =>
+
+generate public message & attacker result message
+
+=> setResultModalData with result & push notifs => handleEffectResultClose => completeTurnWithCardIndex() - Countess is discarded here
