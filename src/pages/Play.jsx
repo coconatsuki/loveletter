@@ -1453,9 +1453,8 @@ export default function Play() {
 
     // Special handling for Princess - elimination effect is already applied
     if (resultModalData?.isPrincessElimination) {
-      console.log("👑 PRINCESS: Using special turn completion");
+      console.log("👑 PRINCESS: Using special turn completion (elimination)");
       await completePrincessTurn();
-      return;
     }
 
     // Special handling for Duke - noble favor effect must be applied now
@@ -1995,38 +1994,10 @@ export default function Play() {
     );
     const newDiscard = [...(player.discard || []), princessCard];
 
-    // NOW eliminate the player (this was moved from applyPrincessEffect)
-    console.log(
-      "👑 PRINCESS ELIMINATION: Player confirmed modal, now applying elimination"
-    );
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
     // Update game state: discard Princess, ELIMINATE PLAYER, advance turn, clear protection
     const baseUpdates = {
       [`players/${nickname}/hand`]: newHand,
       [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
-      protectedPlayers: updatedProtected,
     };
 
     const finalUpdates = handlePlayerElimination(
@@ -2038,28 +2009,6 @@ export default function Play() {
     );
 
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
-
-    // NOW check for round end after Princess elimination (moved from applyPrincessEffect)
-    console.log(
-      "👑 PRINCESS ELIMINATION: Checking for round end after elimination"
-    );
-    await triggerRoundEndIfNeeded(
-      "After Princess Elimination (Modal Confirmed)",
-      roomCode
-    );
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The royal bloodline mourns. The crown now passes to ${nextPlayer}. 💀`
-    );
-
-    // Reset local state
-    console.log(
-      "🔄 PRINCESS TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
-    );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
   };
 
   /**

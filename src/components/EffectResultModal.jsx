@@ -169,6 +169,7 @@ export default function EffectResultModal({
     isPrinceEffect && !isSelfTarget && role === "target";
   const isPrinceAttacker =
     isPrinceEffect && role === "attacker" && !isSelfTarget;
+  const isPrincessEffect = selectedCardId === 8;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -204,6 +205,7 @@ export default function EffectResultModal({
             ...(isDukeEffect ? dukeModalStyle : {}),
             ...(isCountessEffect ? countessModalStyle : {}),
             ...(isPrinceEffect ? princeModalStyle : {}),
+            ...(isPrincessEffect ? princessModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -231,6 +233,8 @@ export default function EffectResultModal({
                 ? "linear-gradient(135deg, rgb(10 8 9) 0%, rgb(78 22 41) 100%)"
                 : isPrinceEffect
                 ? "linear-gradient(135deg, rgb(6 17 39) 0%, rgb(22 52 104) 50%, rgb(61, 90, 143) 100%)"
+                : isPrincessEffect
+                ? "linear-gradient(135deg, rgb(7 7 15) 0%, rgb(54 49 133) 50%, rgb(75, 68, 180) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -253,6 +257,8 @@ export default function EffectResultModal({
                   ? "#d4a574"
                   : isPrinceEffect
                   ? "#d4af37"
+                  : isPrincessEffect
+                  ? "#d4a8e8"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -298,6 +304,8 @@ export default function EffectResultModal({
               ? "💔"
               : isCountessEffect
               ? "🥀"
+              : isPrincessEffect
+              ? "💔"
               : "📜"}
           </div>
           <h3
@@ -312,7 +320,8 @@ export default function EffectResultModal({
               isBaronessEffect,
               isDukeEffect,
               isCountessEffect,
-              isPrinceEffect
+              isPrinceEffect,
+              isPrincessEffect
             )}
           >
             {isPriestEffect
@@ -347,6 +356,8 @@ export default function EffectResultModal({
               ? "😱💔 ROYAL CATASTROPHE! 💔😱"
               : isCountessEffect
               ? "🥀 The Countess turns away...🪭"
+              : isPrincessEffect
+              ? "👑😱 ROYAL ULTIMATE BLUNDER! 😱👑"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}
@@ -793,7 +804,8 @@ export default function EffectResultModal({
                 isCourtWhispererEffect,
                 isDukeEffect,
                 isCountessEffect,
-                isPrinceEffect
+                isPrinceEffect,
+                isPrincessEffect
               )}
             >
               {formatText(resultText)}
@@ -814,6 +826,7 @@ export default function EffectResultModal({
                     ...(isDukeEffect ? dukeButtonStyle : {}),
                     ...(isCountessEffect ? countessButtonStyle : {}),
                     ...(isPrinceEffect ? princeButtonStyle : {}),
+                    ...(isPrincessEffect ? princessButtonStyle : {}),
                     ...(isPriestTarget ? priestButtonStyle : {}),
                   }}
                   onMouseEnter={(e) => {
@@ -851,6 +864,13 @@ export default function EffectResultModal({
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(212, 175, 55, 0.8)";
+                      e.target.style.border = "2px solid #ffffff";
+                    } else if (isPrincessEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(169, 165, 113) 0%, rgb(164, 98, 200) 50%, rgb(54, 32, 78) 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(212, 168, 232, 0.8)";
                       e.target.style.border = "2px solid #ffffff";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
@@ -913,6 +933,14 @@ export default function EffectResultModal({
                         "0 4px 15px rgba(212, 175, 55, 0.4)";
                       e.target.style.color = "#ffffff";
                       e.target.style.border = "2px solid #d4af37";
+                    } else if (isPrincessEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(54, 32, 78) 0%, rgb(164, 98, 200) 50%, rgb(169, 165, 113) 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(212, 168, 232, 0.4)";
+                      e.target.style.color = "#ffffff";
+                      e.target.style.border = "2px solid #d4a8e8";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
@@ -942,6 +970,8 @@ export default function EffectResultModal({
                     ? "Thanks, your grace! 🙏🏼"
                     : isHandmaidProtection
                     ? "🍰✨ Very Well ✨🫖"
+                    : isPrincessEffect
+                    ? "😭 Weep Pathetically"
                     : "Continue"}
                 </button>
               </div>
@@ -1012,7 +1042,8 @@ const getHeaderStyle = (
   isBaronessEffect,
   isDukeEffect,
   isCountessEffect,
-  isPrinceEffect
+  isPrinceEffect,
+  isPrincessEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -1036,6 +1067,8 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, #6b2d43 0%, #8b3a56 50%, #a5556d 100%)"
     : isPrinceEffect
     ? "linear-gradient(135deg, #2d4a7c 0%, #4a6fa5 50%, #6a8fc8 100%)"
+    : isPrincessEffect
+    ? "linear-gradient(135deg, rgb(54 32 78) 0%, rgb(164 98 200) 50%, rgb(214 209 154) 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: isCourtWhispererEffect
     ? "rgb(242 242 242)"
@@ -1051,6 +1084,8 @@ const getHeaderStyle = (
     ? "#f5e6d3"
     : isPrinceEffect
     ? "#ffffff"
+    : isPrincessEffect
+    ? "#ffffff"
     : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
@@ -1064,6 +1099,8 @@ const getHeaderStyle = (
     : isCountessEffect
     ? "2px 2px 4px rgba(0, 0, 0, 0.9)"
     : isPrinceEffect
+    ? "2px 2px 4px rgba(0, 0, 0, 0.7)"
+    : isPrincessEffect
     ? "2px 2px 4px rgba(0, 0, 0, 0.7)"
     : "2px 2px 4px rgba(0, 0, 0, 0.8)",
   borderBottom: `2px solid ${
@@ -1081,6 +1118,8 @@ const getHeaderStyle = (
       ? "#d4a574"
       : isPrinceEffect
       ? "#d4af37"
+      : isPrincessEffect
+      ? "#d4a8e8"
       : "#ffd700"
   }`,
   borderRadius: "20px 17px 0 0",
@@ -1091,7 +1130,8 @@ const getMessageStyle = (
   isCourtWhispererEffect,
   isDukeEffect,
   isCountessEffect,
-  isPrinceEffect
+  isPrinceEffect,
+  isPrincessEffect
 ) => ({
   fontSize: "1.3rem",
   textAlign: "justify",
@@ -1102,6 +1142,8 @@ const getMessageStyle = (
     ? "#f5e6d3"
     : isPrinceEffect
     ? "#ffffff"
+    : isPrincessEffect
+    ? "#ffffff"
     : "white",
   margin: "0",
   padding: "25px",
@@ -1111,6 +1153,8 @@ const getMessageStyle = (
     ? "linear-gradient(135deg, rgb(0 0 0) 0%, rgb(46 31 38) 50%, rgb(78 22 41) 100%)"
     : isPrinceEffect
     ? "linear-gradient(135deg, rgb(6 17 39) 0%, rgb(22 52 104) 50%, rgb(61, 90, 143) 100%)"
+    : isPrincessEffect
+    ? "linear-gradient(135deg, rgb(7 7 15) 0%, rgb(54 49 133) 50%, rgb(75, 68, 180) 100%)"
     : "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
   borderRadius: "0 0 20px 20px",
@@ -1217,6 +1261,18 @@ const princeButtonStyle = {
   fontFamily: "Cinzel, serif",
 };
 
+// 👑 Princess Button Style - Elegant and delicate
+const princessButtonStyle = {
+  width: "60%",
+  background:
+    "linear-gradient(135deg, rgb(54, 32, 78) 0%, rgb(164, 98, 200) 50%, rgb(169, 165, 113) 100%)",
+  color: "#ffffff",
+  border: "2px solid #d4a8e8",
+  fontWeight: "700",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
+  fontFamily: "Cinzel, serif",
+};
+
 // �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
 const courtWhispererModalStyle = {
   background:
@@ -1240,6 +1296,14 @@ const princeModalStyle = {
   border: "4px solid #d4af37",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+};
+
+// 👑 Princess Modal Style - Royal purple, lavender and soft pink theme
+const princessModalStyle = {
+  background: "linear-gradient(135deg, #4a2c5e 0%, #6b4c7e 50%, #8b6ca8 100%)",
+  border: "4px solid #d4a8e8",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(212, 168, 232, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
 };
 
 // Priest-specific modal styles

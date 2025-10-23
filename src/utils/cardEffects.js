@@ -1177,7 +1177,7 @@ export async function applyPrincessEffect({ roomCode, player }) {
     <div class="effect-description">But in all her royal dignity, she simply turned away! 💔</div>
     <div class="effect-description"><span class="quotation">"You presume too much!"</span> declared Her Highness.</div>
     <div class="effect-warning"><span class="effect-player">${playerName}</span> is banished from the royal court! 👑✨</div>`;
-    const playerMessage = `<div class="effect-description">Oh no! You've been rejected by the <span class="effect-card">PRINCESS</span>...! 🙈</div>
+    const playerMessage = `<div class="effect-description top">Oh no! You've been rejected by the <span class="effect-card">PRINCESS</span>...! 🙈</div>
     <div class="effect-description">You approached Her Royal Highness directly with your letter...</div>
     <div class="effect-description">But she gave you the coldest royal stare before walking away, ignoring you. 💔</div>
     <div class="effect-warning">You are eliminated from the round, you hopeless romantic! 😘</div>
