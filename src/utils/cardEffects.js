@@ -801,8 +801,8 @@ export async function applyCountessEffect({ roomCode, player }) {
       }</span> behind, her fan snapping shut with an icy hiss ❄️.</div>`,
       // Personal message for the player's modal (if needed)
       playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her expression caught between hurt and outrage 🔥.</div>
-<div class="effect-description"><span class="quotation">“I had faith in your judgment,”</span> she says, voice trembling with indignation. <span class="quotation">“But to seek counsel among such men?”</span> 😠</div>
-<div class="effect-description">Her fan closes with a sharp crack 🪭. <span class="quotation">“That drunkard of a King… that possessive fool of a Prince! You would lower yourself to their level? <strong>Then you no longer need *my* counsel.</strong>”</span></div>
+<div class="effect-description"><span class="quotation countess">“I had faith in your judgment,”</span> she says, voice trembling with indignation. <span class="quotation countess">“But to seek counsel among such men?”</span> 😠</div>
+<div class="effect-description">Her fan closes with a sharp crack 🪭. <span class="quotation countess">“That drunkard of a King… that possessive fool of a Prince! You would lower yourself to their level? <strong>Then you no longer need *my* counsel.</strong>”</span></div>
 <div class="effect-description">She turns away, perfume and resentment trailing behind her 🥀. You just lost a precious ally whose pride burns brighter than any crown 👑.</div>`,
     };
   } catch (error) {
