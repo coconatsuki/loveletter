@@ -15,11 +15,14 @@ const INQUISITOR_STYLES = {
   },
 
   noTargetMessage: {
-    lineHeight: "2em",
-    textAlign: "left",
-    color: "rgb(228 177 182)",
-    fontWeight: "bold",
-    fontSize: "1.3rem",
+    color: "rgb(222 188 188)",
+    textAlign: "justify",
+    fontStyle: "italic",
+    marginBottom: "2%",
+    marginTop: 0,
+    fontFamily: "Lora, serif",
+    fontSize: "1.2rem",
+    lineHeight: "1.6rem",
   },
 
   dropdownContainer: {
@@ -125,6 +128,7 @@ export default function InquisitorTargetModal({
   currentPlayer,
   protectedPlayers = [],
   nextTarget = null, // 🗣️ Court Whisperer forcing target
+  isDeckEmpty = false, // is Deck Empty: can't target anyone.
   onConfirm,
   onCancel,
 }) {
@@ -145,9 +149,11 @@ export default function InquisitorTargetModal({
   // 🗣️ Court Whisperer: Filter targets based on gossip
   const finalValidTargets = isTargetingForced
     ? validTargets.filter(([name, p]) => name === forcedTargetNickname)
+    : isDeckEmpty
+    ? []
     : validTargets;
 
-  const hasNoTargets = finalValidTargets.length === 0;
+  const hasNoTargets = finalValidTargets.length === 0 || isDeckEmpty;
 
   const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
@@ -255,11 +261,22 @@ export default function InquisitorTargetModal({
             </p>
           )}
 
-          {hasNoTargets && !isTargetingForced && (
-            <div style={INQUISITOR_STYLES.noTargetMessage}>
+          {hasNoTargets && !isTargetingForced && !isDeckEmpty && (
+            <div
+              style={{
+                ...INQUISITOR_STYLES.noTargetMessage,
+                color: "rgb(238 163 224)",
+              }}
+            >
               🫖 All other players are enjoying tea with the Princess' Handmaid
               and cannot be investigated.
             </div>
+          )}
+
+          {isDeckEmpty && (
+            <p style={INQUISITOR_STYLES.noTargetMessage}>
+              Too late, Sir. The Deck is empty. You can't target anyone.
+            </p>
           )}
 
           {/* Only show strength dropdown when there are targets */}

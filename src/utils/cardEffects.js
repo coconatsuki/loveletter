@@ -3,60 +3,6 @@ import { db } from "./firebase";
 import { cards } from "./cardsData";
 import { handleCardDiscard, handlePlayerElimination } from "./gamehelpers";
 
-// Turn advancement control for modal system
-export const CARD_MODAL_FLOW = {
-  0: { advanceOnAttacker: true, advanceOnTarget: false }, // Jester
-  1: { advanceOnAttacker: true, advanceOnTarget: false }, // Guard
-  2: { advanceOnAttacker: true, advanceOnTarget: false }, // Priest
-  3: { advanceOnAttacker: true, advanceOnTarget: false }, // Baron
-  4: { advanceOnAttacker: true, advanceOnTarget: false }, // Handmaid
-  5: { advanceOnAttacker: false, advanceOnTarget: true }, // Prince (special case)
-  6: { advanceOnAttacker: true, advanceOnTarget: false }, // Phantom King
-  7: { advanceOnAttacker: true, advanceOnTarget: false }, // Countess
-  8: { advanceOnAttacker: true, advanceOnTarget: false }, // Princess
-  9: { advanceOnAttacker: true, advanceOnTarget: false }, // Inquisitor (target modal controls flow)
-  10: { advanceOnAttacker: true, advanceOnTarget: false }, // Chamberlain
-  11: { advanceOnAttacker: true, advanceOnTarget: false }, // Regent Queen
-  12: { advanceOnAttacker: true, advanceOnTarget: false }, // Court Whisperer
-  14: { advanceOnAttacker: true, advanceOnTarget: false }, // Assassin
-  16: { advanceOnAttacker: true, advanceOnTarget: false }, // Duke
-  // Premium mode cards will be added as we implement them...
-};
-
-export function shouldAdvanceTurnOnModal(cardId, isAttacker) {
-  const flow = CARD_MODAL_FLOW[cardId];
-  if (!flow) return isAttacker; // Default: attacker advances
-
-  console.log(
-    "shouldAdvanceTurnOnModal / isAttacker: ",
-    isAttacker,
-    " / function returns: ",
-    isAttacker ? flow.advanceOnAttacker : flow.advanceOnTarget
-  );
-
-  return isAttacker ? flow.advanceOnAttacker : flow.advanceOnTarget;
-}
-
-const cardStrengths = {
-  0: 0, // Jester
-  1: 1, // Guard
-  2: 2, // Priest
-  3: 3, // Baron
-  4: 4, // Handmaid
-  5: 5, // Prince
-  6: 6, // Phantom King
-  7: 7, // Countess
-  8: 8, // Princess
-  9: 9, // Inquisitor
-  10: 6, // Chamberlain
-  11: 7, // Regent Queen
-  12: 4, // Court Whisperer
-  13: 2, // Royal Confessor
-  14: 0, // Assassin
-  15: 3, // Baroness
-  16: 5, // Duke
-};
-
 // 🃏✨ JESTER EFFECT ✨🃏
 export async function applyJesterEffect({ roomCode, attacker, target }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
@@ -304,6 +250,7 @@ export async function applyBaronEffect({
   attacker,
   target,
   playedCardIndex,
+  updatePlayedCardIndex,
 }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
@@ -315,12 +262,7 @@ export async function applyBaronEffect({
   const attackerCard =
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
-
-  // Enrich card data with names and effects from cardsData
-  const enrichedAttackerCard =
-    cards.find((c) => c.id === attackerCard.id) || attackerCard;
-  const enrichedTargetCard =
-    cards.find((c) => c.id === targetCard.id) || targetCard;
+  const baronCard = attackerHand[playedCardIndex];
 
   let eliminatedPlayer = null;
   let winner = null;
@@ -331,13 +273,13 @@ export async function applyBaronEffect({
   if (attackerCard.strength > targetCard.strength) {
     eliminatedPlayer = target;
     winner = attacker;
-    winnerCard = enrichedAttackerCard;
-    loserCard = enrichedTargetCard;
+    winnerCard = attackerCard;
+    loserCard = targetCard;
   } else if (targetCard.strength > attackerCard.strength) {
     eliminatedPlayer = attacker;
     winner = target;
-    winnerCard = enrichedTargetCard;
-    loserCard = enrichedAttackerCard;
+    winnerCard = targetCard;
+    loserCard = attackerCard;
   }
   // If strengths are equal, it's a tie - no elimination
 
@@ -345,12 +287,42 @@ export async function applyBaronEffect({
   // The Baron effect only compares cards and returns the result
   // Elimination happens in the modal confirmation flow to maintain proper game state
 
+  if (eliminatedPlayer === attacker) {
+    // Discard second card now, and the Baron card later, in completeTurnWithCardIndex()
+    const baseDiscardUpdates = {
+      [`players/${attacker}/discard`]: [
+        ...(data.players[attacker].discard || []),
+        attackerCard,
+      ],
+      [`players/${attacker}/hand`]: [baronCard],
+    };
+
+    const discardUpdate = handleCardDiscard({
+      roomCode,
+      playerName: attacker,
+      card: attackerCard,
+      gameMode: data?.mode,
+      existingUpdates: baseDiscardUpdates,
+    });
+
+    await update(ref(db, `rooms/${roomCode}`), discardUpdate);
+
+    updatePlayedCardIndex(0); // Reset played card index after discarding
+
+    console.log(
+      "Apply Baron effect / attacker will be eliminated / updatePlayedCardIndex to 0 / second card discarded: ",
+      attackerCard,
+      " discardUpdates: ",
+      discardUpdate
+    );
+  }
+
   return {
     requiresPrompt: false,
     attacker,
     target,
-    attackerCard: enrichedAttackerCard,
-    targetCard: enrichedTargetCard,
+    attackerCard,
+    targetCard,
     eliminatedPlayer,
     winner,
     isTie: !eliminatedPlayer,
@@ -359,46 +331,46 @@ export async function applyBaronEffect({
     attackerMessage:
       eliminatedPlayer === target
         ? `<div class="effect-description">⚔️🏆 Your Baron's duel is victorious! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) defeats <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). <span class="effect-warning">They are eliminated from the round!</span></div>`
         : eliminatedPlayer === attacker
         ? `<div class="effect-description">⚔️💀 Your Baron's duel ends in defeat! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) falls to <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). <span class="effect-warning">You are eliminated!</span></div>`
         : `<div class="effect-description">⚔️🤝 An honorable draw! Your <span class="effect-card">${
-            enrichedAttackerCard.name
+            attackerCard.name
           }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
+            attackerCard.strength
           }</span>) matches <span class="effect-player">${
             data.players[target]?.name || target
           }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
+            targetCard.name
           }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
+            targetCard.strength
           }</span>). Both knights live to fight another day!</div>`,
 
     targetMessage:
       eliminatedPlayer === target
-        ? `<div class="effect-description">⚔️💀 A Baron challenges you to a duel and emerges victorious! Their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>) defeats your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>). <span class="effect-warning">You are eliminated from the round!</span></div>`
+        ? `<div class="effect-description top">⚔️💀 A Baron challenges you to a duel and emerges victorious! Their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>) defeats your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>). <span class="effect-warning">You are eliminated from the round!</span></div>`
         : eliminatedPlayer === attacker
-        ? `<div class="effect-description">⚔️🏆 A Baron challenges you to a duel but you triumph! Your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>) defeats their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>). <span class="effect-success">The challenger is eliminated!</span></div>`
-        : `<div class="effect-description">⚔️🤝 A Baron challenges you to an honorable duel! Your <span class="effect-card">${enrichedTargetCard.name}</span> (<span class="effect-strength">${enrichedTargetCard.strength}</span>) matches their <span class="effect-card">${enrichedAttackerCard.name}</span> (<span class="effect-strength">${enrichedAttackerCard.strength}</span>). 'Tis a tie - both knights stand strong!</div>`,
+        ? `<div class="effect-description">⚔️🏆 A Baron challenges you to a duel but you triumph! Your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>) defeats their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>). <span class="effect-success">The challenger is eliminated!</span></div>`
+        : `<div class="effect-description">⚔️🤝 A Baron challenges you to an honorable duel! Your <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>) matches their <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>). 'Tis a tie - both knights stand strong!</div>`,
 
     publicMessage: eliminatedPlayer
       ? `<div class="effect-description">⚖️💥 <span class="effect-player">${
@@ -579,53 +551,84 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   }
 
   const targetPlayer = data.players[target];
-  const targetCard = targetPlayer.hand[0]; // Target's current card
   const deck = data.round.deck || [];
   const isSelfTarget = attacker === target;
 
-  // Discard target's card
-  const newTargetDiscard = [...(targetPlayer.discard || []), targetCard];
-
-  // Check if Princess was discarded (instant elimination!)
-  const wasPrincessDiscarded = targetCard.id === 8;
-
+  let targetCard; // The card that will be discarded
+  let wasPrincessDiscarded;
   let newHand = [];
-  let deckAfterDraw = [...deck];
   let drewNewCard = false;
   let newCard = null;
+  let newTargetDiscard;
+  let princeCard;
+  let princeCardIndex;
+
+  if (isSelfTarget) {
+    // SELF-TARGET: Attacker has 2 cards: Prince + another. We should discard the other.
+    const playerHand = targetPlayer.hand;
+
+    // Find the card that is NOT the Prince (id: 5)
+    const secondCard = playerHand.find((card) => card.id !== 5);
+    targetCard = secondCard; // The card will be discarded
+
+    princeCard = playerHand.find((card) => card.id === 5);
+    princeCardIndex = princeCard && playerHand.indexOf(princeCard);
+
+    // Check if the second card is a Princess
+    wasPrincessDiscarded = secondCard.id === 8;
+  } else {
+    // EXTERNAL TARGET: Target discards their single card
+    targetCard = targetPlayer.hand[0]; // Target's only card
+    wasPrincessDiscarded = targetCard.id === 8;
+  }
+
+  // Discard target's card
+  newTargetDiscard = [...(targetPlayer.discard || []), targetCard];
 
   // Draw new card if deck isn't empty and Princess wasn't discarded
-  if (!wasPrincessDiscarded && deckAfterDraw.length > 0) {
-    newCard = deckAfterDraw.pop(); // Draw from top
-    newHand = [newCard];
+  if (!wasPrincessDiscarded && deck.length > 0) {
+    let selfTargetNewHand;
+    newCard = deck.pop(); // Draw from top
+
+    if (isSelfTarget) {
+      selfTargetNewHand =
+        princeCardIndex === 0 ? [princeCard, newCard] : [newCard, princeCard];
+    }
+
+    newHand = isSelfTarget ? selfTargetNewHand : [newCard];
     drewNewCard = true;
+  } else if (wasPrincessDiscarded) {
+    newHand = isSelfTarget ? [princeCard] : []; // No new card if Princess discarded
   }
 
   // Update Firebase
   const baseUpdates = {
     [`players/${target}/hand`]: newHand,
     [`players/${target}/discard`]: newTargetDiscard,
-    [`round/deck`]: deckAfterDraw,
+    [`round/deck`]: deck,
   };
 
-  // Handle card discard and check for special tokens (like Chamberlain)
-  let finalUpdates = handleCardDiscard({
-    roomCode,
-    playerName: target,
-    card: targetCard,
-    gameMode: data?.mode,
-    existingUpdates: baseUpdates,
-  });
+  let finalUpdates;
 
-  // If Princess was discarded, eliminate the target
-  if (wasPrincessDiscarded) {
+  // If Princess was discarded, eliminate the target (if not self-target)
+  // If it's self-target, we'll do it on EffectResultModal onClose.
+  if (wasPrincessDiscarded && !isSelfTarget) {
     finalUpdates = handlePlayerElimination(
       roomCode,
       target,
       data?.mode,
       data.players[target],
-      finalUpdates
+      baseUpdates
     );
+  } else {
+    // Handle card discard and check for special tokens (like Chamberlain)
+    finalUpdates = handleCardDiscard({
+      roomCode,
+      playerName: target,
+      card: targetCard,
+      gameMode: data?.mode,
+      existingUpdates: baseUpdates,
+    });
   }
 
   await update(ref(db, `rooms/${roomCode}`), finalUpdates);
@@ -639,109 +642,65 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   let publicMessage, attackerMessage, targetMessage;
 
   if (wasPrincessDiscarded) {
-    // Princess elimination scenario! 😱💀
     if (isSelfTarget) {
-      publicMessage = `<div class="effect-description">👑💀 OH NO! <span class="effect-player">${attackerName}</span> commanded themselves to discard... and revealed the <span class="effect-card">PRINCESS</span>! <span class="effect-warning">They are eliminated from the royal court!</span> The Princess cannot be discarded! 💀👑</div>`;
-      attackerMessage = `<div class="effect-title">👑💀 ROYAL TRAGEDY! 💀👑</div>
-      <div class="effect-description">By your own royal decree, you commanded yourself to discard your hand...</div>
-      <div class="effect-description">But alas! You held the <span class="effect-card">PRINCESS</span>!</div>
-      <div class="effect-warning">💀 The Princess cannot be discarded for any reason!</div>
-      <div class="effect-warning">💀 You are eliminated from the round!</div>
-      <div class="effect-quote">"Even royalty must follow the rules of love..."</div>
-      <div class="effect-signature">- The Court</div>`;
+      // if selfTarget, we Don't need a targetMessage
+      publicMessage = `
+<div class="effect-description">👑 The Prince roared at <span class="effect-player">${attackerName}</span> for courting his sister in secret. They are cast from the court!</div>
+`;
+      attackerMessage = `
+<div class="effect-description">You thought your bond with the Princess was safe… yet her brother saw through it.</div>
+<div class="effect-description">His hand cut the air: <span class="quotation">“You courted my sister behind my leave?”</span> 😠</div>
+<div class="effect-description effect-warning">Guards move at once: you are cast out of court! And your love turns to whispers and shame...</div>
+`;
     } else {
-      publicMessage = `<div class="effect-description">👑💀 ROYAL CATASTROPHE! <span class="effect-player">${attackerName}</span> commanded <span class="effect-player">${targetName}</span> to discard their hand... revealing the <span class="effect-card">PRINCESS</span>! <span class="effect-warning">${targetName} is eliminated!</span> The Princess's beauty cannot be discarded! 💀👑</div>`;
-      attackerMessage = `<div class="effect-title">👑💀 ROYAL CATASTROPHE! 💀👑</div>
-      <div class="effect-description">Your royal decree was followed...</div>
-      <div class="effect-description">But <span class="effect-player">${targetName}</span> held the <span class="effect-card">PRINCESS</span>!</div>
-      <div class="effect-description">Discarded Card: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${targetCard.strength}</span>)</div>
-      <div class="effect-warning">💀 The Princess cannot be discarded!</div>
-      <div class="effect-warning">💀 ${targetName} is eliminated!</div>
-      <div class="effect-quote">"Love's greatest treasure cannot be cast aside..."</div>
-      <div class="effect-signature">- The Royal Court</div>`;
-      targetMessage = `<div class="effect-title">👑💀 ROYAL DOOM! 💀👑</div>
-
-      <div class="effect-description"><span class="effect-player">${attackerName}</span> commanded you with the Prince's authority to discard your hand...</div>
-
-      <div class="effect-description">Your card was: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${targetCard.strength}</span>)</div>
-
-      <div class="effect-description">But... it was the <span class="effect-card">PRINCESS</span>! 💀</div>
-
-      <div class="effect-warning">The Princess cannot be discarded for any reason!</div>
-      <div class="effect-warning">You are eliminated from the round!</div>
-
-      <div class="effect-quote">"Even under royal command, love cannot be discarded..."</div>
-      <div class="effect-signature">- The Princess</div>`;
+      // if NOT selfTarget, we ALSO need a targetMessage
+      publicMessage = `
+<div class="effect-description">👑 At <span class="effect-player">${attackerName}</span>’s word, the Prince banished <span class="effect-player">${targetName}</span> for having courted her sister in secret!</div>
+`;
+      attackerMessage = `
+<div class="effect-description"> You lean close to the Prince's ear, <span class="effect-player">${attackerName}</span>, voice low with concern:</div>
+<div class="effect-description"><span class="quotation">“Your Highness, rumors point to <span class="effect-player">${targetName}</span> near your sister.”</span> 🕵️</div>
+<div class="effect-description">The Prince’s face darkens. <span class="quotation">“They are courting my sister? Without my leave?”</span> ⛈️</div>
+<div class="effect-description effect-warning">His decree falls; <span class="effect-player">${targetName}</span> goes to the gates at once.</div>
+<div class="effect-description">Bootsteps fade over marble… and your plan holds firm ❤️‍🔥.</div>
+`;
+      targetMessage = `
+<div class="effect-description"> 🏹The Prince’s eyes pin you like arrows.</div>
+<div class="effect-description"><span class="quotation">“You think to charm my sister —without my permission?”</span> 😠</div>
+<div class="effect-description">Steel rings; guards close the distance before a word leaves your mouth.</div>
+<div class="effect-description effect-warning">You are expelled from court in disgrace 🚪. </div>
+`;
     }
   } else {
-    // Normal Prince effect
+    // if !wasPrincessDiscarded
     if (isSelfTarget) {
-      publicMessage = `<div class="effect-description">👑✨ <span class="effect-player">${attackerName}</span> uses the Prince's wisdom on themselves! They discard <span class="effect-card">${discardedCardName}</span> and ${
-        drewNewCard
-          ? `draw <span class="effect-card">${newCardName}</span>`
-          : "find no cards left in the royal deck"
-      }! A fresh start from the royal court! ✨👑</div>`;
-      attackerMessage = `<div class="effect-title">👑✨ ROYAL SELF-REFLECTION! ✨👑</div>
-
-      <div class="effect-description">By your own royal decree, you have renewed your hand!</div>
-
-      <div class="effect-description">Discarded: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
-        targetCard.strength
-      }</span>)</div>
-      ${
-        drewNewCard
-          ? `<div class="effect-description">New Card: <span class="effect-card">${newCardName}</span> (Strength: <span class="effect-strength">${newCard.strength}</span>)</div>`
-          : `<div class="effect-warning">No cards remain in the royal deck!</div>`
-      }
-
-      <div class="effect-quote">"Wisdom lies in knowing when to start anew..."</div>
-      <div class="effect-signature">- His Royal Highness, The Prince</div>`;
+      publicMessage = `
+<div class="effect-description">🤝 The Prince favors <span class="effect-player">${attackerName}</span>: the <span class="effect-card">${discardedCardName}</span>,judged unworthy, left their side; a new contact steps in.</div>
+`;
+      attackerMessage = `
+<div class="effect-description">The Prince clasps your shoulder. <span class="quotation">“You suit my sister better than most… yet your company falls short!”</span></div>
+<div class="effect-description ">Before you can protest, he waves his hand, and your ally (the <span class="effect-card">${discardedCardName}</span>) is escorted out.</div>
+<div class="effect-description"><span class="quotation">“Let me introduce you to someone of better standing,”</span> he adds, summoning a new courtier: the <span class="effect-card">${newCardName}</span>.</div>
+<div class="effect-description">Will this change bring you closer to the throne ? ...or to ruin ?</div>
+`;
     } else {
-      publicMessage = `<div class="effect-description">👑✨ <span class="effect-player">${attackerName}</span> commands <span class="effect-player">${targetName}</span> with the Prince's authority! <span class="effect-player">${targetName}</span> discards <span class="effect-card">${discardedCardName}</span> and ${
-        drewNewCard ? `draws a fresh card` : "finds the royal deck empty"
-      }! By royal decree! ✨👑</div>`;
-      attackerMessage = `<div class="effect-title">👑✨ ROYAL DECREE EXECUTED! ✨👑</div>
-
-      <div class="effect-description">Your command has been followed!</div>
-      <div class="effect-description"><span class="effect-player">${targetName}</span> discarded: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
-        targetCard.strength
-      }</span>)</div>
-      ${
-        drewNewCard
-          ? `<div class="effect-success">They drew a new card from the royal deck!</div>`
-          : `<div class="effect-warning">The royal deck was empty - no new card drawn!</div>`
-      }
-
-      <div class="effect-quote">"The Prince's wisdom guides the court..."</div>
-      <div class="effect-signature">- The Royal Court</div>`;
-      targetMessage = `<div class="effect-title">👑✨ ROYAL COMMAND! ✨👑</div>
-
-      <div class="effect-description"><span class="effect-player">${attackerName}</span> has commanded you with the Prince's authority!</div>
-
-      <div class="effect-description">Your discarded card: <span class="effect-card">${discardedCardName}</span> (Strength: <span class="effect-strength">${
-        targetCard.strength
-      }</span>)</div>
-      ${
-        targetCard.effect
-          ? `<div class="effect-description">Effect: ${targetCard.effect}</div>`
-          : ""
-      }
-
-      ${
-        drewNewCard
-          ? `<div class="effect-description">Your new card: <span class="effect-card">${newCardName}</span> (Strength: <span class="effect-strength">${
-              newCard.strength
-            }</span>)</div>
-            ${
-              newCard.effect
-                ? `<div class="effect-description">Effect: ${newCard.effect}</div>`
-                : ""
-            }`
-          : `<div class="effect-warning">The royal deck was empty - you draw no new card!</div>`
-      }
-
-      <div class="effect-quote">"By royal decree, a fresh beginning awaits..."</div>
-      <div class="effect-signature">- His Royal Highness, The Prince</div>`;
+      // if NOT selfTarget, we ALSO need a targetMessage
+      publicMessage = `
+<div class="effect-description">Jealous and protective, the Prince dismissed <span class="effect-player">${targetName}</span>’ accomplice (the <span class="effect-card">${discardedCardName}</span>), after ${attackerName} whispered in his ear.</div>
+`;
+      attackerMessage = `
+<div class="effect-description"><span class="quotation">“Your Highness,”</span> you begin softly, <span class="quotation">“some rumors say that ${targetName} has been using the <span class="effect-card">${discardedCardName}</span>'s help to get close to your sister.”</span></div>
+<div class="effect-description">The Prince’s brow tightens, fury and jealousy gleaming in his eyes.</div>
+<div class="effect-description effect-warning">The <span class="effect-card">${discardedCardName}</span> is cast from the court at once.</div>
+<div class="effect-description quotation">“Thank you, my friend. I shall remember that.”</div>
+`;
+      targetMessage = `
+<div class="effect-description">The Prince’s glare cools the air around you.</div>
+<div class="effect-description"><span class="quotation">“You’ve been keeping curious company, <span class="effect-player">${targetName}</span>. No one courts my sister without my leave.”</span></div>
+<div class="effect-description effect-warning">Your accomplice, the <span class="effect-card">${discardedCardName}</span>, is led away, eyes lowered.</div>
+<div class="effect-description">A new face —the <span class="effect-card">${newCardName}</span>— appears at your side, with a careful smile.</div>
+<div class="effect-description">A new connection, perhaps… or a trap..</div>
+`;
     }
   }
 
@@ -803,15 +762,15 @@ export async function applyHandmaidEffect({ roomCode, player }) {
     result: "protection",
     protectedPlayer: player,
     // Cozy medieval notification for everyone
-    publicMessage: `<div class="effect-description">🫖✨ <span class="effect-player">${
+    publicMessage: `<div class="effect-description">🫖✨ The Princess' Handmaid graciously invites <span class="effect-player">${
       data.players[player]?.name || player
-    }</span> calls upon the Princess' Handmaid! She graciously invites them for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
+    }</span> for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
     // Personal message for the protected player's modal
     playerMessage: `<div class="effect-description">The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.</div>
     <div class="effect-success">☕ Protection Status: ACTIVE ☕</div>
     <div class="effect-description">⏰ Duration: Until your next turn begins</div>
     <div class="effect-description">🛡️ Effect: You cannot be targeted by any cards</div>
-    <div class="effect-quote">"Come, dear guest, let us chat by the fireplace while the others play their games. You're safe with me!"</div>
+    <div class="effect-quote">"Come, dear. Let us chat by the fireplace while the others play their games. You're safe with me!"</div>
     <div class="effect-signature">- The Princess' Handmaid</div>`,
   };
 }
@@ -908,9 +867,92 @@ export async function applyAssassinEffect({ roomCode, player }) {
   }
 }
 
-export async function applyPhantomKingEffect({ attacker, target }) {
+export async function applyPhantomKingEffect({
+  roomCode,
+  attacker,
+  target,
+  selectedCardIndex,
+}) {
+  const gameRef = ref(db, `rooms/${roomCode}`);
+  const snapshot = await get(gameRef);
+
+  if (!snapshot.exists()) {
+    throw new Error("The royal chambers have vanished...");
+  }
+
+  const gameData = snapshot.val();
+
+  const attackerData = gameData.players[attacker];
+  const targetData = gameData.players[target];
+  const attackerHand = attackerData.hand;
+  const targetHand = targetData.hand;
+  const phantomKingCard = attackerHand[selectedCardIndex];
+  const attackerSecondCardIndex = selectedCardIndex === 0 ? 1 : 0;
+  const attackerCard = attackerHand[attackerSecondCardIndex]; // Attacker's remaining card
+  const targetCard = targetHand[0]; // Target's card
+
+  if (
+    !targetHand ||
+    targetHand.length !== 1 ||
+    !attackerHand ||
+    attackerHand.length !== 2
+  ) {
+    throw new Error(
+      "The Phantom King requires the target to have exactly one card and the attacker to have exactly two cards..."
+    );
+  }
+
+  console.log("👻 PHANTOM KING DEBUG: Game data loaded", {
+    phantomKingCard,
+    targetHand,
+    attackerHand,
+  });
+
+  // ----------
+  try {
+    // STEP 1: Apply hand swap effect
+    console.log("🎭 PHANTOM KING STEP 1: Before swaping hands...");
+
+    const newAttackerHand =
+      selectedCardIndex === 0
+        ? [phantomKingCard, targetCard]
+        : [targetCard, phantomKingCard];
+    const newTargetHand = [attackerCard];
+
+    console.log("🎭 PHANTOM KING: Preparing mystical exchange between:", {
+      attackerCard: attackerCard.name,
+      targetCard: targetCard.name,
+    });
+
+    // Normal swap case - check if we have the required data
+    if (!attackerCard || !targetCard) {
+      console.error("👻 PHANTOM KING ERROR: Missing card data");
+      setResultModalData({
+        resultText:
+          "❌ The Phantom King's power failed... Something went wrong with the card exchange.",
+      });
+      return;
+    }
+
+    // Apply the hand swap in Firebase (moved from cardEffects.js)
+    console.log("👻 PHANTOM KING: Applying hand swap to Firebase");
+    const updates = {
+      [`players/${attacker}/hand`]: newAttackerHand, // Attacker gets target's card
+      [`players/${target}/hand`]: newTargetHand, // Target gets attacker's card
+    };
+    await update(ref(db, `rooms/${roomCode}`), updates);
+    console.log("👻 PHANTOM KING: Hand swap completed");
+  } catch (error) {
+    console.error("👻 PHANTOM KING ERROR: Mystical exchange failed!", error);
+    throw new Error("The Phantom King's power faltered...");
+  }
+
+  // ---------------------
+
   const returnValue = {
     result: "success",
+    newAttackerCard: targetCard,
+    newTargetCard: attackerCard,
 
     // New formatted messages
     attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>

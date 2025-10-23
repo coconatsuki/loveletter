@@ -293,7 +293,7 @@
 .flavor-text {
   font-size: 1.3rem;
   font-style: italic;
-  margin: 1rem 0 0.5rem 0;
+  margin: 1.5rem 0 0.5rem 0;
   color: #f4e4bc;
   line-height: 1.6;
   font-family: "Lora", serif;
@@ -355,7 +355,7 @@
   transition: all 0.3s ease;
   text-shadow: none;
   margin-bottom: 15px;
-  width: 30%;
+  width: 40%;
 }
 
 .continue-btn:hover {

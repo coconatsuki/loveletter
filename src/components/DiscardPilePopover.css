@@ -19,6 +19,10 @@
   pointer-events: none; /* Don't interfere with hover */
 }
 
+.your-hand-section {
+  margin-bottom: 1rem;
+}
+
 .discard-pile-title {
   font-size: 0.9rem;
   font-weight: bold;
@@ -36,19 +40,19 @@
 
 .discard-pile-item {
   margin-bottom: 0.25rem;
+  color: #8b0000;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  font-size: 0.9rem;
+  font-family: "Lora", serif;
+  gap: 5px;
 }
 
 .discard-card-name {
   font-weight: bold;
-  color: #8b0000;
 }
 
-.discard-card-details {
-  font-size: 0.7rem;
-  color: #5d0000;
+.popover-discard-card-details {
   font-style: italic;
 }
 

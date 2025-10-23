@@ -1,0 +1,82 @@
+/* Card Effect Details Popover */
+.card-effect-popover {
+  position: absolute;
+  background: linear-gradient(135deg, #e6c196 0%, #ead2b7 50%, #ece2d7 100%);
+  border: 2px solid #8b0000;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  min-width: 450px;
+  padding: 0.75rem;
+  z-index: 999999999;
+  color: #930002;
+  pointer-events: none; /* Don't interfere with hover */
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.card-effect-popover.left {
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 15px;
+}
+
+.card-effect-popover.right {
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 15px;
+}
+
+.card-effect-popover-title {
+  font-size: 1.15rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid #8b0000;
+  padding-bottom: 0.25rem;
+  font-family: "Cinzel", serif;
+}
+
+.card-effect-popover-content {
+  font-weight: 500;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: black;
+  text-align: justify;
+  font-family: "Lora", serif;
+  font-style: italic;
+}
+
+/* Arrow pointing down to the card */
+.card-effect-popover-arrow {
+  position: absolute;
+  top: 100%;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #8b0000;
+}
+
+.card-effect-popover-arrow.left {
+  right: 20px;
+}
+
+.card-effect-popover-arrow.right {
+  left: 20px;
+}
+
+/* Arrow inner part (golden background) */
+.card-effect-popover-arrow::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: -7px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #e6c196;
+}

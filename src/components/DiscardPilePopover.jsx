@@ -9,16 +9,45 @@ const DiscardPilePopover = ({
   gameMode,
   isVisible,
   showOnLeft = false,
+  isYou = false,
 }) => {
   if (!isVisible || !player) {
     return null;
   }
 
   const hasDiscardedCards = player.discard && player.discard.length > 0;
+  const hasHand = isYou && player.hand && player.hand.length > 0;
 
   return (
     <div className={`discard-pile-popover ${showOnLeft ? "show-left" : ""}`}>
-      <div className="discard-pile-title">{player.name} discard pile</div>
+      {/* Show hand section first if it's the current player */}
+      {hasHand && (
+        <>
+          <div className="discard-pile-title">Your Hand</div>
+          <div className="discard-pile-content your-hand-section">
+            {player.hand.map((card, index) => {
+              const cardData = cards.find((c) => c.id === card.id);
+              const count = getCardCount(card.id, gameMode, cards);
+
+              return (
+                <div key={`hand-${index}`} className="discard-pile-item">
+                  <span className="discard-card-name">
+                    {cardData?.name?.toUpperCase() || "Unknown"}
+                  </span>
+                  <span className="popover-discard-card-details">
+                    (Str: {card.strength}, Count: {count})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Show discard pile section */}
+      <div className="discard-pile-title">
+        {isYou ? "Your Discard Pile" : `${player.name} Discard Pile`}
+      </div>
       <div className="discard-pile-content">
         {hasDiscardedCards ? (
           player.discard.map((card, index) => {
@@ -26,12 +55,12 @@ const DiscardPilePopover = ({
             const count = getCardCount(card.id, gameMode, cards);
 
             return (
-              <div key={index} className="discard-pile-item">
+              <div key={`discard-${index}`} className="discard-pile-item">
                 <span className="discard-card-name">
-                  {cardData?.name || "Unknown"}
+                  {cardData?.name?.toUpperCase() || "Unknown"}
                 </span>
-                <span className="discard-card-details">
-                  (Strength: {card.strength}, Count: {count})
+                <span className="popover-discard-card-details">
+                  (Str: {card.strength}, Count: {count})
                 </span>
               </div>
             );

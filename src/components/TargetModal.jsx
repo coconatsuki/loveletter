@@ -6,6 +6,7 @@ export default function TargetModal({
   cardPlayed,
   protectedPlayers = [],
   nextTarget = null,
+  isDeckEmpty = false,
   onConfirm,
   onCancel,
 }) {
@@ -13,6 +14,15 @@ export default function TargetModal({
   const [guess, setGuess] = useState(2); // default to 2 for Guard
   const [isConfirmHovered, setIsConfirmHovered] = useState(false);
   const [isBackHovered, setIsBackHovered] = useState(false);
+
+  const isGuard = cardPlayed === 1;
+  const isPrince = cardPlayed === 5;
+  const isPrinceAndDeckEmpty = isPrince && isDeckEmpty;
+  const isPhantomKing = cardPlayed === 6;
+  const isRegentQueen = cardPlayed === 11;
+  const isCourtWhisperer = cardPlayed === 12;
+
+  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
   const validTargets = Object.entries(players).filter(
     ([name, p]) =>
@@ -32,19 +42,14 @@ export default function TargetModal({
   // If targeting is forced, override validTargets to only include the forced target
   const finalValidTargets = isTargetingForced
     ? validTargets.filter(([name]) => name === forcedTargetNickname)
+    : isPrinceAndDeckEmpty
+    ? []
     : validTargets;
+
+  const hasNoTargets = finalValidTargets.length === 0 || isPrinceAndDeckEmpty;
 
   console.log("valid targets:", validTargets);
   console.log("Final valid targets:", finalValidTargets);
-
-  const isGuard = cardPlayed === 1;
-  const isPrince = cardPlayed === 5;
-  const isPhantomKing = cardPlayed === 6;
-  const isRegentQueen = cardPlayed === 11;
-  const isCourtWhisperer = cardPlayed === 12;
-  const hasNoTargets = finalValidTargets.length === 0;
-
-  const isConfirmDisabled = !selectedTarget || selectedTarget === "";
 
   console.log("TargetModal button state:", {
     selectedTarget,
@@ -56,12 +61,6 @@ export default function TargetModal({
   return (
     <div className="modal" style={cardOptionsContainerStyle}>
       <div className="modal-content" style={cardOptionsContentStyle}>
-        {hasNoTargets && !canTargetSelf && !isTargetingForced && (
-          <p style={noTargetMessageStyle}>
-            🫖 All other players are enjoying tea with the Princess' Handmaid
-            and cannot be targeted.
-          </p>
-        )}
         {isPrince && validTargets.length === 0 && (
           <p
             style={{
@@ -86,7 +85,7 @@ export default function TargetModal({
             onChange={(e) => setSelectedTarget(e.target.value)}
           >
             <option value="">-- Choose a player --</option>
-            {isPhantomKing && !isTargetingForced && (
+            {isPhantomKing && !isTargetingForced && !hasNoTargets && (
               <option value="SKIP_TURN">👻 Nobody (skip effect)</option>
             )}
             {finalValidTargets.map(([name, p]) => (
@@ -104,6 +103,23 @@ export default function TargetModal({
             )}
           </select>
         </div>
+
+        {hasNoTargets &&
+          !canTargetSelf &&
+          !isTargetingForced &&
+          !isPrinceAndDeckEmpty && (
+            <p style={{ ...noTargetMessageStyle, color: "#f3b5bb" }}>
+              🫖 All other players are enjoying tea with the Princess' Handmaid
+              and cannot be targeted.
+            </p>
+          )}
+
+        {isPrinceAndDeckEmpty && (
+          <p style={{ ...noTargetMessageStyle }}>
+            🤴🏼Too late, your Highness. The Deck is empty. You can't target
+            anyone.
+          </p>
+        )}
 
         {/* 🗣️ Court Whisperer: Show gossip message when targeting is forced */}
         {isTargetingForced && !hasNoTargets && (
@@ -135,7 +151,7 @@ export default function TargetModal({
               value={guess}
               onChange={(e) => setGuess(Number(e.target.value))}
             >
-              {[0, 2, 3, 4, 5, 6, 7, 8, 9].map((str) => (
+              {[0, 2, 3, 4, 5, 6, 7, 8].map((str) => (
                 <option key={str} value={str}>
                   {str}
                 </option>
@@ -158,7 +174,7 @@ export default function TargetModal({
           </div>
         )}
 
-        {isPhantomKing && !isTargetingForced && (
+        {isPhantomKing && !isTargetingForced && !hasNoTargets && (
           <div style={specialQuoteContainerStyle}>
             <em>
               <p style={{ ...specialQuoteStyle, ...phantomKingMessageStyle }}>
@@ -221,13 +237,14 @@ const dropdownSectionStyle = {
 };
 
 const noTargetMessageStyle = {
-  color: "rgb(136, 136, 136)",
+  color: "rgb(222 188 188)",
+  textAlign: "justify",
   fontStyle: "italic",
   marginBottom: "2%",
   marginTop: 0,
   fontFamily: "Lora, serif",
   fontSize: "1.2rem",
-  lineHeight: "1.5rem",
+  lineHeight: "1.6rem",
 };
 
 const cardOptionsContainerStyle = {

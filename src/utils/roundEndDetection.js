@@ -30,6 +30,11 @@ export async function checkRoundEndConditions(roomCode) {
       (player) => players[player].isOut
     );
 
+    console.log(
+      "🔍 CHECKING ROUND END CONDITIONS / activePlayers.length: ",
+      activePlayers.length
+    );
+
     if (activePlayers.length === 1) {
       console.log("🏆 ROUND END DETECTED: Last player standing!", {
         winner: activePlayers[0],

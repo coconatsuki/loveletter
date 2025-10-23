@@ -86,8 +86,11 @@ export function handlePlayerElimination(
   playerName,
   gameMode,
   currentPlayerData,
-  existingUpdates = {}
+  existingUpdates = {},
+  options = {}
 ) {
+  const { discardRemainingHand = true } = options;
+
   console.log(`🚨 HANDLE PLAYER ELIMINATION CALLED:`, {
     roomCode,
     playerName,
@@ -100,6 +103,7 @@ export function handlePlayerElimination(
         }
       : null,
     existingUpdates,
+    discardRemainingHand,
   });
 
   const updates = { ...existingUpdates };
@@ -136,7 +140,11 @@ export function handlePlayerElimination(
   }
 
   // Discard any remaining hand cards to player's discard pile
-  if (currentPlayerData?.hand && currentPlayerData.hand.length > 0) {
+  if (
+    discardRemainingHand &&
+    currentPlayerData?.hand &&
+    currentPlayerData.hand.length > 0
+  ) {
     console.log(
       `🃏 Discarding ${currentPlayerData.hand.length} remaining hand cards for eliminated player ${playerName}:`,
       currentPlayerData.hand
@@ -154,7 +162,11 @@ export function handlePlayerElimination(
     );
   } else {
     console.log(
-      `🃏 No hand cleanup needed for ${playerName} - hand is empty or undefined`
+      `🃏 No hand cleanup needed for ${playerName} - ${
+        discardRemainingHand
+          ? "hand is empty or undefined"
+          : "discardRemainingHand option is false"
+      }`
     );
   }
 
