@@ -1171,26 +1171,16 @@ export async function applyPrincessEffect({ roomCode, player }) {
     // DON'T eliminate the player here - wait for modal confirmation!
     // Elimination will happen in completePrincessTurn() after player reads the modal
 
-    console.log(
-      "👑 PRINCESS: Prepared tragic messages, elimination pending modal confirmation",
-      {
-        player,
-        eliminationPending: true,
-      }
-    );
-
     // Craft dramatic medieval-geek messages
-    const publicMessage = `<div class="effect-title">👑💀 ROYAL CATASTROPHE! 💀👑</div>
-    <div class="effect-description"><span class="effect-player">${playerName}</span> has played the <span class="effect-card">PRINCESS</span> herself!</div>
-    <div class="effect-description">💔 In a moment of desperate love, they approached the Princess directly...</div>
-    <div class="effect-description">💔 But the Princess, in all her royal dignity, simply turned away!</div>
-    <div class="effect-description">💔 "<span class="effect-player">${playerName}</span>, you presume too much!" declared Her Highness.</div>
-    <div class="effect-warning">💔 They are banished from the royal court! 👑✨💀</div>`;
-    const playerMessage = `<div class="effect-title">👑💀 ULTIMATE ROYAL BLUNDER! 💀👑</div>
-    <div class="effect-description">Oh no! You played the <span class="effect-card">PRINCESS</span>! 🙈</div>
-    <div class="effect-description">💔 You approached Her Royal Highness directly with your letter...</div>
-    <div class="effect-description">💔 But she gave you the coldest royal stare before walking away, ignoring you.</div>
-    <div class="effect-warning">💀 You are eliminated from the round, you hopeless romantic! 💀</div>
+    const publicMessage = `<div class="effect-title">😱 ROYAL CATASTROPHE! 😱</div>
+    <div class="effect-description">In a moment of desperate love, <span class="effect-player">${playerName}</span> approached the Princess directly...</div>
+    <div class="effect-description">But in all her royal dignity, she simply turned away! 💔</div>
+    <div class="effect-description"><span class="quotation">"You presume too much!"</span> declared Her Highness.</div>
+    <div class="effect-warning"><span class="effect-player">${playerName}</span> is banished from the royal court! 👑✨</div>`;
+    const playerMessage = `<div class="effect-description">Oh no! You've been rejected by the <span class="effect-card">PRINCESS</span>...! 🙈</div>
+    <div class="effect-description">You approached Her Royal Highness directly with your letter...</div>
+    <div class="effect-description">But she gave you the coldest royal stare before walking away, ignoring you. 💔</div>
+    <div class="effect-warning">You are eliminated from the round, you hopeless romantic! 😘</div>
     <div class="effect-quote">"Next time, try working your way up the social ladder first..."</div>
     <div class="effect-signature">- The Princess (rolling her eyes) 🙄</div>`;
 

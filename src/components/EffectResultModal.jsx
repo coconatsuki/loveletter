@@ -203,6 +203,7 @@ export default function EffectResultModal({
             ...(isBaronessEffect ? baronessModalStyle : {}),
             ...(isDukeEffect ? dukeModalStyle : {}),
             ...(isCountessEffect ? countessModalStyle : {}),
+            ...(isPrinceEffect ? princeModalStyle : {}),
           }}
         >
           {/* Crown decoration */}
@@ -228,6 +229,8 @@ export default function EffectResultModal({
                 ? "linear-gradient(135deg, rgb(26, 31, 58) 0%, rgb(82 101 205) 100%)"
                 : isCountessEffect
                 ? "linear-gradient(135deg, rgb(10 8 9) 0%, rgb(78 22 41) 100%)"
+                : isPrinceEffect
+                ? "linear-gradient(135deg, rgb(6 17 39) 0%, rgb(22 52 104) 50%, rgb(61, 90, 143) 100%)"
                 : isHandmaidProtection
                 ? "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)"
                 : "#8b0000",
@@ -248,6 +251,8 @@ export default function EffectResultModal({
                   ? "#dc143c"
                   : isCountessEffect
                   ? "#d4a574"
+                  : isPrinceEffect
+                  ? "#d4af37"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -306,7 +311,8 @@ export default function EffectResultModal({
               isRoyalConfessorEffect,
               isBaronessEffect,
               isDukeEffect,
-              isCountessEffect
+              isCountessEffect,
+              isPrinceEffect
             )}
           >
             {isPriestEffect
@@ -786,7 +792,8 @@ export default function EffectResultModal({
               style={getMessageStyle(
                 isCourtWhispererEffect,
                 isDukeEffect,
-                isCountessEffect
+                isCountessEffect,
+                isPrinceEffect
               )}
             >
               {formatText(resultText)}
@@ -806,6 +813,7 @@ export default function EffectResultModal({
                       : {}),
                     ...(isDukeEffect ? dukeButtonStyle : {}),
                     ...(isCountessEffect ? countessButtonStyle : {}),
+                    ...(isPrinceEffect ? princeButtonStyle : {}),
                     ...(isPriestTarget ? priestButtonStyle : {}),
                   }}
                   onMouseEnter={(e) => {
@@ -837,6 +845,13 @@ export default function EffectResultModal({
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(212, 165, 116, 0.7)";
                       e.target.style.border = "2px solid #f5e6d3";
+                    } else if (isPrinceEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #4a6fa5 0%, #6a8fc8 100%)";
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 25px rgba(212, 175, 55, 0.8)";
+                      e.target.style.border = "2px solid #ffffff";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(46 116 50) 0%,rgb(11 28 11)  100%)";
@@ -890,6 +905,14 @@ export default function EffectResultModal({
                         "0 4px 15px rgba(212, 165, 116, 0.4)";
                       e.target.style.color = "#f5e6d3";
                       e.target.style.border = "2px solid #d4a574";
+                    } else if (isPrinceEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, #2d4a7c 0%, #4a6fa5 100%)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow =
+                        "0 4px 15px rgba(212, 175, 55, 0.4)";
+                      e.target.style.color = "#ffffff";
+                      e.target.style.border = "2px solid #d4af37";
                     } else if (isHandmaidProtection) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(13, 44, 6) 0%, rgb(0, 0, 0) 100%)";
@@ -988,7 +1011,8 @@ const getHeaderStyle = (
   isRoyalConfessorEffect,
   isBaronessEffect,
   isDukeEffect,
-  isCountessEffect
+  isCountessEffect,
+  isPrinceEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
@@ -1010,6 +1034,8 @@ const getHeaderStyle = (
     ? "linear-gradient(135deg, #1a1f3a 0%, #2c1810 50%, #dc143c 100%)"
     : isCountessEffect
     ? "linear-gradient(135deg, #6b2d43 0%, #8b3a56 50%, #a5556d 100%)"
+    : isPrinceEffect
+    ? "linear-gradient(135deg, #2d4a7c 0%, #4a6fa5 50%, #6a8fc8 100%)"
     : "linear-gradient(135deg, #8b0000 0%, #a52a2a 100%)",
   color: isCourtWhispererEffect
     ? "rgb(242 242 242)"
@@ -1023,6 +1049,8 @@ const getHeaderStyle = (
     ? "#f0f8ff"
     : isCountessEffect
     ? "#f5e6d3"
+    : isPrinceEffect
+    ? "#ffffff"
     : "#ffd700",
   margin: "0",
   padding: "35px 25px 15px",
@@ -1035,6 +1063,8 @@ const getHeaderStyle = (
     ? "2px 2px 4px rgba(139, 0, 0, 0.8)"
     : isCountessEffect
     ? "2px 2px 4px rgba(0, 0, 0, 0.9)"
+    : isPrinceEffect
+    ? "2px 2px 4px rgba(0, 0, 0, 0.7)"
     : "2px 2px 4px rgba(0, 0, 0, 0.8)",
   borderBottom: `2px solid ${
     isPriestEffect
@@ -1049,6 +1079,8 @@ const getHeaderStyle = (
       ? "#dc143c"
       : isCountessEffect
       ? "#d4a574"
+      : isPrinceEffect
+      ? "#d4af37"
       : "#ffd700"
   }`,
   borderRadius: "20px 17px 0 0",
@@ -1058,7 +1090,8 @@ const getHeaderStyle = (
 const getMessageStyle = (
   isCourtWhispererEffect,
   isDukeEffect,
-  isCountessEffect
+  isCountessEffect,
+  isPrinceEffect
 ) => ({
   fontSize: "1.3rem",
   textAlign: "justify",
@@ -1067,6 +1100,8 @@ const getMessageStyle = (
     ? "#faebd7"
     : isCountessEffect
     ? "#f5e6d3"
+    : isPrinceEffect
+    ? "#ffffff"
     : "white",
   margin: "0",
   padding: "25px",
@@ -1074,6 +1109,8 @@ const getMessageStyle = (
     ? "linear-gradient(135deg, rgb(19 25 52) 0%, rgb(51 73 190) 100%)"
     : isCountessEffect
     ? "linear-gradient(135deg, rgb(0 0 0) 0%, rgb(46 31 38) 50%, rgb(78 22 41) 100%)"
+    : isPrinceEffect
+    ? "linear-gradient(135deg, rgb(6 17 39) 0%, rgb(22 52 104) 50%, rgb(61, 90, 143) 100%)"
     : "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
   fontFamily: '"Lora", serif',
   borderRadius: "0 0 20px 20px",
@@ -1169,6 +1206,17 @@ const countessButtonStyle = {
   fontFamily: "Cinzel, serif",
 };
 
+// 🤴 Prince Button Style - Royal and commanding
+const princeButtonStyle = {
+  width: "60%",
+  background: "linear-gradient(135deg, #2d4a7c 0%, #4a6fa5 100%)",
+  color: "#ffffff",
+  border: "2px solid #d4af37",
+  fontWeight: "700",
+  textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
+  fontFamily: "Cinzel, serif",
+};
+
 // �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
 const courtWhispererModalStyle = {
   background:
@@ -1184,6 +1232,14 @@ const countessModalStyle = {
   border: "4px solid #d4a574",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(212, 165, 116, 0.5), inset 0 1px 0 rgba(245, 230, 211, 0.2)",
+};
+
+// 🤴 Prince Modal Style - Royal blue and gold theme
+const princeModalStyle = {
+  background: "linear-gradient(135deg, #1a2a4a 0%, #2d4a7c 50%, #4a6fa5 100%)",
+  border: "4px solid #d4af37",
+  boxShadow:
+    "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
 };
 
 // Priest-specific modal styles
