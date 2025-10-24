@@ -85,8 +85,7 @@ export const cards = [
     countPremium: 2,
     effectDetails:
       "Choose a player (or yourself) who must discard their card (without applying its effect, unless it's the Princess) and draw a new one. If everyone is protected, you must choose yourself. If the deck is empty, the Prince won't have any effect.",
-    effect:
-      "Choose a target (or yourself) who must discard their card and draw a new one.",
+    effect: "Choose a target (or yourself) who must renew their hand.",
   },
   {
     id: 6,

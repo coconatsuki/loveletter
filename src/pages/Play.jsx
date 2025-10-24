@@ -1455,6 +1455,11 @@ export default function Play() {
     if (resultModalData?.isPrincessElimination) {
       console.log("👑 PRINCESS: Using special turn completion (elimination)");
       await completePrincessTurn();
+
+      await completeTurnWithCardIndex(selectedCardIndex, {
+        noDiscarding: true,
+      });
+      return;
     }
 
     // Special handling for Duke - noble favor effect must be applied now
@@ -1477,32 +1482,19 @@ export default function Play() {
           roomCode,
           player?.name,
           roomData?.mode,
-          roomData.players[player],
+          roomData.players[player?.name],
           finalUpdates,
-          { discardRemainingHand: false }
+          { discardRemainingHand: true }
         );
 
         await update(ref(db, `rooms/${roomCode}`), finalUpdates);
-      }
-    }
 
-    // Standard validation for other cards
-    if (
-      selectedCardIndex === null ||
-      selectedCardIndex === undefined ||
-      selectedCardIndex < 0 ||
-      !player?.hand ||
-      player.hand.length === 0 ||
-      selectedCardIndex >= player.hand.length
-    ) {
-      console.error(
-        "Cannot complete turn - invalid selectedCardIndex or hand state:",
-        {
-          selectedCardIndex,
-          handLength: player?.hand?.length,
-        }
-      );
-      return;
+        await completeTurnWithCardIndex(selectedCardIndex, {
+          noDiscarding: true,
+        });
+
+        return;
+      }
     }
 
     await completeTurnWithCardIndex(selectedCardIndex);
@@ -1510,7 +1502,7 @@ export default function Play() {
 
   /*Completes the turn using a specific card index (used by target message modals) */
 
-  const completeTurnWithCardIndex = async (cardIndex) => {
+  const completeTurnWithCardIndex = async (cardIndex, options = {}) => {
     console.log("🔄 completeTurnWithCardIndex: Starting with data:", {
       cardIndex,
       cardIndexType: typeof cardIndex,
@@ -1519,60 +1511,75 @@ export default function Play() {
       handLength: player?.hand?.length,
       nickname,
       roomCode,
+      options,
     });
 
-    // Validate that we have the necessary data to complete the turn
-    if (
-      cardIndex === null ||
-      cardIndex === undefined ||
-      cardIndex < 0 ||
-      !player?.hand ||
-      player.hand.length === 0 ||
-      cardIndex >= player.hand.length
-    ) {
-      console.error(
-        "🔄 completeTurnWithCardIndex - TURN COMPLETION ERROR: Cannot complete turn - invalid cardIndex or hand state:",
-        {
-          cardIndex,
-          cardIndexType: typeof cardIndex,
-          handLength: player?.hand?.length,
-          player: player,
-        }
+    if (options.noDiscarding) {
+      console.log(
+        "🔄 completeTurnWithCardIndex - noDiscarding option - Skipping discard"
       );
-      return;
+    } else {
+      // Get the most recent data from Firebase to avoid stale state issues
+      const snapshot = await get(ref(db, `rooms/${roomCode}`));
+      const updatedData = snapshot.val();
+      setRoomData(updatedData);
+      setPlayer(updatedData?.players?.[nickname]);
+
+      // Validate that we have the necessary data to complete the turn
+      if (
+        cardIndex === null ||
+        cardIndex === undefined ||
+        cardIndex < 0 ||
+        !player?.hand ||
+        player.hand.length === 0 ||
+        cardIndex >= player.hand.length
+      ) {
+        console.error(
+          "🔄 completeTurnWithCardIndex (should discard) - TURN COMPLETION ERROR: invalid cardIndex or hand state:",
+          {
+            cardIndex,
+            cardIndexType: typeof cardIndex,
+            handLength: player?.hand?.length,
+            player: player,
+          }
+        );
+        return;
+      }
+
+      const playedCard = player.hand[cardIndex];
+      // Build remaining hand by filtering out the played card
+      const remainingHand = player.hand.filter(
+        (_, index) => index !== cardIndex
+      );
+      const newDiscard = [...(player.discard || []), playedCard];
+
+      // Handle card discard and check for special tokens (like Chamberlain)
+      const discardUpdates = {
+        [`players/${nickname}/hand`]: remainingHand,
+        [`players/${nickname}/discard`]: newDiscard,
+      };
+
+      const finalUpdates = handleCardDiscard({
+        roomCode,
+        playerName: nickname,
+        card: playedCard,
+        gameMode: roomData?.mode,
+        existingUpdates: discardUpdates,
+      });
+
+      // Update Firebase with the turn completion
+      await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+
+      console.log(
+        "🔄 completeTurnWithCardIndex - Card discarded, checking round end:"
+      );
     }
-
-    const playedCard = player.hand[cardIndex];
-    // Build remaining hand by filtering out the played card
-    const remainingHand = player.hand.filter((_, index) => index !== cardIndex);
-    const newDiscard = [...(player.discard || []), playedCard];
-
-    // Handle card discard and check for special tokens (like Chamberlain)
-    const discardUpdates = {
-      [`players/${nickname}/hand`]: remainingHand,
-      [`players/${nickname}/discard`]: newDiscard,
-    };
-
-    const finalUpdates = handleCardDiscard({
-      roomCode,
-      playerName: nickname,
-      card: playedCard,
-      gameMode: roomData?.mode,
-      existingUpdates: discardUpdates,
-    });
-
-    // Update Firebase with the turn completion
-    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
-
-    console.log(
-      "🔄 completeTurnWithCardIndex - Card discarded, checking round end:"
-    );
 
     // Checking if the round should end now
     const roundEndResult = await checkRoundEndConditions(roomCode);
 
     console.log(
-      "🔄 completeTurnWithCardIndex - Card discarded, AFTER checking round end:",
+      "🔄 completeTurnWithCardIndex - AFTER checking round end / roundEndResult:",
       {
         roundEndResult,
       }
@@ -1615,9 +1622,8 @@ export default function Play() {
       const nextPlayer = activePlayers[nextIndex];
 
       // Final validation before Firebase update
-      if (!playedCard || !nextPlayer) {
+      if (!nextPlayer) {
         console.error("Invalid values detected before Firebase update:", {
-          playedCard,
           remainingHand,
           nextPlayer,
         });
@@ -1964,42 +1970,13 @@ export default function Play() {
   const completePrincessTurn = async () => {
     console.log("👑 PRINCESS TURN COMPLETION: The royal tragedy concludes");
 
-    // Validate selectedCardIndex
-    if (
-      selectedCardIndex === null ||
-      selectedCardIndex === undefined ||
-      !player.hand ||
-      selectedCardIndex >= player.hand.length
-    ) {
-      console.error(
-        "👑 PRINCESS ERROR: Cannot complete turn - invalid selectedCardIndex:",
-        { selectedCardIndex, handLength: player.hand?.length }
-      );
-      return;
-    }
-
-    const secondCardIndex = selectedCardIndex === 0 ? 1 : 0;
-    const secondCard = player.hand[secondCardIndex];
-
-    // Filter out princess card (we want to discard the second card now -and the princess later)
-    const newHand = player.hand.filter(
-      (_, index) => index === selectedCardIndex
-    );
-    const newDiscard = [...(player.discard || []), secondCard];
-
-    // Update game state: discard Princess, ELIMINATE PLAYER, advance turn, clear protection
-    const baseUpdates = {
-      [`players/${nickname}/hand`]: newHand,
-      [`players/${nickname}/discard`]: newDiscard,
-    };
-
     const finalUpdates = handlePlayerElimination(
       roomCode,
       nickname,
       roomData?.mode,
       player,
-      baseUpdates,
-      { discardRemainingHand: false }
+      {},
+      { discardRemainingHand: true }
     );
     // Just apply isOut=true for player (Princess discard is done later)
     await update(ref(db, `rooms/${roomCode}`), finalUpdates);
@@ -2347,11 +2324,6 @@ export default function Play() {
                                                 <div className="card-effect">
                                                   {card.effect}
                                                 </div>
-                                                {isBlocked && (
-                                                  <div className="card-blocked-text">
-                                                    🎭 Blocked by Countess
-                                                  </div>
-                                                )}
                                                 <CardCountStars
                                                   count={card.count}
                                                 />
@@ -2412,11 +2384,6 @@ export default function Play() {
                                               <div className="card-effect">
                                                 {card.effect}
                                               </div>
-                                              {isBlocked && (
-                                                <div className="card-blocked-text">
-                                                  🎭 Blocked by Countess
-                                                </div>
-                                              )}
                                               <CardCountStars
                                                 count={card.count}
                                               />

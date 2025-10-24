@@ -256,9 +256,7 @@ export default function EffectResultModal({
                   : isCountessEffect
                   ? "#d4a574"
                   : isPrinceEffect
-                  ? "#d4af37"
-                  : isPrincessEffect
-                  ? "#d4a8e8"
+                  ? "#ece67f"
                   : isHandmaidProtection
                   ? "#8bc34a"
                   : "#ffd700"
@@ -1301,7 +1299,7 @@ const princeModalStyle = {
 // 👑 Princess Modal Style - Royal purple, lavender and soft pink theme
 const princessModalStyle = {
   background: "linear-gradient(135deg, #4a2c5e 0%, #6b4c7e 50%, #8b6ca8 100%)",
-  border: "4px solid #d4a8e8",
+  border: "4px solid rgb(237, 229, 128)",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(212, 168, 232, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
 };
