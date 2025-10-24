@@ -103,7 +103,7 @@ export default function Room() {
         realName: realName || "",
         isOut: false,
         tokens: 0,
-        gameTokens: 0,
+        roundTokens: 0,
       });
     }
 

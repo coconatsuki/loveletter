@@ -215,13 +215,6 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
 
   const targetCard = targetPlayer.hand[0];
 
-  /*
-  const cardData = cards.find((c) => c.id === targetCard.id);
-   const enrichedTargetCard = {
-    ...targetCard,
-    effect: cardData?.effect || "Unknown card effect",
-  }; */
-
   console.log("PRIEST CARD DATA - contains count & effect? => ", targetCard);
 
   return {
@@ -1220,12 +1213,14 @@ export async function awardLoveToken({ roomCode, player }) {
     const snapshot = await get(ref(db, `rooms/${roomCode}`));
     const data = snapshot.val();
     const currentTokens = data.players[player]?.tokens || 0;
+    const currentRoundTokens = data.players[player]?.roundTokens || 0;
 
     // 🕵️ Track love token origin for inquisitor correct guess
     const existingOrigin = data.players[player]?.loveTokenOrigin || {};
 
     await update(ref(db, `rooms/${roomCode}/players/${player}`), {
       tokens: currentTokens + 1,
+      roundTokens: currentRoundTokens + 1,
       loveTokenOrigin: {
         ...existingOrigin,
         inquisitorGuess: 1,
@@ -1235,7 +1230,11 @@ export async function awardLoveToken({ roomCode, player }) {
     console.log(
       `💰 SUCCESS: ${player} now has ${currentTokens + 1} love tokens`
     );
-    return { success: true, newTokenCount: currentTokens + 1 };
+    return {
+      success: true,
+      newTokenCount: currentTokens + 1,
+      newRoundTokenCount: currentRoundTokens + 1,
+    };
   } catch (error) {
     console.error("💰 LOVE TOKEN ERROR:", error);
     return { success: false, error: error.message };
@@ -1282,24 +1281,20 @@ export async function applyInquisitorEffect({
       } (strength ${targetCard.strength})`
     );
 
-    // Create enriched card object for display
-    const enrichedTargetCard =
-      cards.find((c) => c.id === targetCard.id) || targetCard;
-
     let attackerMessage, targetMessage, publicMessage;
 
     if (!wasCorrect) {
       // Wrong guess - no effects, just messages
-      attackerMessage = `<div class="effect-description">🔍 Your Inquisitor searched for a heretic of <span class="effect-strength">strength ${guess}</span> at <span class="effect-player">${attackerPlayer.name}</span>'s place,  but didn't find the suspect.</div>
+      attackerMessage = `<div class="effect-description top">🔍 Your Inquisitor searched for a heretic of <span class="effect-strength">strength ${guess}</span> at <span class="effect-player">${attackerPlayer.name}</span>'s place,  but didn't find the suspect.</div>
       <div class="effect-description">⚖️ The investigation yields nothing...</div>`;
 
-      targetMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
+      targetMessage = `<div class="effect-description top">🕵️ <span class="effect-player">${
         attackerPlayer.name || attacker
       }</span>'s Inquisitor came looking for some heretic of strength <span class="effect-strength">${guess}</span> at your place...</div>
       <div class="effect-description">🛡️ But they only found you in the company of <span class="effect-card">${
-        enrichedTargetCard.name
+        targetCard.name
       }</span> (Strength <span class="effect-strength">${
-        enrichedTargetCard.strength
+        targetCard.strength
       }</span>).</div>
       <div class="effect-description">✨ You are safe from their investigation!</div>`;
 
@@ -1310,19 +1305,19 @@ export async function applyInquisitorEffect({
       }</span> but found no evidence of wrongdoing.</div>`;
     } else if (isPrincessFound) {
       // Correct guess AND Princess found - SCANDAL!
-      attackerMessage = `<div class="effect-description">⛪💀 SCANDALOUS DISCOVERY! Your Inquisitor found <span class="effect-player">${
+      attackerMessage = `<div class="effect-description top">SCANDALOUS DISCOVERY! 😱 Your Inquisitor found <span class="effect-player">${
         targetPlayer.name || target
       }</span> consorting directly with the <span class="effect-card">PRINCESS</span>!</div>
       <div class="effect-description">💰 Your cunning investigation earns you a <span class="effect-success">Love Token</span>!</div>
       <div class="effect-description">⚖️ Such impropriety cannot be tolerated - they are <span class="effect-elimination">ELIMINATED</span>!</div>`;
 
-      targetMessage = `<div class="effect-description">⛪💀 DIVINE JUDGMENT! <span class="effect-player">${
+      targetMessage = `<div class="effect-description top">⛪ DIVINE JUDGMENT! 🌩️ <span class="effect-player">${
         attackerPlayer.name || attacker
       }</span>'s Inquisitor discovered your secret meetings with the <span class="effect-card">PRINCESS</span>!</div>
-      <div class="effect-description">🔥 The Church declares this shocking impropriety absolutely intolerable!</div>
-      <div class="effect-description">💀 You are <span class="effect-elimination">ELIMINATED</span> for this scandalous breach of protocol!</div>`;
+      <div class="effect-description">The Church declares this shocking impropriety absolutely intolerable! 🔥</div>
+      <div class="effect-description">You are <span class="effect-elimination">ELIMINATED</span> for this scandalous breach of protocol!</div>`;
 
-      publicMessage = `<div class="effect-description">⛪💀 SCANDAL! <span class="effect-player">${
+      publicMessage = `<div class="effect-description">⛪ SCANDAL! <span class="effect-player">${
         attackerPlayer.name || attacker
       }</span>'s Inquisitor found <span class="effect-player">${
         targetPlayer.name || target
@@ -1331,17 +1326,17 @@ export async function applyInquisitorEffect({
       } eliminated for this shocking impropriety.</span></div>`;
     } else {
       // Correct guess but not Princess - normal investigation success
-      attackerMessage = `<div class="effect-description">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor found the heretic they were looking for in <span class="effect-player">${
+      attackerMessage = `<div class="effect-description top">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor found the heretic they were looking for in <span class="effect-player">${
         targetPlayer.name || target
       }</span>'s company.</div>
-      <div class="effect-description">💰 Your cunning earns you a <span class="effect-success">Love Token</span>!</div>
-      <div class="effect-description">⚖️ They must dismiss their heretic ally and seek new counsel...</div>`;
+      <div class="effect-description">Your cunning earns you a <span class="effect-success">Love Token</span>! 💰</div>
+      <div class="effect-description">They must dismiss their heretic ally and seek new counsel... </div>`;
 
-      targetMessage = `<div class="effect-description">🔍 ROYAL INVESTIGATION! <span class="effect-player">${
+      targetMessage = `<div class="effect-description top">🔍 ROYAL INVESTIGATION! <span class="effect-player">${
         attackerPlayer.name || attacker
       }</span>'s Inquisitor suspected you of plotting with some heretic of strength <span class="effect-strength">${guess}</span>...</div>
-      <div class="effect-description">💀 They were RIGHT! They discovered your <span class="effect-card">${
-        enrichedTargetCard.name
+      <div class="effect-description">They were RIGHT! 😱 They discovered your <span class="effect-card">${
+        targetCard.name
       }</span> ally in your company!</div>
       <div class="effect-description">⚖️ Your treacherous alliance is exposed - dismiss your accomplice immediately!</div>`;
 
@@ -1350,7 +1345,7 @@ export async function applyInquisitorEffect({
       }</span>'s Inquisitor exposed <span class="effect-player">${
         targetPlayer.name || target
       }</span>'s <span class="effect-card">${
-        enrichedTargetCard.name
+        targetCard.name
       }</span>! Secrets revealed!</div>`;
     }
 
@@ -1358,7 +1353,7 @@ export async function applyInquisitorEffect({
       result: wasCorrect ? "correctGuess" : "wrongGuess",
       isCorrectGuess: wasCorrect,
       isPrincessFound,
-      targetCard: enrichedTargetCard,
+      targetCard,
       guessedStrength: guess,
       actualStrength: targetCard.strength,
       attacker,
@@ -1379,7 +1374,7 @@ export async function applyInquisitorEffect({
         originalTarget: target,
         wasCorrectGuess: wasCorrect,
         foundPrincess: isPrincessFound,
-        discardedCard: wasCorrect ? enrichedTargetCard : null,
+        discardedCard: wasCorrect ? targetCard : null,
       },
     };
   } catch (error) {

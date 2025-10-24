@@ -1105,7 +1105,7 @@ export default function Play() {
         selectedCardId: 12, // Court Whisperer
         resultText: courtWhispererResult.attackerMessage,
         isInfoOnly: false,
-        isCourtWhispererEffect: true, // Handle in handleEffectResultClose
+        isCourtWhispererEffect: true,
         courtWhispererTarget: target, // Store target for completeCourtWhispererTurn
       });
 
@@ -1416,6 +1416,7 @@ export default function Play() {
       // Show attacker's result modal first (info only) with card details
       setResultModalData({
         selectedCardId: 9, // Inquisitor
+        /* ...result.attackerModalData, */
         resultText: result.attackerMessage,
       });
 

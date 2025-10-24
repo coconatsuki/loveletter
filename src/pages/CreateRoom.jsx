@@ -104,7 +104,7 @@ export default function CreateRoom() {
             name: nickname,
             realName,
             tokens: 0,
-            gameTokens: 0,
+            roundTokens: 0,
             discard: [],
             isOut: false,
           },

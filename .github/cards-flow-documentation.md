@@ -129,7 +129,9 @@ If discarded card is NOT princess => draw new card (if SelfTarget: use the origi
 handleEffectResultClose =>
 if (cardSelectedId == 5 && SelfTarget && princessDiscarded) => Eliminate player NOW, but WITHOUT CLEANING THEIR HAND ({discardRemainingHand: false})
 
-If (SelfTarget && princessDiscarded), the prince card should be discarded in completeTurnWithCardIndex() function, that also checks for roundEnd & advance turn.
+If (SelfTarget && princessDiscarded), the prince card should be discarded into handleEffectResultClose that will call handleElimination() which will clean the remaining card.
+
+completeTurnWithCardIndex(option: isDiscarding=false) => checks for roundEnd & advance turn.
 
 ### Phantom King
 
@@ -148,3 +150,17 @@ playCard() => playCountess => setSelectedCardIndex() => applyCountessEffect() (c
 generate public message & attacker result message
 
 => setResultModalData with result & push notifs => handleEffectResultClose => completeTurnWithCardIndex() - Countess is discarded here
+
+### Princess
+
+playCard => playPrincess (card.id === 8) => setSelectedCardIndex() & setIsPlaying(true) =>
+
+applyPrincessEffect() (from cardEffects.js) => generate public & player messages =>
+
+=> pushNotification() & setResultModalData() => handleEffectResultClose() =>
+
+completePrincessTurn() => Eliminate the playerwith handleElimination() which will clean the remaining/second card.
+
+completeTurnWithCardIndex(option: isDiscarding=false) => checks for roundEnd & advance turn.
+
+### Inquisitor
