@@ -37,7 +37,6 @@ import {
   applyRoyalConfessorEffect,
   applyBaronessEffect,
   applyDukeEffect,
-  awardLoveToken,
 } from "../utils/cardEffects";
 import { pushNotification } from "../utils/pushNotification";
 import {
@@ -1410,24 +1409,34 @@ export default function Play() {
         return;
       }
 
+      // result returns:
+      /*             result: wasCorrect ? "correctGuess" : "wrongGuess",
+      princessDiscarded: isPrincessFound,
+      cardDetails: newTargetCard ? { targetCard, newTargetCard } : null,
+      attackerMessage,
+      targetMessage,
+      publicMessage, */
+
       // Notify all players about the investigation
       pushNotification(roomCode, result.publicMessage);
 
       // Show attacker's result modal first (info only) with card details
       setResultModalData({
         selectedCardId: 9, // Inquisitor
-        /* ...result.attackerModalData, */
+        /* ...result.attackerModalData?, */
         resultText: result.attackerMessage,
       });
 
-      // Set up target modal in Firebase for the target player
-      await update(ref(db, `rooms/${roomCode}/inquisitorResult`), {
-        ...result.targetModalData,
+      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+        roomCode,
+        selectedCardId: cardPlayed.id,
+        visibleTo: target,
+        attacker: nickname,
+        target,
+        message: result.targetMessage,
+        princessDiscarded: result.princessDiscarded,
+        cardDetails: result.cardDetails,
         timestamp: Date.now(),
-        cardPlayInfo: {
-          playedCardIndex: selectedCardIndex,
-          playerNickname: nickname,
-        },
       });
 
       return;
@@ -1692,109 +1701,6 @@ export default function Play() {
 
     // Use the existing turn completion logic
     await completeTurnWithCardIndex(playedCardIndex);
-  };
-
-  /**
-   * Completes a card play using cardPlayInfo data (for Inquisitor and similar cards)
-   */
-  const completeCardPlay = async (cardIndex, playerNickname) => {
-    console.log("🔄 CARD PLAY COMPLETION DEBUG: Starting with data:", {
-      cardIndex,
-      playerNickname,
-      currentNickname: nickname,
-    });
-
-    // Only the original player should complete their own turn
-    if (playerNickname !== nickname) {
-      console.log(
-        "🔄 CARD PLAY COMPLETION: Not the original player, skipping turn completion"
-      );
-      return;
-    }
-
-    // Use the existing turn completion logic
-    await completeTurnWithCardIndex(cardIndex);
-  };
-
-  /**
-   * Completes the Prince turn - special logic since Prince effect has already been applied
-   */
-  const checkRoundEndAndAdvanceTurn = async () => {
-    // Checking if the round should end now
-    const roundEndResult = await checkRoundEndConditions(roomCode);
-
-    // Also check if this was the final turn (deck empty flag)
-    const isFinalTurn = roomData?.round?.isFinalTurn;
-
-    if (roundEndResult.isRoundEnd || isFinalTurn) {
-      console.log("🏆 completeTurnWithCardIndex - ROUND END DETECTED:", {
-        roundEndResult,
-        isFinalTurn,
-      });
-
-      // Add a delay to allow modals to be displayed and players to read effects
-      setTimeout(async () => {
-        console.log(
-          "🏆 completeTurnWithCardIndex - TRIGGERING ROUND END after delay"
-        );
-        await triggerRoundEnd(roomCode);
-      }, 2000);
-
-      return; // Don't reset isPlaying yet, let the round end handle it
-    } else {
-      console.log("🔄 completeTurnWithCardIndex - ADVANCING TO NEXT PLAYER");
-      // Calculate next player in turn order (skip eliminated players)
-      const activePlayers = Object.keys(players).filter(
-        (p) => !players[p].isOut
-      );
-      const currentIndex = activePlayers.indexOf(nickname);
-      let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-      // Skip any players that got eliminated during this turn
-      while (
-        players[activePlayers[nextIndex]]?.isOut &&
-        nextIndex !== currentIndex
-      ) {
-        nextIndex = (nextIndex + 1) % activePlayers.length;
-      }
-      const nextPlayer = activePlayers[nextIndex];
-
-      // Final validation before Firebase update
-      if (!nextPlayer) {
-        console.error("Invalid values detected before Firebase update:", {
-          nextPlayer,
-        });
-        return;
-      }
-
-      // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-      const currentProtected = roomData?.protectedPlayers || [];
-      const updatedProtected = currentProtected.filter(
-        (player) => player !== nextPlayer
-      );
-
-      const playersUpdates = {
-        [`round/currentPlayer`]: nextPlayer,
-        protectedPlayers: updatedProtected,
-      };
-
-      // Notify all players about the turn change
-      pushNotification(
-        roomCode,
-        `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-      );
-
-      // Update Firebase with the turn completion
-      await update(ref(db, `rooms/${roomCode}`), playersUpdates);
-    }
-
-    // Reset local state only if round didn't end
-    console.log(
-      "🔄 completeTurnWithCardIndex - TURN COMPLETION: Resetting card selection state (isPlaying will be reset by Firebase listener)"
-    );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
-    setSelectedCardForUI(null);
   };
 
   const completeDukeTurn = async () => {
@@ -2940,142 +2846,6 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                   }}
                 />
               )}
-
-            {/* === INQUISITOR RESULT MODAL === */}
-            {inquisitorResultModalData && (
-              <EffectResultModal
-                selectedCardId={9} // Inquisitor card ID
-                role={currentPlayer === nickname ? "attacker" : "target"}
-                resultText={inquisitorResultModalData.resultText}
-                onClose={() =>
-                  handleModalTransition(async () => {
-                    console.log(
-                      "🕵️ INQUISITOR RESULT: Target modal closing",
-                      inquisitorResultModalData
-                    );
-
-                    const {
-                      originalAttacker,
-                      originalTarget,
-                      wasCorrectGuess,
-                      foundPrincess,
-                      discardedCard,
-                      cardPlayInfo,
-                    } = inquisitorResultModalData;
-
-                    if (wasCorrectGuess) {
-                      // Award love token to attacker first
-                      await awardLoveToken({
-                        roomCode,
-                        player: originalAttacker,
-                      });
-
-                      if (foundPrincess) {
-                        // Princess found - eliminate target (no new card draw)
-                        const targetPlayerData =
-                          roomData.players[originalTarget];
-
-                        const baseUpdates = {
-                          [`players/${originalTarget}/hand`]: [], // Empty hand
-                          [`players/${originalTarget}/discard`]: [
-                            ...(targetPlayerData.discard || []),
-                            discardedCard,
-                          ],
-                        };
-
-                        const eliminationUpdates = handlePlayerElimination(
-                          roomCode,
-                          originalTarget,
-                          roomData?.mode,
-                          targetPlayerData,
-                          baseUpdates
-                        );
-
-                        await update(
-                          ref(db, `rooms/${roomCode}`),
-                          eliminationUpdates
-                        );
-                        console.log(
-                          "🕵️ PRINCESS ELIMINATION: Target eliminated for heresy"
-                        );
-                      } else {
-                        // Normal discard and draw new card
-                        const round = roomData.round;
-                        const newCard = round.deck[0];
-                        const newDeck = round.deck.slice(1);
-
-                        // Use handleCardDiscard to properly handle Chamberlain tokens
-                        const baseUpdates = {
-                          [`players/${originalTarget}/hand`]: [newCard],
-                          [`players/${originalTarget}/discard`]: [
-                            ...(roomData.players[originalTarget].discard || []),
-                            discardedCard,
-                          ],
-                          [`round/deck`]: newDeck,
-                        };
-
-                        const finalUpdates = handleCardDiscard({
-                          roomCode,
-                          playerName: originalTarget,
-                          card: discardedCard,
-                          gameMode: roomData?.mode,
-                          existingUpdates: baseUpdates,
-                        });
-
-                        await update(
-                          ref(db, `rooms/${roomCode}`),
-                          finalUpdates
-                        );
-                        console.log(
-                          "🕵️ HAND REPLACEMENT: Target discarded and drew new card"
-                        );
-                      }
-                    }
-
-                    // Clean up Firebase
-                    await update(ref(db, `rooms/${roomCode}`), {
-                      inquisitorResult: null,
-                      actionResult: null,
-                    });
-
-                    setInquisitorResultModalData(null);
-
-                    // Check for round end conditions after potential elimination
-                    console.log(
-                      "🔍 INQUISITOR ROUND END CHECK: After elimination"
-                    );
-                    const roundEndResult = await checkRoundEndConditions(
-                      roomCode
-                    );
-
-                    if (roundEndResult.isRoundEnd) {
-                      console.log(
-                        "🏆 ROUND END DETECTED after Inquisitor elimination:",
-                        roundEndResult
-                      );
-
-                      // Add a delay to allow players to read the elimination message
-                      setTimeout(async () => {
-                        console.log(
-                          "🏆 TRIGGERING ROUND END after Inquisitor elimination"
-                        );
-                        await triggerRoundEnd(roomCode);
-                      }, 2000);
-
-                      return; // Don't complete the turn, round is ending
-                    }
-
-                    // Complete turn if round didn't end and this was the target's modal
-                    if (cardPlayInfo && !inquisitorResultModalData.isInfoOnly) {
-                      await completeCardPlay(
-                        cardPlayInfo.playedCardIndex,
-                        cardPlayInfo.playerNickname
-                      );
-                    }
-                  })
-                }
-              />
-            )}
 
             {resultModalData && (
               <EffectResultModal

@@ -1,7 +1,11 @@
 import { ref, update, get } from "firebase/database";
 import { db } from "./firebase";
 import { cards } from "./cardsData";
-import { handleCardDiscard, handlePlayerElimination } from "./gamehelpers";
+import {
+  handleCardDiscard,
+  handlePlayerElimination,
+  awardLoveToken,
+} from "./gamehelpers";
 
 // 🃏✨ JESTER EFFECT ✨🃏
 export async function applyJesterEffect({ roomCode, attacker, target }) {
@@ -1203,45 +1207,6 @@ export async function applyPrincessEffect({ roomCode, player }) {
 }
 
 /**
- * Awards a single love token to a player (used by Inquisitor)
- * Does NOT trigger round end - only for mid-round rewards
- */
-export async function awardLoveToken({ roomCode, player }) {
-  console.log(`💰 LOVE TOKEN AWARD: Awarding token to ${player}`);
-
-  try {
-    const snapshot = await get(ref(db, `rooms/${roomCode}`));
-    const data = snapshot.val();
-    const currentTokens = data.players[player]?.tokens || 0;
-    const currentRoundTokens = data.players[player]?.roundTokens || 0;
-
-    // 🕵️ Track love token origin for inquisitor correct guess
-    const existingOrigin = data.players[player]?.loveTokenOrigin || {};
-
-    await update(ref(db, `rooms/${roomCode}/players/${player}`), {
-      tokens: currentTokens + 1,
-      roundTokens: currentRoundTokens + 1,
-      loveTokenOrigin: {
-        ...existingOrigin,
-        inquisitorGuess: 1,
-      },
-    });
-
-    console.log(
-      `💰 SUCCESS: ${player} now has ${currentTokens + 1} love tokens`
-    );
-    return {
-      success: true,
-      newTokenCount: currentTokens + 1,
-      newRoundTokenCount: currentRoundTokens + 1,
-    };
-  } catch (error) {
-    console.error("💰 LOVE TOKEN ERROR:", error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
  * Applies the Inquisitor card effect
  * Investigates target's hand and potentially awards love token + forces discard
  */
@@ -1267,10 +1232,12 @@ export async function applyInquisitorEffect({
 
   try {
     const snapshot = await get(ref(db, `rooms/${roomCode}`));
-    const data = snapshot.val();
-    const targetPlayer = data.players[target];
-    const attackerPlayer = data.players[attacker];
+    const roomData = snapshot.val();
+
+    const targetPlayer = roomData.players[target];
+    const attackerPlayer = roomData.players[attacker];
     const targetCard = targetPlayer.hand[0];
+    let newTargetCard;
 
     const wasCorrect = targetCard.strength === guess;
     const isPrincessFound = targetCard.id === 8 && wasCorrect;
@@ -1280,6 +1247,66 @@ export async function applyInquisitorEffect({
         targetCard.name
       } (strength ${targetCard.strength})`
     );
+
+    // ---------------------------------
+    // MOVED FROM PLAY.JSX => TO DO => ADJUST LOGIC
+
+    if (wasCorrect) {
+      // Award love token to attacker first
+      await awardLoveToken({
+        roomCode,
+        player: attacker,
+      });
+
+      if (isPrincessFound) {
+        // Princess found - eliminate target (no new card draw)
+
+        const eliminationUpdates = handlePlayerElimination(
+          roomCode,
+          target,
+          roomData?.mode,
+          targetPlayer,
+          {},
+          { discardRemainingHand: true }
+        );
+
+        await update(ref(db, `rooms/${roomCode}`), eliminationUpdates);
+
+        console.log(
+          "🕵️ PRINCESS ELIMINATION: Inquisitor's Target eliminated for heresy"
+        );
+      } else {
+        // Normal discard and draw new card
+        const round = roomData.round;
+        newTargetCard = round.deck[0];
+        const newDeck = round.deck.slice(1);
+
+        const baseUpdates = {
+          [`players/${target}/hand`]: [newTargetCard],
+          [`players/${target}/discard`]: [
+            ...(targetPlayer.discard || []),
+            targetCard,
+          ],
+          [`round/deck`]: newDeck,
+        };
+
+        const finalUpdates = handleCardDiscard({
+          roomCode,
+          playerName: target,
+          card: targetCard,
+          gameMode: roomData?.mode,
+          existingUpdates: baseUpdates,
+        });
+
+        await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+
+        console.log(
+          "🕵️ HAND REPLACEMENT: Inquisitor's target discarded and drew new card"
+        );
+      }
+    }
+
+    // ----------------------------------
 
     let attackerMessage, targetMessage, publicMessage;
 
@@ -1351,38 +1378,17 @@ export async function applyInquisitorEffect({
 
     return {
       result: wasCorrect ? "correctGuess" : "wrongGuess",
-      isCorrectGuess: wasCorrect,
-      isPrincessFound,
-      targetCard,
-      guessedStrength: guess,
-      actualStrength: targetCard.strength,
-      attacker,
-      target,
+      princessDiscarded: isPrincessFound,
+      cardDetails: newTargetCard ? { targetCard, newTargetCard } : null,
       attackerMessage,
       targetMessage,
       publicMessage,
-      // Modal control - target modal will handle the effects
-      attackerModalData: {
-        resultText: attackerMessage,
-        isInfoOnly: true, // Attacker modal is informational only
-      },
-      targetModalData: {
-        resultText: targetMessage,
-        isInfoOnly: false, // Target modal controls turn advancement and effects
-        isInquisitorResult: true,
-        originalAttacker: attacker,
-        originalTarget: target,
-        wasCorrectGuess: wasCorrect,
-        foundPrincess: isPrincessFound,
-        discardedCard: wasCorrect ? targetCard : null,
-      },
     };
   } catch (error) {
     console.error("🕵️ INQUISITOR ERROR:", error);
     return {
       result: "error",
       error: error.message,
-      isCorrectGuess: false,
     };
   }
 }

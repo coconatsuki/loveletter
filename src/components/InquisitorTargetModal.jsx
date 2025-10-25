@@ -28,7 +28,6 @@ const INQUISITOR_STYLES = {
   dropdownContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: "2rem",
   },
 
   dropdownSection: {
@@ -200,9 +199,15 @@ export default function InquisitorTargetModal({
           }
         `}
       </style>
-
       <div style={INQUISITOR_STYLES.content}>
-        <div style={INQUISITOR_STYLES.dropdownContainer}>
+        <div
+          style={{
+            ...INQUISITOR_STYLES.dropdownContainer,
+            ...(isTargetingForced && !hasNoTargets
+              ? { gap: "0.5em" }
+              : { gap: "2rem" }),
+          }}
+        >
           <div style={INQUISITOR_STYLES.dropdownSection}>
             <label style={INQUISITOR_STYLES.dropdownLabel}>
               🎯 Select Investigation Target

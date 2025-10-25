@@ -1,3 +1,6 @@
+import { ref, update, get } from "firebase/database";
+import { db } from "./firebase";
+
 export function getStartingPlayer(players, roundNumber = 1) {
   if (roundNumber === 1) {
     const names = Object.keys(players);
@@ -172,4 +175,43 @@ export function handlePlayerElimination(
 
   console.log(`🚨 HANDLE PLAYER ELIMINATION RETURNING:`, updates);
   return updates;
+}
+
+/**
+ * Awards a single love token to a player (used by Inquisitor)
+ * Does NOT trigger round end - only for mid-round rewards
+ */
+export async function awardLoveToken({ roomCode, player }) {
+  console.log(`💰 LOVE TOKEN AWARD: Awarding token to ${player}`);
+
+  try {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const data = snapshot.val();
+    const currentTokens = data.players[player]?.tokens || 0;
+    const currentRoundTokens = data.players[player]?.roundTokens || 0;
+
+    // 🕵️ Track love token origin for inquisitor correct guess
+    const existingOrigin = data.players[player]?.loveTokenOrigin || {};
+
+    await update(ref(db, `rooms/${roomCode}/players/${player}`), {
+      tokens: currentTokens + 1,
+      roundTokens: currentRoundTokens + 1,
+      loveTokenOrigin: {
+        ...existingOrigin,
+        inquisitorGuess: 1,
+      },
+    });
+
+    console.log(
+      `💰 SUCCESS: ${player} now has ${currentTokens + 1} love tokens`
+    );
+    return {
+      success: true,
+      newTokenCount: currentTokens + 1,
+      newRoundTokenCount: currentRoundTokens + 1,
+    };
+  } catch (error) {
+    console.error("💰 LOVE TOKEN ERROR:", error);
+    return { success: false, error: error.message };
+  }
 }

@@ -219,6 +219,8 @@ export default function EffectResultModal({
                 ? "rgb(41 17 69)"
                 : isJesterEffect
                 ? "rgb(22 3 3)"
+                : isInquisitorEffect
+                ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
                 : isCourtWhispererEffect
                 ? "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)"
                 : isPhantomKingEffect
@@ -826,6 +828,7 @@ export default function EffectResultModal({
                     ...(isPrinceEffect ? princeButtonStyle : {}),
                     ...(isPrincessEffect ? princessButtonStyle : {}),
                     ...(isPriestTarget ? priestButtonStyle : {}),
+                    ...(isInquisitorEffect ? inquisitorButtonStyle : {}),
                   }}
                   onMouseEnter={(e) => {
                     if (isJesterEffect) {
@@ -835,6 +838,14 @@ export default function EffectResultModal({
                       e.target.style.boxShadow =
                         "0 6px 25px rgba(255, 107, 53, 0.6)";
                       e.target.style.border = "2px solid rgb(45, 27, 27)";
+                    } else if (isInquisitorEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(15, 52, 96) 0%, rgb(22, 33, 62) 50%, rgb(26, 26, 46) 100%)";
+                      e.target.style.boxShadow =
+                        "rgba(255, 215, 0, 0.4) 3px 6px 15px";
+                      e.target.style.color = "rgb(255, 215, 0)";
+                      e.target.style.border = "2px inset rgb(103, 104, 37)";
+                      e.target.style.transform = "translateY(-2px)";
                     } else if (isCourtWhispererEffect) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(255 205 212) 0%, rgb(202 75 139) 50%, rgb(99 9 57) 100%)";
@@ -899,6 +910,13 @@ export default function EffectResultModal({
                         "0 4px 15px rgba(255, 107, 53, 0.4)";
                       e.target.style.color = "rgb(255, 215, 0)";
                       e.target.style.border = "2px solid rgb(106 92 48)";
+                    } else if (isInquisitorEffect) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)";
+                      e.target.style.color = "rgb(255, 215, 0)";
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow = "none";
+                      e.target.style.border = "2px outset rgb(103, 104, 37)";
                     } else if (isCourtWhispererEffect) {
                       e.target.style.background =
                         "linear-gradient(135deg, rgb(99 9 57) 0%, rgb(202 75 139) 50%, rgb(255 205 212) 100%)";
@@ -1214,6 +1232,14 @@ const jesterButtonStyle = {
   color: "rgb(255, 215, 0)",
   border: "2px solid rgb(106 92 48)",
   fontWeight: "700",
+};
+
+const inquisitorButtonStyle = {
+  background:
+    "linear-gradient(135deg, rgb(26, 26, 46) 0%, rgb(22, 33, 62) 50%, rgb(15, 52, 96) 100%)",
+  color: "rgb(255, 215, 0)",
+  border: "2px outset rgb(103, 104, 37)",
+  boxShadow: "none",
 };
 
 const courtWhispererButtonStyle = {

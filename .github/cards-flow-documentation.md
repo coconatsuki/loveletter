@@ -164,3 +164,25 @@ completePrincessTurn() => Eliminate the playerwith handleElimination() which wil
 completeTurnWithCardIndex(option: isDiscarding=false) => checks for roundEnd & advance turn.
 
 ### Inquisitor
+
+setShowTargetModal() => show <InquisitorTargetModal> / pass it: isDeckEmpty + onConfirm={handleTargetConfirm}
+
+// If Deck empty => Can't target anyone
+
+handleTargetConfirm => applyInquisitorEffect() with attacker, target & guess =>
+
+if: wasCorrect => awardLoveToken (add +1 to "tokens" + "roundTokens" & set loveTokenOrigin: "inquistorGuess":1)
+
+if: wasCorrect & isPrincessFound (target.id==8 & wasCorrect) =>
+
+handlePlayerElimination(target) & update firebase
+
+if: wasCorrect & !isPrincessFound (target.id==8 & wasCorrect) =>
+
+handlePlayerDiscard(target) + draw new hand & update Firebase
+
+- returns the attackerMessage, targetMessage, publicMessage, foundPrincess, discardedCard
+
+// pushNotif() + update .../targetResult && setResultModalData(attackerMessage)
+
+handleEffectResultClose => completeTurnWithCardIndex() - Inquisitor is discarded here)
