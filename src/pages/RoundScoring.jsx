@@ -85,6 +85,7 @@ export default function RoundScoring() {
         playerUpdates[`players/${playerKey}/chamberlainToken`] = null; // 🏰💰 Reset Chamberlain tokens to null
         playerUpdates[`players/${playerKey}/dukeToken`] = null; // 👑🐕 Clear Duke tokens
         playerUpdates[`players/${playerKey}/loveTokenOrigin`] = null; // 💕 Clear love token origin tracking
+        playerUpdates[`players/${playerKey}/roundTokens`] = 0; // 🪙 Reset round tokens
       });
 
       // Increment round counter
@@ -118,10 +119,11 @@ export default function RoundScoring() {
   const findNewLastRoundWinner = (remainingPlayers) => {
     // Find player(s) with highest love token count
     const maxTokens = Math.max(
-      ...Object.values(remainingPlayers).map((p) => p.tokens || 0)
+      ...Object.values(remainingPlayers).map((p) => p.roundTokens || 0)
     );
     const topPlayers = Object.keys(remainingPlayers).filter(
-      (playerKey) => (remainingPlayers[playerKey].tokens || 0) === maxTokens
+      (playerKey) =>
+        (remainingPlayers[playerKey].roundTokens || 0) === maxTokens
     );
 
     // If tie, choose randomly
@@ -207,10 +209,10 @@ export default function RoundScoring() {
 
     const players = Object.entries(roomData.players);
     const maxTokens = Math.max(
-      ...players.map(([_, player]) => player.tokens || 0)
+      ...players.map(([_, player]) => player.roundTokens || 0)
     );
     const winners = players.filter(
-      ([_, player]) => (player.tokens || 0) === maxTokens
+      ([_, player]) => (player.roundTokens || 0) === maxTokens
     );
 
     return winners.length === 1 ? winners[0][0] : winners.map(([name]) => name);
@@ -220,7 +222,7 @@ export default function RoundScoring() {
     if (!roomData?.players) return [];
 
     return Object.entries(roomData.players)
-      .sort(([, a], [, b]) => (b.tokens || 0) - (a.tokens || 0))
+      .sort(([, a], [, b]) => (b.roundTokens || 0) - (a.roundTokens || 0))
       .map(([name, player]) => ({ name, ...player }));
   };
 
@@ -338,14 +340,27 @@ export default function RoundScoring() {
                             {index === 0 ? "👑" : `${index + 1}.`}
                           </span>
                           <div className="player-names">
-                            <div className="player-nickname">
-                              {nameFormat.primary}
-                              {isCurrentUser && (
-                                <span className="player-you-indicator">
-                                  (You)
-                                </span>
+                            <div className="player-nickname-container">
+                              {/* Kick Player Button (Host Only) */}
+                              {isHost && player.name !== nickname && (
+                                <button
+                                  onClick={() => kickPlayer(player.name)}
+                                  className="banish-button"
+                                  title={`Banish ${player.name} from the realm`}
+                                >
+                                  ⚔️ Banish
+                                </button>
                               )}
+                              <div className="player-nickname">
+                                {nameFormat.primary}
+                                {isCurrentUser && (
+                                  <span className="player-you-indicator">
+                                    (You)
+                                  </span>
+                                )}
+                              </div>
                             </div>
+
                             {nameFormat.secondary && (
                               <div className="player-realname">
                                 {nameFormat.secondary}
@@ -355,10 +370,13 @@ export default function RoundScoring() {
                         </div>
 
                         <div className="player-actions">
-                          {/* Move love tokens up */}
-                          <div className="love-tokens-top">
-                            {player.tokens || 0} love token
-                            {(player.tokens || 0) !== 1 ? "s" : ""}
+                          <div className="love-token-container">
+                            <div className="game-tokens tokens-bubble">
+                              Total: {player.tokens || 0} 🩶
+                            </div>
+                            <div className="round-tokens tokens-bubble">
+                              Round: {player.roundTokens || 0} 💖
+                            </div>
                           </div>
                           {/* Love token breakdown - bottom right */}
                           {player.loveTokenOrigin && (
@@ -376,17 +394,6 @@ export default function RoundScoring() {
                                 .filter(Boolean)
                                 .join(", ")}
                             </div>
-                          )}
-
-                          {/* Kick Player Button (Host Only) */}
-                          {isHost && player.name !== nickname && (
-                            <button
-                              onClick={() => kickPlayer(player.name)}
-                              className="banish-button"
-                              title={`Banish ${player.name} from the realm`}
-                            >
-                              ⚔️ Banish
-                            </button>
                           )}
                         </div>
                       </div>

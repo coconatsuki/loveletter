@@ -277,6 +277,12 @@ body {
   flex-direction: column;
 }
 
+.player-nickname-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
 .player-nickname {
   font-size: 1.2rem;
   font-weight: bold;
@@ -305,21 +311,28 @@ body {
   padding: 0.5rem;
 }
 
-.love-tokens {
+.love-token-container {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  position: relative;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 
-.love-tokens-top {
-  color: #ef8399;
+.tokens-bubble {
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
+}
+
+.tokens-bubble.game-tokens {
+  color: #a3a499;
+  padding: 6px 12px;
+}
+
+.tokens-bubble.round-tokens {
+  color: #ef8399;
   background: rgba(220, 20, 60, 0.1);
-  padding: 0.3rem 0.8rem;
   border-radius: 15px;
   border: 1px solid rgba(220, 20, 60, 0.3);
+  padding: 5px 11px;
 }
 
 .love-token-breakdown {
