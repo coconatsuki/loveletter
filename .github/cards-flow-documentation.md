@@ -18,6 +18,18 @@ Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextP
 
 ### 1 - GUARD
 
+setShowTargetModal(true) => <TargetModal> => handleTargetConfirm() => applyGuardEffect() =>
+
+- Check if player has ASSASSIN / & if GUESS WAS CORRECT
+
+& returns: target, attacker, hasAssassin, guessedStrength: guess, actualStrength, isCorrectGuess: wasCorrect, targetCard, eliminatedPlayer
+
+pushNotification()
+
+/guardPrompt in Firebase, with result from applyGuardEffect() => setGuardTargetPromptData(data) & setShowGuardTargetPrompt(true); =>
+
+<AssassinPromptModal> => handleAssassinPromptClose
+
 ## **AssassinPromptModal / onAcknowledge ()** =>
 
 if correctGuess:
@@ -186,3 +198,31 @@ handlePlayerDiscard(target) + draw new hand & update Firebase
 // pushNotif() + update .../targetResult && setResultModalData(attackerMessage)
 
 handleEffectResultClose => completeTurnWithCardIndex() - Inquisitor is discarded here)
+
+### Chamberlain
+
+playCard() => playChamberlain() => applyChamberlainEffect() =>
+
+just return attackerMessage & publicMessage()
+
+---
+
+pushNotification() & setResultModalData()
+
+handleEffectResultClose => completeTurnWithCardIndex()
+
+---
+
+in handleCardDiscard() =>
+
+- if (gameMode == "premium" & card.id == 10) => set /chamerlainToken (as false)
+
+in handlePlayerElimination() =>
+
+- if eliminatedPlayer has "chamberlainToken=false" => we set it to true
+
+in triggerRoundEnd() =>
+
+- for EACH player, we check if one has a chamberlainToken=true
+
+if so, we reward them a token + roundToken. + set "loveTokenOrigin: chamberlainToken: 1"

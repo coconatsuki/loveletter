@@ -1217,7 +1217,10 @@ export default function Play() {
       pushNotification(roomCode, result.publicMessage);
 
       return;
-    } else if (cardPlayed.id === 13) {
+    }
+
+    // === ROYAL CONFESSOR CARD LOGIC (ID: 13) ===
+    else if (cardPlayed.id === 13) {
       const result = await applyRoyalConfessorEffect({
         roomCode,
         target1: target,
@@ -1440,6 +1443,167 @@ export default function Play() {
       });
 
       return;
+    }
+  };
+
+  const handleAssassinPromptClose = async (
+    actionUsed,
+    guardTargetPromptData
+  ) => {
+    console.log(`🔍 handleAssassinPromptClose - Begining with data:`, {
+      actionUsed: actionUsed,
+      guardTargetPromptData: guardTargetPromptData,
+      keys: Object.keys(guardTargetPromptData || {}),
+      target: guardTargetPromptData?.target,
+      attacker: guardTargetPromptData?.attacker,
+      isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
+      targetCard: guardTargetPromptData?.targetCard,
+    });
+
+    if (actionUsed === "onAcknowledge") {
+      const { isCorrectGuess, targetCard, target, attacker } =
+        guardTargetPromptData;
+
+      let finalResultContent;
+
+      if (isCorrectGuess) {
+        // Attacker guessed correctly - eliminate target
+        const targetPlayerData = players[target];
+
+        console.log(`🚨 GUARD ELIMINATION DEBUG - isCorrectGuess:`, {
+          isCorrectGuess,
+          targetFromGuardData: target,
+          targetPlayerData: targetPlayerData
+            ? {
+                name: targetPlayerData.name,
+                chamberlainToken: targetPlayerData.chamberlainToken,
+                isOut: targetPlayerData.isOut,
+              }
+            : "PLAYER NOT FOUND",
+          allPlayersKeys: Object.keys(players || {}),
+          guardPromptDataFull: guardTargetPromptData,
+        });
+
+        const eliminationUpdates = handlePlayerElimination(
+          roomCode,
+          target,
+          roomData?.mode,
+          targetPlayerData,
+          {}
+        );
+
+        await update(ref(db, `rooms/${roomCode}`), eliminationUpdates);
+        pushNotification(
+          roomCode,
+          `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
+The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`
+        );
+        finalResultContent = `
+<div class="effect-description">🎯 Your instincts were flawless.</div>
+<div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${
+          cardNames[targetCard.id]
+        }</span>!</div>
+<div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
+<div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
+      } else {
+        // Attacker guessed incorrectly - target survives
+        pushNotification(
+          roomCode,
+          `😎 The Guard returns to <span class="effect-player">${attacker}</span> empty-handed.
+<span class="effect-player">${target}</span> simply smiled behind their fan and said, “Not even close.”`
+        );
+        finalResultContent = `
+<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
+<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
+      }
+
+      // Clean up and send result to attacker
+      await update(ref(db, `rooms/${roomCode}`), {
+        guardPrompt: null,
+      });
+      await update(ref(db, `rooms/${roomCode}/actionResult`), {
+        selectedCardId: 1, // Guard card ID
+        resultText: finalResultContent,
+        attacker: attacker,
+      });
+
+      // Complete the Guard turn (discard card, advance turn)
+      await completeGuardTurn(guardTargetPromptData);
+
+      setGuardTargetPromptData(null);
+      setShowGuardTargetPrompt(false);
+    }
+
+    if (actionUsed === "onReveal") {
+      const { target, attacker } = guardTargetPromptData;
+
+      // Apply Assassin defense (eliminates attacker, target draws new card)
+      const result = await resolveAssassinDefense({
+        roomCode,
+        attacker,
+        target,
+      });
+
+      pushNotification(
+        roomCode,
+        `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
+From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`
+      );
+
+      const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
+<div class="effect-description">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
+<div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
+<div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
+<div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
+<div class="effect-quote">“Some secrets are worth killing for.”</div>
+<div class="effect-signature">– The Royal Assassin</div>
+<div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
+
+      // Clean up and send result to attacker
+      await update(ref(db, `rooms/${roomCode}`), {
+        guardPrompt: null,
+      });
+      await update(ref(db, `rooms/${roomCode}/actionResult`), {
+        selectedCardId: 1, // Guard card ID
+        resultText: finalResultContent,
+        attacker: attacker,
+      });
+
+      // Complete the Guard turn (discard card, advance turn)
+      await completeGuardTurn(guardTargetPromptData);
+
+      setGuardTargetPromptData(null);
+      setShowGuardTargetPrompt(false);
+    }
+
+    if (actionUsed === "onIgnore") {
+      const { target } = guardTargetPromptData;
+
+      pushNotification(
+        roomCode,
+        `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${nickname}.”`
+      );
+
+      const finalResultContent = `<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
+<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
+
+      // Clean up and send result to attacker
+      await update(ref(db, `rooms/${roomCode}`), {
+        guardPrompt: null,
+      });
+      await update(ref(db, `rooms/${roomCode}/actionResult`), {
+        selectedCardId: 1, // Guard card ID
+        resultText: finalResultContent,
+        attacker: guardTargetPromptData.attacker,
+      });
+
+      // Complete the Guard turn (discard card, advance turn)
+      await completeGuardTurn(guardTargetPromptData);
+
+      setGuardTargetPromptData(null);
+      setShowGuardTargetPrompt(false);
     }
   };
 
@@ -2681,168 +2845,24 @@ export default function Play() {
                   promptData={guardTargetPromptData}
                   // Target acknowledges the guess without using Assassin
                   onAcknowledge={async () => {
-                    console.log(
-                      `🔍 AssassinPromptModal - GUARD PROMPT DATA FULL DEBUG:`,
-                      {
-                        guardTargetPromptData: guardTargetPromptData,
-                        keys: Object.keys(guardTargetPromptData || {}),
-                        target: guardTargetPromptData?.target,
-                        attacker: guardTargetPromptData?.attacker,
-                        isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
-                        targetCard: guardTargetPromptData?.targetCard,
-                      }
+                    handleAssassinPromptClose(
+                      "onAcknowledge",
+                      guardTargetPromptData
                     );
-
-                    const { isCorrectGuess, targetCard, target, attacker } =
-                      guardTargetPromptData;
-
-                    let finalResultContent;
-
-                    if (isCorrectGuess) {
-                      // Attacker guessed correctly - eliminate target
-                      const targetPlayerData = players[target];
-
-                      console.log(
-                        `🚨 GUARD ELIMINATION DEBUG - isCorrectGuess:`,
-                        {
-                          isCorrectGuess,
-                          targetFromGuardData: target,
-                          targetPlayerData: targetPlayerData
-                            ? {
-                                name: targetPlayerData.name,
-                                chamberlainToken:
-                                  targetPlayerData.chamberlainToken,
-                                isOut: targetPlayerData.isOut,
-                              }
-                            : "PLAYER NOT FOUND",
-                          allPlayersKeys: Object.keys(players || {}),
-                          guardPromptDataFull: guardTargetPromptData,
-                        }
-                      );
-
-                      const eliminationUpdates = handlePlayerElimination(
-                        roomCode,
-                        target,
-                        roomData?.mode,
-                        targetPlayerData,
-                        {}
-                      );
-
-                      await update(
-                        ref(db, `rooms/${roomCode}`),
-                        eliminationUpdates
-                      );
-                      pushNotification(
-                        roomCode,
-                        `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
-The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`
-                      );
-                      finalResultContent = `
-<div class="effect-description">🎯 Your instincts were flawless.</div>
-<div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${
-                        cardNames[targetCard.id]
-                      }</span>!</div>
-<div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
-<div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
-                    } else {
-                      // Attacker guessed incorrectly - target survives
-                      pushNotification(
-                        roomCode,
-                        `😎 The Guard returns to <span class="effect-player">${attacker}</span> empty-handed.
-<span class="effect-player">${target}</span> simply smiled behind their fan and said, “Not even close.”`
-                      );
-                      finalResultContent = `
-<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
-<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
-<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
-                    }
-
-                    // Clean up and send result to attacker
-                    await update(ref(db, `rooms/${roomCode}`), {
-                      guardPrompt: null,
-                    });
-                    await update(ref(db, `rooms/${roomCode}/actionResult`), {
-                      selectedCardId: 1, // Guard card ID
-                      resultText: finalResultContent,
-                      attacker: attacker,
-                    });
-
-                    // Complete the Guard turn (discard card, advance turn)
-                    await completeGuardTurn(guardTargetPromptData);
-
-                    setGuardTargetPromptData(null);
-                    setShowGuardTargetPrompt(false);
                   }}
                   // Target uses Assassin to strike back at attacker
                   onReveal={async () => {
-                    const { target, attacker } = guardTargetPromptData;
-
-                    // Apply Assassin defense (eliminates attacker, target draws new card)
-                    const result = await resolveAssassinDefense({
-                      roomCode,
-                      attacker,
-                      target,
-                    });
-
-                    pushNotification(
-                      roomCode,
-                      `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
-From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`
+                    handleAssassinPromptClose(
+                      "onReveal",
+                      guardTargetPromptData
                     );
-
-                    const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
-<div class="effect-description">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
-<div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
-<div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
-<div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
-<div class="effect-quote">“Some secrets are worth killing for.”</div>
-<div class="effect-signature">– The Royal Assassin</div>
-<div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
-
-                    // Clean up and send result to attacker
-                    await update(ref(db, `rooms/${roomCode}`), {
-                      guardPrompt: null,
-                    });
-                    await update(ref(db, `rooms/${roomCode}/actionResult`), {
-                      selectedCardId: 1, // Guard card ID
-                      resultText: finalResultContent,
-                      attacker: attacker,
-                    });
-
-                    // Complete the Guard turn (discard card, advance turn)
-                    await completeGuardTurn(guardTargetPromptData);
-
-                    setGuardTargetPromptData(null);
-                    setShowGuardTargetPrompt(false);
                   }}
                   // Target ignores (same as acknowledge - for when they don't have Assassin)
                   onIgnore={async () => {
-                    const { target } = guardTargetPromptData;
-
-                    pushNotification(
-                      roomCode,
-                      `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${nickname}.”`
+                    handleAssassinPromptClose(
+                      "onIgnore",
+                      guardTargetPromptData
                     );
-
-                    const finalResultContent = `<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
-<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
-<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
-
-                    // Clean up and send result to attacker
-                    await update(ref(db, `rooms/${roomCode}`), {
-                      guardPrompt: null,
-                    });
-                    await update(ref(db, `rooms/${roomCode}/actionResult`), {
-                      selectedCardId: 1, // Guard card ID
-                      resultText: finalResultContent,
-                      attacker: guardTargetPromptData.attacker,
-                    });
-
-                    // Complete the Guard turn (discard card, advance turn)
-                    await completeGuardTurn(guardTargetPromptData);
-
-                    setGuardTargetPromptData(null);
-                    setShowGuardTargetPrompt(false);
                   }}
                 />
               )}
