@@ -21,8 +21,7 @@ import {
   applyJesterEffect,
   applyChamberlainEffect,
   applyGuardEffect,
-  resolveAssassinDefense,
-  executeAssassinationElimination,
+  applyGuard2Effect,
   applyPriestEffect,
   applyBaronEffect,
   applyRegentQueenEffect,
@@ -214,47 +213,6 @@ export default function Play() {
           setPlayer(data.players[nickname]);
         }
 
-        /*         // CRITICAL FIX: If current player is eliminated, immediately advance turn
-        if (data?.round?.currentPlayer && data?.players) {
-          const currentPlayerData = data.players[data.round.currentPlayer];
-          if (currentPlayerData?.isOut) {
-            console.log(
-              "🚨 CRITICAL BUG FIX: Current player is eliminated, advancing turn immediately",
-              {
-                currentPlayer: data.round.currentPlayer,
-                isOut: currentPlayerData.isOut,
-              }
-            );
-
-            // Find next non-eliminated player
-            const allPlayers = Object.keys(data.players);
-            const activePlayers = allPlayers.filter(
-              (p) => !data.players[p].isOut
-            );
-
-            if (activePlayers.length > 1) {
-              const currentIndex = activePlayers.indexOf(
-                data.round.currentPlayer
-              );
-              const nextIndex = (currentIndex + 1) % activePlayers.length;
-              const nextPlayer = activePlayers[nextIndex];
-
-              console.log("🚨 ADVANCING TURN FROM ELIMINATED PLAYER:", {
-                eliminatedPlayer: data.round.currentPlayer,
-                nextPlayer: nextPlayer,
-                activePlayers: activePlayers,
-              });
-
-              // Update Firebase immediately
-              update(ref(db, `rooms/${roomCode}`), {
-                [`round/currentPlayer`]: nextPlayer,
-              });
-
-              return; // Exit early to prevent further processing
-            }
-          }
-        } */
-
         // Check if round ended and show round end modal
         if (data?.gameState === "roundScoring" && data?.roundResult) {
           console.log(
@@ -295,7 +253,7 @@ export default function Play() {
     };
   }, [roomCode, nickname, resultModalData, targetMessageModalData]);
 
-  // Listen for Guard prompts targeting this player (premium mode Assassin interactions)
+  // Listen for Guard prompts that should be displayed to a guard's TARGET player
   useEffect(() => {
     const promptRef = ref(db, `rooms/${roomCode}/guardPrompt`);
     const unsubscribe = onValue(promptRef, (snapshot) => {
@@ -310,6 +268,28 @@ export default function Play() {
         console.log(`🔍 CLEARING GUARD TARGET PROMPT DATA`);
         setGuardTargetPromptData(null);
         setShowGuardTargetPrompt(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [roomCode, nickname]);
+
+  // Listen for Guard prompts that should be sent BACK to the attacker / current player
+  useEffect(() => {
+    console.log("guard2Prompt useEffect called!");
+
+    const refResult = ref(db, `rooms/${roomCode}/guard2Prompt`);
+    const unsubscribe = onValue(refResult, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data && data.attacker === nickname && data.resultText) {
+        setResultModalData({
+          selectedCardId: 1, // Guard
+          resultText: data.resultText,
+          guardOutcome: data.guardOutcome,
+        });
+      } else if (!data) {
+        // Clear the modal when actionResult is cleared from Firebase
+        setResultModalData(null);
       }
     });
     return () => unsubscribe();
@@ -402,31 +382,6 @@ export default function Play() {
       setNewNotificationsCount(0);
     }
   };
-
-  // Listen to action results to show effect modals for card outcomes
-  useEffect(() => {
-    console.log("actionResult useEffect called!");
-
-    const refResult = ref(db, `rooms/${roomCode}/actionResult`);
-    const unsubscribe = onValue(refResult, (snapshot) => {
-      const data = snapshot.val();
-
-      console.log(
-        "attacker is nickname? => ",
-        data?.attacker === nickname,
-        " / data.resultText: ",
-        data?.resultText
-      );
-
-      if (data && data.attacker === nickname && data.resultText) {
-        setResultModalData(data.resultText);
-      } else if (!data) {
-        // Clear the modal when actionResult is cleared from Firebase
-        setResultModalData(null);
-      }
-    });
-    return () => unsubscribe();
-  }, [roomCode, nickname]);
 
   // Listen to baron target modal data
   useEffect(() => {
@@ -1412,14 +1367,6 @@ export default function Play() {
         return;
       }
 
-      // result returns:
-      /*             result: wasCorrect ? "correctGuess" : "wrongGuess",
-      princessDiscarded: isPrincessFound,
-      cardDetails: newTargetCard ? { targetCard, newTargetCard } : null,
-      attackerMessage,
-      targetMessage,
-      publicMessage, */
-
       // Notify all players about the investigation
       pushNotification(roomCode, result.publicMessage);
 
@@ -1446,6 +1393,7 @@ export default function Play() {
     }
   };
 
+  // CAREFUL: this executes on the TARGET's client side (when they close the AssassinPromptModal)
   const handleAssassinPromptClose = async (
     actionUsed,
     guardTargetPromptData
@@ -1453,170 +1401,56 @@ export default function Play() {
     console.log(`🔍 handleAssassinPromptClose - Begining with data:`, {
       actionUsed: actionUsed,
       guardTargetPromptData: guardTargetPromptData,
-      keys: Object.keys(guardTargetPromptData || {}),
-      target: guardTargetPromptData?.target,
-      attacker: guardTargetPromptData?.attacker,
-      isCorrectGuess: guardTargetPromptData?.isCorrectGuess,
-      targetCard: guardTargetPromptData?.targetCard,
     });
 
-    if (actionUsed === "onAcknowledge") {
-      const { isCorrectGuess, targetCard, target, attacker } =
-        guardTargetPromptData;
+    // Apply Guard effects after AssassinPromptModal is closed
+    const result = await applyGuard2Effect({
+      roomCode,
+      actionUsed,
+      guardTargetPromptData,
+    });
 
-      let finalResultContent;
+    // Notify all players about the Guard action result
+    pushNotification(roomCode, result.publicMessage);
 
-      if (isCorrectGuess) {
-        // Attacker guessed correctly - eliminate target
-        const targetPlayerData = players[target];
+    const bulkUpdates = {
+      guardPrompt: null,
+      guard2Prompt: {
+        selectedCardId: 1,
+        resultText: result.attackerMessage,
+        guardOutcome: result.result,
+        attacker: result.attacker,
+        timestamp: Date.now(),
+      },
+      attackerMarkedForElimination: result.attackerMarkedForElimination || null,
+    };
 
-        console.log(`🚨 GUARD ELIMINATION DEBUG - isCorrectGuess:`, {
-          isCorrectGuess,
-          targetFromGuardData: target,
-          targetPlayerData: targetPlayerData
-            ? {
-                name: targetPlayerData.name,
-                chamberlainToken: targetPlayerData.chamberlainToken,
-                isOut: targetPlayerData.isOut,
-              }
-            : "PLAYER NOT FOUND",
-          allPlayersKeys: Object.keys(players || {}),
-          guardPromptDataFull: guardTargetPromptData,
-        });
+    await update(ref(db, `rooms/${roomCode}`), bulkUpdates);
 
-        const eliminationUpdates = handlePlayerElimination(
-          roomCode,
-          target,
-          roomData?.mode,
-          targetPlayerData,
-          {}
-        );
-
-        await update(ref(db, `rooms/${roomCode}`), eliminationUpdates);
-        pushNotification(
-          roomCode,
-          `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
-The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`
-        );
-        finalResultContent = `
-<div class="effect-description">🎯 Your instincts were flawless.</div>
-<div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${
-          cardNames[targetCard.id]
-        }</span>!</div>
-<div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
-<div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
-      } else {
-        // Attacker guessed incorrectly - target survives
-        pushNotification(
-          roomCode,
-          `😎 The Guard returns to <span class="effect-player">${attacker}</span> empty-handed.
-<span class="effect-player">${target}</span> simply smiled behind their fan and said, “Not even close.”`
-        );
-        finalResultContent = `
-<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
-<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
-<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
-      }
-
-      // Clean up and send result to attacker
-      await update(ref(db, `rooms/${roomCode}`), {
-        guardPrompt: null,
-      });
-      await update(ref(db, `rooms/${roomCode}/actionResult`), {
-        selectedCardId: 1, // Guard card ID
-        resultText: finalResultContent,
-        attacker: attacker,
-      });
-
-      // Complete the Guard turn (discard card, advance turn)
-      await completeGuardTurn(guardTargetPromptData);
-
-      setGuardTargetPromptData(null);
-      setShowGuardTargetPrompt(false);
-    }
-
-    if (actionUsed === "onReveal") {
-      const { target, attacker } = guardTargetPromptData;
-
-      // Apply Assassin defense (eliminates attacker, target draws new card)
-      const result = await resolveAssassinDefense({
-        roomCode,
-        attacker,
-        target,
-      });
-
-      pushNotification(
-        roomCode,
-        `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
-From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`
-      );
-
-      const finalResultContent = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
-<div class="effect-description">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
-<div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
-<div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
-<div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
-<div class="effect-quote">“Some secrets are worth killing for.”</div>
-<div class="effect-signature">– The Royal Assassin</div>
-<div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
-
-      // Clean up and send result to attacker
-      await update(ref(db, `rooms/${roomCode}`), {
-        guardPrompt: null,
-      });
-      await update(ref(db, `rooms/${roomCode}/actionResult`), {
-        selectedCardId: 1, // Guard card ID
-        resultText: finalResultContent,
-        attacker: attacker,
-      });
-
-      // Complete the Guard turn (discard card, advance turn)
-      await completeGuardTurn(guardTargetPromptData);
-
-      setGuardTargetPromptData(null);
-      setShowGuardTargetPrompt(false);
-    }
-
-    if (actionUsed === "onIgnore") {
-      const { target } = guardTargetPromptData;
-
-      pushNotification(
-        roomCode,
-        `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${nickname}.”`
-      );
-
-      const finalResultContent = `<div class="effect-description">😬 Your Guard returns at dawn, shaking his head.</div>
-<div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
-<div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
-
-      // Clean up and send result to attacker
-      await update(ref(db, `rooms/${roomCode}`), {
-        guardPrompt: null,
-      });
-      await update(ref(db, `rooms/${roomCode}/actionResult`), {
-        selectedCardId: 1, // Guard card ID
-        resultText: finalResultContent,
-        attacker: guardTargetPromptData.attacker,
-      });
-
-      // Complete the Guard turn (discard card, advance turn)
-      await completeGuardTurn(guardTargetPromptData);
-
-      setGuardTargetPromptData(null);
-      setShowGuardTargetPrompt(false);
-    }
+    setGuardTargetPromptData(null);
+    setShowGuardTargetPrompt(false);
   };
 
-  /**
-   * Completes the current player's turn for non-Guard effects
-   * This handles discarding the played card and advancing to the next player
-   */
+  /**  Completes the current player's turn / Check roundEnd conditions & discard card if necessary & advance to next player */
   const handleEffectResultClose = async () => {
     console.log("🔔 handleEffectResultClose: Starting with resultModalData:", {
       resultModalData,
       selectedCardIndex,
       player,
     });
+
+    // Special handling for Guard
+    if (resultModalData?.selectedCardId === 1) {
+      console.log("🕵️‍♂️ GUARD: Using special turn completion");
+      const attackerElimination = await completeGuardTurn();
+
+      if (attackerElimination) {
+        await completeTurnWithCardIndex(selectedCardIndex, {
+          noDiscarding: true,
+        });
+        return;
+      } // ELSE, go through normal completeTurnWithCardIndex, with Guard discarded
+    }
 
     // Special handling for Court Whisperer - effect must be applied now
     if (resultModalData?.isCourtWhispererEffect) {
@@ -1834,37 +1668,39 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
     setSelectedCardForUI(null);
   };
 
-  /**
-   * Completes the Guard turn using data from guardTargetPromptData
-   */
-  const completeGuardTurn = async (guardData) => {
-    if (!guardData?.cardPlayInfo) {
-      console.error(
-        "🔄 GUARD TURN COMPLETION ERROR: Missing cardPlayInfo in guardData:",
-        guardData
+  /*  Completes the Guard turn using data from guardTargetPromptData */
+  const completeGuardTurn = async () => {
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+
+    const data = snapshot.val();
+    const attackerMarkedForElimination = data.attackerMarkedForElimination;
+
+    const baseUpdates = {
+      attackerMarkedForElimination: null,
+      guard2Prompt: null,
+    };
+
+    let finalUpdates = baseUpdates;
+
+    if (attackerMarkedForElimination) {
+      finalUpdates = handlePlayerElimination(
+        roomCode,
+        nickname,
+        roomData?.mode,
+        player,
+        baseUpdates,
+        { discardRemainingHand: true }
       );
-      return;
-    }
 
-    const { playedCardIndex, playerNickname } = guardData.cardPlayInfo;
-
-    console.log("🛡️ GUARD TURN COMPLETION DEBUG: Starting with data:", {
-      playedCardIndex,
-      playerNickname,
-      currentNickname: nickname,
-      guardData,
-    });
-
-    // Only the attacker should complete their own turn
-    if (playerNickname !== nickname) {
       console.log(
-        "🛡️ GUARD TURN COMPLETION: Not the attacker, skipping turn completion"
+        `🗡️ GUARD EXECUTION: ${nickname} has been eliminated by the Assassin`
       );
-      return;
     }
 
-    // Use the existing turn completion logic
-    await completeTurnWithCardIndex(playedCardIndex);
+    // Always update Firebase to clear guard2Prompt and attackerMarkedForElimination
+    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+
+    return attackerMarkedForElimination;
   };
 
   const completeDukeTurn = async () => {
@@ -2837,7 +2673,7 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
               />
             )}
 
-            {/* === ASSASSIN PROMPT MODAL === */}
+            {/* === ASSASSIN PROMPT MODAL, displayed to the guard's TARGET === */}
             {showGuardTargetPrompt &&
               guardTargetPromptData &&
               nickname === guardTargetPromptData.target && (
@@ -2879,6 +2715,7 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                 swappedCards={resultModalData.swappedCards || null}
                 isSelfTarget={resultModalData.isSelfTarget || false}
                 princessDiscarded={resultModalData.princessDiscarded || false}
+                guardOutcome={resultModalData.guardOutcome || null}
                 onClose={() =>
                   handleModalTransition(async () => {
                     console.log(
@@ -2891,34 +2728,11 @@ From the darkness of <span class="effect-player">${target}</span>’s residence,
                       }
                     );
 
-                    // Check if this player is marked for assassination and execute it
-                    const executionResult =
-                      await executeAssassinationElimination({
-                        roomCode,
-                      });
-
-                    if (
-                      executionResult.eliminated &&
-                      executionResult.eliminatedPlayer === nickname
-                    ) {
-                      console.log(
-                        "🗡️ ASSASSINATION: This player was just eliminated by the Assassin! / Checking for round end after elimination"
-                      );
-
-                      await triggerRoundEndIfNeeded(
-                        "After Assassin Elimination (Modal Confirmed)",
-                        roomCode
-                      );
-
-                      // Return early to prevent turn advancement
-                      return;
-                    }
-
-                    await set(ref(db, `rooms/${roomCode}/actionResult`), null);
                     // Clear priest target modal if it exists
                     await set(ref(db, `rooms/${roomCode}/priestTarget`), null);
                     // Clear baron target modal if it exists
                     await set(ref(db, `rooms/${roomCode}/baronTarget`), null);
+
                     setResultModalData(null);
                     setSelectedCardForUI(null);
 

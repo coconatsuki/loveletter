@@ -110,90 +110,178 @@ export async function applyGuardEffect({ roomCode, attacker, target, guess }) {
   };
 }
 
-export async function resolveAssassinDefense({ roomCode, attacker, target }) {
-  const snapshot = await get(ref(db, `rooms/${roomCode}`));
-  const data = snapshot.val();
-  const deck = data.round.deck || [];
-
-  const draw = deck.length > 0 ? deck[0] : null;
-  const newDeck = deck.slice(1);
-
-  // Get the full Assassin card object from cards data
-  const assassinCard = cards.find((card) => card.id === 14);
-
-  // Immediate effects: Discard Assassin (full card object) + Draw new card for target
-  // BUT do NOT eliminate attacker yet - that happens when they click "Continue"
-  const baseUpdates = {
-    // Discard the full Assassin card object with all properties
-    [`players/${target}/discard`]: [
-      ...(data.players[target].discard || []),
-      assassinCard,
-    ],
-    // Give target a new card from deck
-    [`players/${target}/hand`]: draw ? [draw] : [],
-    // Update deck
-    [`round/deck`]: newDeck,
-    // Set elimination flag for attacker - they'll be eliminated when they confirm modal
-    [`round/pendingAssassinationTarget`]: attacker,
-  };
-
-  // Handle card discard and check for special tokens (like Chamberlain)
-  const finalUpdates = handleCardDiscard({
-    roomCode,
-    playerName: target,
-    card: assassinCard,
-    gameMode: data?.mode,
-    existingUpdates: baseUpdates,
-  });
-
-  await update(ref(db, `rooms/${roomCode}`), finalUpdates);
-
-  console.log(
-    "🗡️ ASSASSIN DEFENSE: Immediate effects applied - Card discarded, new card drawn, attacker marked for elimination"
-  );
-
-  return {
-    attackerMarkedForElimination: true,
-    newCard: draw,
-    // Return full card data for display
-    discardedCard: assassinCard,
-  };
-}
-
-export async function executeAssassinationElimination({ roomCode }) {
-  console.log("🗡️ EXECUTION: Eliminating attacker marked by Assassin");
+export async function applyGuard2Effect({
+  roomCode,
+  actionUsed,
+  guardTargetPromptData,
+}) {
+  const {
+    isCorrectGuess,
+    targetCard,
+    target,
+    attacker,
+    hasAssassin,
+    guessedStrength,
+    actualStrength,
+    eliminatedPlayer,
+  } = guardTargetPromptData;
 
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
-  const data = snapshot.val();
-  const targetPlayer = data.round?.pendingAssassinationTarget;
+  const roomData = snapshot.val();
 
-  if (!targetPlayer) {
-    console.log("🗡️ EXECUTION: No pending assassination target");
-    return { eliminated: false };
+  if (!roomData || !roomData.players || !roomData.players[target]) {
+    return {
+      result: "error",
+      message: "Target player not found",
+    };
   }
 
-  // Eliminate the marked attacker and clear the flag
-  const baseUpdates = {
-    [`round/pendingAssassinationTarget`]: null,
-  };
+  const players = roomData.players;
+  const targetPlayerData = players[target];
 
-  const finalUpdates = handlePlayerElimination(
-    roomCode,
-    targetPlayer,
-    data?.mode,
-    data.players[targetPlayer],
-    baseUpdates
-  );
+  let attackerMessage, targetMessage, publicMessage;
+  let attackerMarkedForElimination = false;
+  let newCardDrawn = null;
 
-  await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+  console.log(`🚨 applyGuard2Effect - BEGIN with:`, {
+    target,
+    targetPlayerData: targetPlayerData
+      ? {
+          name: targetPlayerData.name,
+          chamberlainToken: targetPlayerData.chamberlainToken,
+          isOut: targetPlayerData.isOut,
+        }
+      : "PLAYER NOT FOUND",
+    allPlayersKeys: Object.keys(players || {}),
+    guardTargetPromptData,
+  });
 
-  console.log(
-    `🗡️ EXECUTION: ${targetPlayer} has been eliminated by the Assassin`
-  );
+  // AKNOWLEDGE: TARGET DIDN'T HAVE ASSASSIN
+  if (actionUsed === "onAcknowledge") {
+    if (isCorrectGuess) {
+      // Attacker guessed correctly - eliminate target
+
+      const eliminationUpdates = handlePlayerElimination(
+        roomCode,
+        target,
+        roomData?.mode,
+        targetPlayerData,
+        {}
+      );
+
+      await update(ref(db, `rooms/${roomCode}`), eliminationUpdates);
+
+      publicMessage = `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
+        The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`;
+
+      attackerMessage = `
+        <div class="effect-description top">🎯 Your instincts were flawless.</div>
+        <div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${targetCard.name}</span>!</div>
+        <div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
+        <div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
+    } else {
+      // Attacker guessed incorrectly - target survives
+
+      publicMessage = `😎 The Guard returns to <span class="effect-player">${attacker}</span> empty-handed.
+        <span class="effect-player">${target}</span> simply smiled behind their fan and said, “Not even close.”`;
+
+      attackerMessage = `
+        <div class="effect-description top">👮🏼 Your Guard returns at dawn, shaking his head.</div>
+        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+        <div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
+    }
+  }
+
+  // ASSASSIN CARD REVEALED
+  if (actionUsed === "onReveal") {
+    // Apply Assassin defense (eliminates attacker, target draws new card)
+    const deck = roomData.round.deck || [];
+
+    newCardDrawn =
+      deck.length > 0
+        ? deck[0]
+        : { id: 17, name: "No Cards Left", strength: 0 }; // Fallback card if deck is empty
+    const newDeck = deck.length > 0 ? deck.slice(1) : deck;
+
+    // Get the full Assassin card object from cards data
+    const assassinCard = cards.find((card) => card.id === 14);
+
+    // Immediate effects: Discard Assassin (full card object) + Draw new card for target
+    // BUT do NOT eliminate attacker yet - that happens when the ATTACKER clicks on "Continue" (EffectResultModal)
+    const baseUpdates = {
+      // Discard the full Assassin card object with all properties
+      [`players/${target}/discard`]: [
+        ...(roomData.players[target].discard || []),
+        assassinCard,
+      ],
+      // Give target a new card from deck
+      [`players/${target}/hand`]: [newCardDrawn],
+      // Update deck
+      [`round/deck`]: newDeck,
+      // Set elimination flag for attacker - they'll be eliminated when they confirm modal
+    };
+
+    // Handle card discard and check for special tokens (like Chamberlain)
+    const finalUpdates = handleCardDiscard({
+      roomCode,
+      playerName: target,
+      card: assassinCard,
+      gameMode: roomData?.mode,
+      existingUpdates: baseUpdates,
+    });
+
+    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+
+    attackerMarkedForElimination = true;
+
+    console.log(
+      "🗡️ ASSASSIN DEFENSE: Immediate effects applied - Card discarded, new card drawn, attacker marked for elimination"
+    );
+
+    publicMessage = `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
+        From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`;
+
+    attackerMessage = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
+        <div class="effect-description top">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
+        <div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
+        <div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
+        <div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
+        <div class="effect-quote">“Some secrets are worth killing for.”</div>
+        <div class="effect-signature">– The Royal Assassin</div>
+        <div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
+  }
+
+  // TARGET HAD ASSASSIN, BUT ATTACKER DID NOT REVEAL IT ("Let them go" button)
+  if (actionUsed === "onIgnore") {
+    publicMessage = `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${attacker}.”`;
+
+    attackerMessage = `<div class="effect-description top">👮🏼 Your Guard returns at dawn, shaking his head.</div>
+        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+        <div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
+  }
+
+  const resultText =
+    actionUsed === "onAcknowledge" && isCorrectGuess
+      ? "correctGuess"
+      : actionUsed === "onAcknowledge" && !isCorrectGuess
+      ? "wrongGuess"
+      : actionUsed === "onReveal"
+      ? "assassinRevealed"
+      : actionUsed === "onIgnore" && isCorrectGuess
+      ? "assassinIgnoredElimination"
+      : actionUsed === "onIgnore" && !isCorrectGuess
+      ? "assassinIgnoredNoElimination"
+      : "unknownAction";
 
   return {
-    eliminated: true,
-    eliminatedPlayer: targetPlayer,
+    result: resultText,
+    attacker,
+    target,
+    publicMessage,
+    attackerMessage,
+    targetMessage,
+    attackerMarkedForElimination,
+    newCardDrawn,
   };
 }
 

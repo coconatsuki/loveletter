@@ -103,6 +103,7 @@ export default function EffectResultModal({
   swappedCards = null, // For Phantom King or Royal Confessor cards-swap details
   isSelfTarget = false, // To identify self-targeting effects (for Royal Confessor)
   princessDiscarded = false, // To indicate if the Princess was eliminated (for Duke)
+  guardOutcome = null, // To indicate Guard guess outcome
   onClose,
 }) {
   // 🐛 DEBUG: Log props to ensure we never get invalid values
@@ -112,6 +113,7 @@ export default function EffectResultModal({
       role,
       resultText: resultText?.substring(0, 100) + "...", // Truncate for readability
       hasCardDetails: !!cardDetails,
+      guardOutcome,
     });
 
     // 🚨 Alert us if we get invalid values
@@ -128,7 +130,7 @@ export default function EffectResultModal({
     if (role === "unknown" || role === null || role === undefined) {
       console.error("🚨 EffectResultModal: role is invalid!", role);
     }
-  }, [selectedCardId, role, resultText, cardDetails]);
+  }, [selectedCardId, role, resultText, cardDetails, guardOutcome]);
   // Helper function to render HTML text directly (no more markdown conversion needed)
   const formatText = (text) => {
     if (!text) return "";
@@ -148,9 +150,11 @@ export default function EffectResultModal({
   };
 
   // Effect detection based on selectedCardId (more reliable than text parsing)
+  const isGuardEffect = selectedCardId === 1;
+  // "correctGuess", "wrongGuess", "assassinRevealed", "assassinIgnoredElimination", "assassinIgnoredNoElimination"
+  const guardEffect = guardOutcome ? guardOutcome : null; //
   const isHandmaidProtection = selectedCardId === 4;
   const isJesterEffect = selectedCardId === 0;
-  const isGuardEffect = selectedCardId === 1;
   const isPriestEffect = selectedCardId === 2;
   const isCourtWhispererEffect = selectedCardId === 12;
   const isInquisitorEffect = selectedCardId === 9;
