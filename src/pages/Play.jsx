@@ -775,7 +775,6 @@ export default function Play() {
 
     // Apply Assassin effect (mysterious shadow moves)
     const result = await applyAssassinEffect({
-      roomCode,
       player: nickname,
     });
 
@@ -786,7 +785,6 @@ export default function Play() {
     setResultModalData({
       selectedCardId: 14, // Assassin
       resultText: result.playerMessage,
-      isAssassinShadow: true,
     });
 
     // Note: Turn will be completed when player closes the result modal

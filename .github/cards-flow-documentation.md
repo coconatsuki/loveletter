@@ -221,3 +221,13 @@ set /targetMessage & (IF Target1 is external => /target2Message) & setRoyalConfe
 handleEffectResultClose(); => completeTurnWithCardIndex()
 
 ### Assassin - 14
+
+playCard() => playAssassin() => applyAssassinEffect() => generates narratives => pushNotification() => setResultModalData()
+
+=> handleEffectResultClose() => completeTurnWithCardIndex()
+
+### Baroness - 15
+
+setShowTargetModal() => BaronessTargetModal() => <BaronessTargetModal> => handleTargetConfirm() => applyBaronessEffect() =>
+
+-

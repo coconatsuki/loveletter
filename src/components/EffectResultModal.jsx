@@ -179,6 +179,7 @@ export default function EffectResultModal({
   const isPrinceAttacker =
     isPrinceEffect && role === "attacker" && !isSelfTarget;
   const isPrincessEffect = selectedCardId === 8;
+  const isAssassinEffect = selectedCardId === 14;
 
   // Court Whisperer: distinguish between attacker and target
   const isCourtWhispererAttacker =
@@ -315,6 +316,8 @@ export default function EffectResultModal({
               ? "🥀"
               : isPrincessEffect
               ? "💔"
+              : isAssassinEffect
+              ? "🌙"
               : "📜"}
           </div>
           <h3
@@ -373,6 +376,8 @@ export default function EffectResultModal({
               ? "🌙 Whispers at Dawn"
               : isGuardElimination
               ? "🌑 A Blade in the Dark"
+              : isAssassinEffect
+              ? "🌙 A Shadow in the Night"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}

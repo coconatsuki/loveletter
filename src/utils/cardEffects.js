@@ -845,42 +845,20 @@ export async function applyCountessEffect({ roomCode, player }) {
   }
 }
 
-export async function applyAssassinEffect({ roomCode, player }) {
+export async function applyAssassinEffect({ player }) {
   console.log("🗡️ ASSASSIN DEBUG: A shadow moves in the court...", {
     player,
   });
 
   try {
-    const gameRef = ref(db, `rooms/${roomCode}`);
-    const snapshot = await get(gameRef);
-
-    if (!snapshot.exists()) {
-      throw new Error("The shadows have consumed the royal chambers...");
-    }
-
-    const gameData = snapshot.val();
-    const playerData = gameData.players[player];
-
-    console.log("🗡️ ASSASSIN: Shadow confirmed", {
-      player,
-      hand: playerData.hand,
-    });
-
     return {
       result: "assassin_played",
       message: `A shadow passes through the court...`,
       // Mysterious notification for everyone in the court
-      publicMessage: `<div class="effect-description">🌙🐾 A shadow glides silently through the corridors... Was it merely a cat, or something far more sinister? <span class="effect-player">${
-        playerData.name || player
-      }</span> seems to have noticed something, but speaks not a word. The court remains unaware of the deadly grace that moves among them... 🕯️✨</div>`,
+      publicMessage: `<div class="effect-description">🌙🐾 A shadow glides silently through the corridors... Was it merely a cat, or something far more sinister? <span class="effect-player">${player}</span> seems to have noticed something, but speaks not a word. 🕯️✨</div>`,
       // Personal dramatic message for the player's modal
-      playerMessage: `<div class="effect-title">🗡️🌙 THE ROYAL ASSASSIN 🌙🗡️</div>
-
-      <div class="effect-description">You have played the Assassin!</div>
-
-      <div class="effect-description">🐾 A shadow passes through the court like a whisper of silk...</div>
+      playerMessage: `<div class="effect-description">🐾 A shadow passes through the court like a whisper of silk...</div>
       <div class="effect-description">🌙 Your lethal asset slips away unnoticed, but your opportunity for a decisive strike is now lost.</div>
-
       <div class="effect-quote">"The darkness is patient. It waits for the perfect moment to strike."</div>
       <div class="effect-signature">- A Voice from the Shadows</div>`,
     };
