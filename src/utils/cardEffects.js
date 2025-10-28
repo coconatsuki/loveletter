@@ -491,12 +491,6 @@ export async function applyRegentQueenEffect({
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
 
-  // Enrich card data with names and effects from cardsData
-  const enrichedAttackerCard =
-    cards.find((c) => c.id === attackerCard.id) || attackerCard;
-  const enrichedTargetCard =
-    cards.find((c) => c.id === targetCard.id) || targetCard;
-
   let eliminatedPlayer = null;
   let winner = null;
   let winnerCard = null;
@@ -506,106 +500,29 @@ export async function applyRegentQueenEffect({
   if (attackerCard.strength > targetCard.strength) {
     eliminatedPlayer = attacker; // Attacker eliminated if they have higher strength
     winner = target;
-    winnerCard = enrichedTargetCard;
-    loserCard = enrichedAttackerCard;
+    winnerCard = targetCard;
+    loserCard = attackerCard;
   } else if (targetCard.strength > attackerCard.strength) {
     eliminatedPlayer = target; // Target eliminated if they have higher strength
     winner = attacker;
-    winnerCard = enrichedAttackerCard;
-    loserCard = enrichedTargetCard;
+    winnerCard = attackerCard;
+    loserCard = targetCard;
   }
   // If strengths are equal, it's a tie - no elimination
 
   // NOTE: We do NOT eliminate the player here - that will be done when the modal is confirmed
   // The Regent Queen effect only compares cards and returns the result
-  // Elimination happens in the modal confirmation flow to maintain proper game state
 
   return {
     requiresPrompt: false,
     attacker,
     target,
-    attackerCard: enrichedAttackerCard,
-    targetCard: enrichedTargetCard,
+    attackerCard,
+    targetCard,
     eliminatedPlayer,
     winner,
     isTie: !eliminatedPlayer,
     result: eliminatedPlayer ? "elimination" : "tie",
-
-    // Dark magical notifications for different audiences
-    attackerMessage:
-      eliminatedPlayer === target
-        ? `<div class="effect-description">🪞👑 The Regent Queen's mirror reveals your victory! Your <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>) reflects weakly while <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>) shatters under its own power. <span class="effect-warning">They are consumed by their strength!</span></div>`
-        : eliminatedPlayer === attacker
-        ? `<div class="effect-description">🪞💀 The mirror's cruel truth condemns you! Your <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>) proves too powerful and turns against you, while <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>) survives the reflection. <span class="effect-warning">You are eliminated by your own might!</span></div>`
-        : `<div class="effect-description">🪞⚖️ The mirror shows perfect balance! Your <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>) reflects equally with <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>). The dark magic spares both souls this day!</div>`,
-
-    targetMessage:
-      eliminatedPlayer === target
-        ? `<div class="effect-description">🪞💀 The Regent Queen's mirror turns against you! Your <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>) proves too mighty and consumes you, while <span class="effect-player">${
-            data.players[attacker]?.name || attacker
-          }</span>'s <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>) survives through weakness. <span class="effect-warning">You are eliminated by your own power!</span></div>`
-        : eliminatedPlayer === attacker
-        ? `<div class="effect-description">🪞🏆 The dark mirror favors you! <span class="effect-player">${
-            data.players[attacker]?.name || attacker
-          }</span>'s <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>) shatters under its own reflection while your <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>) remains whole. <span class="effect-success">The challenger falls to their own strength!</span></div>`
-        : `<div class="effect-description">🪞⚖️ The Regent Queen's mirror shows equality! Your <span class="effect-card">${
-            enrichedTargetCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedTargetCard.strength
-          }</span>) reflects perfectly with <span class="effect-player">${
-            data.players[attacker]?.name || attacker
-          }</span>'s <span class="effect-card">${
-            enrichedAttackerCard.name
-          }</span> (<span class="effect-strength">${
-            enrichedAttackerCard.strength
-          }</span>). The cursed magic finds no victim this turn!</div>`,
-
     publicMessage: eliminatedPlayer
       ? `The Regent Queen, ever protective of her influence, took an interest in the suitor ${
           data.players[attacker]?.name || attacker

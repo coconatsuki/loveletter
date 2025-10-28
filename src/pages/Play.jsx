@@ -991,7 +991,7 @@ export default function Play() {
 
       if (regentQueenResult.result === "error") {
         setResultModalData({
-          resultText: `❌ Error: ${regentQueenResult.message}`,
+          resultText: `❌ Error: Regent Queen failed`,
         });
         return;
       }
@@ -1008,7 +1008,6 @@ export default function Play() {
         targetCard: regentQueenResult.targetCard,
         eliminatedPlayer: regentQueenResult.eliminatedPlayer,
         isTie: regentQueenResult.isTie,
-        targetMessage: regentQueenResult.targetMessage,
       });
 
       // Show Regent Queen result modal to the attacker (with confirm button to control game flow)
@@ -1019,8 +1018,6 @@ export default function Play() {
         targetCard: regentQueenResult.targetCard,
         eliminatedPlayer: regentQueenResult.eliminatedPlayer,
         isTie: regentQueenResult.isTie,
-        attackerMessage: regentQueenResult.attackerMessage,
-        targetMessage: regentQueenResult.targetMessage,
       });
 
       // Regent Queen effect is complete - return early, turn will be completed when result modal is closed
@@ -1477,6 +1474,7 @@ export default function Play() {
       return;
     }
 
+    // Special handling for Prince - check for self-elimination
     if (resultModalData?.selectedCardId === 5) {
       // PRINCE
 
@@ -2581,16 +2579,26 @@ export default function Play() {
                 targetCard={regentQueenResultModalData.targetCard}
                 eliminatedPlayer={regentQueenResultModalData.eliminatedPlayer}
                 isTie={regentQueenResultModalData.isTie}
-                message={
-                  nickname === regentQueenResultModalData.attackerName
-                    ? regentQueenResultModalData.attackerMessage
-                    : regentQueenResultModalData.targetMessage
-                }
                 onConfirm={() =>
                   handleModalTransition(async () => {
                     // Only attacker can confirm to proceed with the game
-
                     // If there was an elimination, apply it now
+
+                    if (regentQueenResultModalData.isTie) {
+                      // Clear Regent Queen target data in Firebase
+                      await set(
+                        ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                        null
+                      );
+                      setRegentQueenResultModalData(null);
+
+                      // Complete the Regent Queen turn (discard card, advance turn)
+                      if (selectedCardIndex !== null) {
+                        handleEffectResultClose();
+                      }
+                      return;
+                    }
+
                     if (
                       regentQueenResultModalData.eliminatedPlayer &&
                       !regentQueenResultModalData.isTie
@@ -2598,12 +2606,17 @@ export default function Play() {
                       const eliminatedPlayerData =
                         players[regentQueenResultModalData.eliminatedPlayer];
 
+                      const isSelfElimination =
+                        eliminatedPlayerData?.name ===
+                        regentQueenResultModalData.attacker;
+
                       const eliminationUpdates = handlePlayerElimination(
                         roomCode,
                         regentQueenResultModalData.eliminatedPlayer,
                         roomData?.mode,
                         eliminatedPlayerData,
-                        {}
+                        {},
+                        { discardRemainingHand: true }
                       );
 
                       await update(
@@ -2611,29 +2624,23 @@ export default function Play() {
                         eliminationUpdates
                       );
 
-                      // Notify about the elimination
-                      pushNotification(
-                        roomCode,
-                        `🪞💫 ${regentQueenResultModalData.eliminatedPlayer} has been consumed by their own strength in the Regent Queen's dark mirror!`
+                      // Clear Regent Queen target data in Firebase
+                      await set(
+                        ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                        null
                       );
+                      setRegentQueenResultModalData(null);
 
-                      // 🎯 FIXED: Use protected trigger instead of just logging
-                      await triggerRoundEndIfNeeded(
-                        "After Regent Queen Elimination",
-                        roomCode
-                      );
-                    }
-
-                    // Clear Regent Queen target data in Firebase
-                    await set(
-                      ref(db, `rooms/${roomCode}/regentQueenTarget`),
-                      null
-                    );
-                    setRegentQueenResultModalData(null);
-
-                    // Complete the Regent Queen turn (discard card, advance turn)
-                    if (selectedCardIndex !== null) {
-                      handleEffectResultClose();
+                      if (isSelfElimination && selectedCardIndex !== null) {
+                        await completeTurnWithCardIndex(selectedCardIndex, {
+                          noDiscarding: true,
+                        });
+                      } else if (
+                        !isSelfElimination &&
+                        selectedCardIndex !== null
+                      ) {
+                        await completeTurnWithCardIndex(selectedCardIndex);
+                      }
                     }
                   })
                 }

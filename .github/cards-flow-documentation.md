@@ -2,7 +2,7 @@
 
 ## How do each card check for roundEnd conditions and when?
 
-### 0 - JESTER
+### JESTER - 0
 
 showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 0)
 
@@ -16,7 +16,7 @@ EffectResultModal onClose => handleEffectResultClose() => completeTurnWithCardIn
 
 Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextPlayer
 
-### 1 - GUARD
+### GUARD - 1
 
 setShowTargetModal(true) => <TargetModal> => handleTargetConfirm() => applyGuardEffect() =>
 
@@ -37,7 +37,7 @@ When attacker closes EffectResultModal => handleEffectResultClose() => CompleteG
 
 completeTurnWithCardIndex() - without discarding if attacker is eliminated
 
-### 2 - PRIEST
+### PRIEST - 2
 
 showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 2) {
 
@@ -53,7 +53,7 @@ EffectResultModal onClose => handleEffectResultClose() => completeTurnWithCardIn
 
 Check if roundEnd/isFinal turn. If yes: end round / if no: advance turn to nextPlayer
 
-### 3 - BARON
+### BARON - 3
 
 calls applyBaronEffect() (cardEffects) =>
 
@@ -73,7 +73,7 @@ handlePlayerElimination(loser) (with discardRemainingHand: false if attacker==lo
 
 Then => handleEffectResultClose() => completeTurnWithCardIndex() => checkRoundEndConditions()
 
-### Handmaid
+### Handmaid - 4
 
 PlayCard() => playHandmaid() - special Handling (no target selection)
 
@@ -81,7 +81,7 @@ applyHandmaidEffect() (in cardEffects.js) => add currentPlayer to protectedPlaye
 
 => handleEffectResultClose() => completeTurnWithCardIndex()
 
-### Prince
+### Prince - 5
 
 PlayCard() => showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 5) {
 
@@ -98,7 +98,7 @@ If (SelfTarget && princessDiscarded), the prince card should be discarded into h
 
 completeTurnWithCardIndex(option: isDiscarding=false) => checks for roundEnd & advance turn.
 
-### Phantom King
+### Phantom King - 6
 
 PlayCard() => showTargetModal => handleTargetConfirm() => if (cardPlayed.id === 6) =>
 
@@ -108,7 +108,7 @@ then swap hands (secondAttackerCard & targetCard) while respecting the original 
 
 handleEffectResultClose => completeTurnWithCardIndex() - Phantom King is discarded here)
 
-### Countess
+### Countess - 7
 
 playCard() => playCountess => setSelectedCardIndex() => applyCountessEffect() (cardEffects.js) =>
 
@@ -116,7 +116,7 @@ generate public message & attacker result message
 
 => setResultModalData with result & push notifs => handleEffectResultClose => completeTurnWithCardIndex() - Countess is discarded here
 
-### Princess
+### Princess - 8
 
 playCard => playPrincess (card.id === 8) => setSelectedCardIndex() & setIsPlaying(true) =>
 
@@ -128,7 +128,7 @@ completePrincessTurn() => Eliminate the playerwith handleElimination() which wil
 
 completeTurnWithCardIndex(option: isDiscarding=false) => checks for roundEnd & advance turn.
 
-### Inquisitor
+### Inquisitor - 9
 
 setShowTargetModal() => show <InquisitorTargetModal> / pass it: isDeckEmpty + onConfirm={handleTargetConfirm}
 
@@ -152,7 +152,7 @@ handlePlayerDiscard(target) + draw new hand & update Firebase
 
 handleEffectResultClose => completeTurnWithCardIndex() - Inquisitor is discarded here)
 
-### Chamberlain
+### Chamberlain - 10
 
 playCard() => playChamberlain() => applyChamberlainEffect() =>
 
@@ -179,3 +179,11 @@ in triggerRoundEnd() =>
 - for EACH player, we check if one has a chamberlainToken=true
 
 if so, we reward them a token + roundToken. + set "loveTokenOrigin: chamberlainToken: 1"
+
+### Regent Queen - 11
+
+setShowTargetModal() => handleTargetConfirm() => applyRegentQueenEffect() => compare strength, define winner/loser & generate narratives =>
+
+pushNotifications() & Set /regentQueenTarget (in Firebase) for TARGET & setRegentQueenResultModalData() for ATTACKER
+
+<RegentQueenResultModal> (for ATTACKER)=> reset /regentQueenTarget & RegentQueenResultModalData => handleEffectResultClose()
