@@ -151,8 +151,13 @@ export default function EffectResultModal({
 
   // Effect detection based on selectedCardId (more reliable than text parsing)
   const isGuardEffect = selectedCardId === 1;
-  // "correctGuess", "wrongGuess", "assassinRevealed", "assassinIgnoredElimination", "assassinIgnoredNoElimination"
   const guardEffect = guardOutcome ? guardOutcome : null; //
+  const isGuardElimination =
+    isGuardEffect && role === "attacker" && guardEffect === "assassinRevealed";
+  const isGuardCorrectGuess =
+    isGuardEffect && role === "attacker" && guardEffect === "correctGuess";
+  const isGuardWrongGuess =
+    isGuardEffect && role === "attacker" && guardEffect === "wrongGuess";
   const isHandmaidProtection = selectedCardId === 4;
   const isJesterEffect = selectedCardId === 0;
   const isPriestEffect = selectedCardId === 2;
@@ -362,6 +367,12 @@ export default function EffectResultModal({
               ? "🥀 The Countess turns away...🪭"
               : isPrincessEffect
               ? "👑😱 ROYAL ULTIMATE BLUNDER! 😱👑"
+              : isGuardCorrectGuess
+              ? "⚖️ A Rival Falls!"
+              : isGuardWrongGuess
+              ? "🌙 Whispers at Dawn"
+              : isGuardElimination
+              ? "🌑 A Blade in the Dark"
               : "Effect Result"}
           </h3>
           {/* Special Priest Layout with Card Display */}

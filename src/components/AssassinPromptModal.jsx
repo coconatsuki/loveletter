@@ -140,10 +140,11 @@ export default function AssassinPromptModal({
   const hasAssassin = targetCard?.id === 14;
   const isCorrectGuess = promptData?.isCorrectGuess;
 
-  let title = "🛡️ You've been targeted!";
+  let title = "";
   let body = null;
 
   if (!hasAssassin && !isCorrectGuess) {
+    title = "🛡️ An Unfounded Accusation!";
     body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
@@ -188,6 +189,8 @@ export default function AssassinPromptModal({
       </div>
     );
   } else if (!hasAssassin && isCorrectGuess) {
+    title = "💥 The Trap Springs Shut!";
+
     body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
@@ -196,17 +199,16 @@ export default function AssassinPromptModal({
           storms in, armed with a royal warrant.
         </p>
         <p style={ASSASSIN_STYLES.message}>
-          He finds exactly what your rival accused you of: your secret
-          accomplice, the{" "}
+          He finds and arrests your secret accomplice, the{" "}
           <span style={ASSASSIN_STYLES.highlightedText}>
-            {targetCard.name} (Strength {targetCard.strength})
+            {targetCard.name}, for conspiracy.
           </span>
           !
         </p>
         <p style={ASSASSIN_STYLES.finalPunchLine}>
-          The accusation spreads like fire through the palace.{" "}
+          The scandal spreads like fire, damaging your reputation.{" "}
           <strong>
-            You’ve been{" "}
+            You’re{" "}
             <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span> 💔
           </strong>
         </p>
@@ -236,7 +238,7 @@ export default function AssassinPromptModal({
       </div>
     );
   } else if (hasAssassin && isCorrectGuess) {
-    title = "🗡️ YOUR SECRET IS DISCOVERED!";
+    title = "🗡️ Cornered in the Dark!";
     body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
@@ -295,18 +297,13 @@ export default function AssassinPromptModal({
       </div>
     );
   } else if (hasAssassin && !isCorrectGuess) {
-    title = "🌙 A RIVAL'S GUARD INVESTIGATES";
+    title = "🌙 Shadows Stir in the Hall";
     body = (
       <div style={ASSASSIN_STYLES.body}>
         <p style={ASSASSIN_STYLES.message}>
           Under orders from{" "}
           <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>, a guard
-          prowls your halls, hunting the conspirator they described —
-          <span style={ASSASSIN_STYLES.highlightedText}>
-            {" "}
-            rank {guessedStrength}
-          </span>
-          .
+          prowls your halls, hunting the conspirator they described.
         </p>
         <p style={ASSASSIN_STYLES.message}>
           He passes within a breath of your hidden ally — the{" "}

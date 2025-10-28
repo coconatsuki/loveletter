@@ -241,13 +241,10 @@ export async function applyGuard2Effect({
     publicMessage = `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
         From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`;
 
-    attackerMessage = `<div class="effect-title">🗡️💀 FATAL MISCALCULATION! 💀🗡️</div>
-        <div class="effect-description top">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
+    attackerMessage = `<div class="effect-description top">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence, confident in their search for traitors…</div>
         <div class="effect-description">🌙 But from the shadows, a blade flashed — silent and merciless!</div>
         <div class="effect-description">💀 <span class="effect-player">${target}</span>’s deadly ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down.</div>
-        <div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. If the Assassin strikes so boldly, you dare not linger at court…</div>
-        <div class="effect-quote">“Some secrets are worth killing for.”</div>
-        <div class="effect-signature">– The Royal Assassin</div>
+        <div class="effect-description">🩸 The news reaches you at dawn; fear grips your heart. You dare not linger at court any longer…</div>
         <div class="effect-description">💔 You have been <span class="effect-card">ELIMINATED</span> from this round!</div>`;
   }
 
@@ -1701,16 +1698,15 @@ export async function applyDukeEffect({ roomCode, player }) {
 <div class="effect-description top">👑 The Duke approaches you with quiet authority. His loyal little hound 🐕 trots proudly at his heels, wearing a velvet collar far too grand for its size.</div>
 <div class="effect-description"><span class="quotation duke">"My dear <span class="effect-player">${
       playerData.name || player
-    }</span>,"</span> the Duke says, <span class="quotation duke">"my niece deserves sincerity, not showmanship. You have shown both courage and patience — virtues I hold dear."</span></div>
-<div class="effect-description">He rests a gloved hand 🤝 on your shoulder. <span class="quotation duke">"Take my blessing. While I stand in your corner, your name shall carry greater weight in this court."</span></div>
+    }</span>,"</span> the Duke says, <span class="quotation duke">"my niece deserves sincerity, not showmanship. And you have shown both courage and patience — virtues I hold dear."</span></div>
+<div class="effect-description quotation">"Take my blessing. While I stand in your corner, your name shall carry greater weight in this court."</div>
 <div class="effect-description">The tiny dog lets out a solemn <span class="quotation duke">"woof,"</span> 🐾 as if sealing the vow.</div>
 <div class="effect-technical">✨ If you're still standing when the round ends, add +1 to your last card's strength!</div>`;
 
     const publicMessage = `
-<div class="effect-description">🏛️ The Duke, uncle to the Princess and guardian of her honor, has granted his favor to <span class="effect-player">${
+<div class="effect-description">🏛️ The Duke, uncle to the Princess, has granted his favor to <span class="effect-player">${
       playerData.name || player
-    }</span>.</div>
-<div class="effect-description">His word alone elevates their standing in the eyes of the court — and even his tiny hound 🐶 seems to approve, tail held high with royal pride 👑.</div>`;
+    }</span>.</div><div class="effect-description">His word elevates their standing in the eyes of the court.</div>`;
 
     return {
       result: "duke_favor",
