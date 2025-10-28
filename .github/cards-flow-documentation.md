@@ -22,67 +22,20 @@ setShowTargetModal(true) => <TargetModal> => handleTargetConfirm() => applyGuard
 
 - Check if player has ASSASSIN / & if GUESS WAS CORRECT
 
-& returns: target, attacker, hasAssassin, guessedStrength: guess, actualStrength, isCorrectGuess: wasCorrect, targetCard, eliminatedPlayer
+& returns: hasAssassin, isCorrectGuess, targetCard, eliminatedPlayer
 
-pushNotification()
+/guardPrompt in Firebase (for TARGET), with result from applyGuardEffect() => <AssassinPromptModal> => handleAssassinPromptClose() (From TARGET's side) =>
 
-/guardPrompt in Firebase, with result from applyGuardEffect() => setGuardTargetPromptData(data) & setShowGuardTargetPrompt(true); =>
+- calls applyGuard2Effect() that generates the resultTexts (public, attacker, target)
+  & eliminates TARGET if necessary. Or discard Assassin (and draw new card) if necessary
 
-<AssassinPromptModal> => handleAssassinPromptClose
+- pushNotification,
 
-## **AssassinPromptModal / onAcknowledge ()** =>
+- Reset /guardPrompt (for target), Set /guard2Prompt (EffectResultModal for attacker) and Set attackerMarkedForElimination in Firebase =>
 
-if correctGuess:
+When attacker closes EffectResultModal => handleEffectResultClose() => CompleteGuardTurn() => Eliminate attacker if necessary =>
 
-- call handlePlayerElimination() & update fireBase (eliminationUpdates)
-
-- pushNotification(public message)
-
----
-
-if !correctGuess: /
-
-- pushNotification(public message)
-
----
-
-in any case (onAcknowledge):
-
-- /actionResult with AssassinPromptModal attackerMessage
-
-- completeGuardTurn
-
----
-
-**AssassinPromptModal / onReveal** =>
-
-- resolveAssassinDefense (cardEffects.js) =>
-
-  - call handleCardDiscard() => Guard-Target discard assassin & draw a newCard (if deckNotEmpty)
-
-  * round/pendingAssassinationTarget: attacker
-
-    - update firebase
-
-- /actionResult with AssassinPromptModal attackerMessage
-
-- completeGuardTurn
-
----
-
-AssassinPromptModal / onIgnore =>
-
-- pushNotification(public message)
-
-- /actionResult with AssassinPromptModal attackerMessage
-
-- completeGuardTurn
-
----
-
-CompleteGuardTurn() => trigger completeTurnWithCardIndex(1) which is calling checkRoundEndConditions()
-
-And if it's NOT the end of the round => Turn advancement to next player + update of Handmaid protected players.
+completeTurnWithCardIndex() - without discarding if attacker is eliminated
 
 ### 2 - PRIEST
 
