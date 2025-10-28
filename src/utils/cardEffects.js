@@ -479,6 +479,7 @@ export async function applyRegentQueenEffect({
   attacker,
   target,
   playedCardIndex,
+  updatePlayedCardIndex,
 }) {
   const snapshot = await get(ref(db, `rooms/${roomCode}`));
   const data = snapshot.val();
@@ -490,6 +491,7 @@ export async function applyRegentQueenEffect({
   const attackerCard =
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
+  const regentQueenCard = attackerHand[playedCardIndex];
 
   let eliminatedPlayer = null;
   let winner = null;
@@ -512,6 +514,36 @@ export async function applyRegentQueenEffect({
 
   // NOTE: We do NOT eliminate the player here - that will be done when the modal is confirmed
   // The Regent Queen effect only compares cards and returns the result
+
+  if (eliminatedPlayer === attacker) {
+    // Discard second card now, and the Baron card later, in completeTurnWithCardIndex()
+    const baseDiscardUpdates = {
+      [`players/${attacker}/discard`]: [
+        ...(data.players[attacker].discard || []),
+        attackerCard,
+      ],
+      [`players/${attacker}/hand`]: [regentQueenCard],
+    };
+
+    const discardUpdate = handleCardDiscard({
+      roomCode,
+      playerName: attacker,
+      card: attackerCard,
+      gameMode: data?.mode,
+      existingUpdates: baseDiscardUpdates,
+    });
+
+    await update(ref(db, `rooms/${roomCode}`), discardUpdate);
+
+    updatePlayedCardIndex(0); // Reset played card index after discarding
+
+    console.log(
+      "Apply Regent Queen effect / attacker will be eliminated / updatePlayedCardIndex to 0 / second card discarded: ",
+      attackerCard,
+      " discardUpdates: ",
+      discardUpdate
+    );
+  }
 
   return {
     requiresPrompt: false,

@@ -182,8 +182,18 @@ if so, we reward them a token + roundToken. + set "loveTokenOrigin: chamberlainT
 
 ### Regent Queen - 11
 
-setShowTargetModal() => handleTargetConfirm() => applyRegentQueenEffect() => compare strength, define winner/loser & generate narratives =>
+setShowTargetModal() => handleTargetConfirm() => applyRegentQueenEffect() =>
+
+- compare strength, define winner/loser &
+
+- IF eliminatedPlayer==attacker => Discard remaining card HERE & updatePlayedCardIndex(0) to make sure the RegentQueen is discarded later.
+
+- generate narratives
 
 pushNotifications() & Set /regentQueenTarget (in Firebase) for TARGET & setRegentQueenResultModalData() for ATTACKER
 
-<RegentQueenResultModal> (for ATTACKER)=> reset /regentQueenTarget & RegentQueenResultModalData => handleEffectResultClose()
+<RegentQueenResultModal> (for ATTACKER)=> ELIMINATE LOSER (discardRemainingHand: false if attackerEliminated, true if targetEliminated)
+
+reset /regentQueenTarget & RegentQueenResultModalData => handleEffectResultClose() => Regent queen is discarded in completeTurnWithCardIndex()
+
+### Court Whisperer - 12

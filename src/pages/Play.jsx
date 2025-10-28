@@ -987,6 +987,9 @@ export default function Play() {
         attacker: nickname,
         target,
         playedCardIndex: selectedCardIndex, // Pass the index of the played card
+        updatePlayedCardIndex: (index) => {
+          setSelectedCardIndex(index);
+        },
       });
 
       if (regentQueenResult.result === "error") {
@@ -2584,21 +2587,6 @@ export default function Play() {
                     // Only attacker can confirm to proceed with the game
                     // If there was an elimination, apply it now
 
-                    if (regentQueenResultModalData.isTie) {
-                      // Clear Regent Queen target data in Firebase
-                      await set(
-                        ref(db, `rooms/${roomCode}/regentQueenTarget`),
-                        null
-                      );
-                      setRegentQueenResultModalData(null);
-
-                      // Complete the Regent Queen turn (discard card, advance turn)
-                      if (selectedCardIndex !== null) {
-                        handleEffectResultClose();
-                      }
-                      return;
-                    }
-
                     if (
                       regentQueenResultModalData.eliminatedPlayer &&
                       !regentQueenResultModalData.isTie
@@ -2607,7 +2595,7 @@ export default function Play() {
                         players[regentQueenResultModalData.eliminatedPlayer];
 
                       const isSelfElimination =
-                        eliminatedPlayerData?.name ===
+                        regentQueenResultModalData.eliminatedPlayer ===
                         regentQueenResultModalData.attacker;
 
                       const eliminationUpdates = handlePlayerElimination(
@@ -2616,7 +2604,11 @@ export default function Play() {
                         roomData?.mode,
                         eliminatedPlayerData,
                         {},
-                        { discardRemainingHand: true }
+                        {
+                          discardRemainingHand: isSelfElimination
+                            ? false
+                            : true,
+                        }
                       );
 
                       await update(
@@ -2631,15 +2623,8 @@ export default function Play() {
                       );
                       setRegentQueenResultModalData(null);
 
-                      if (isSelfElimination && selectedCardIndex !== null) {
-                        await completeTurnWithCardIndex(selectedCardIndex, {
-                          noDiscarding: true,
-                        });
-                      } else if (
-                        !isSelfElimination &&
-                        selectedCardIndex !== null
-                      ) {
-                        await completeTurnWithCardIndex(selectedCardIndex);
+                      if (selectedCardIndex !== null) {
+                        handleEffectResultClose();
                       }
                     }
                   })

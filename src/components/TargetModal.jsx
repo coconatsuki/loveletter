@@ -295,6 +295,7 @@ const buttonsContainerStyle = {
   marginTop: "1rem",
   display: "flex",
   justifyContent: "space-between",
+  gap: "1.5rem",
 };
 
 const getButtonsStyle = (isConfirmDisabled, isConfirmButton) => ({
@@ -306,6 +307,7 @@ const getButtonsStyle = (isConfirmDisabled, isConfirmButton) => ({
   fontFamily: "Cinzel, serif",
   fontWeight: "bold",
   cursor: isConfirmDisabled && isConfirmButton ? "not-allowed" : "pointer",
+  transform: "translateY(0px)",
   transition: "all 0.3s ease",
   textTransform: "uppercase",
   letterSpacing: "0.5px",
@@ -316,6 +318,7 @@ const confirmButtonStyle = {
   color: "#8b0000",
   borderColor: "#8b4513",
   boxShadow: "0 4px 12px rgba(255, 215, 0, 0.4)",
+  width: "65%",
 };
 
 const confirmButtonHoverStyle = {
@@ -324,6 +327,7 @@ const confirmButtonHoverStyle = {
   borderColor: "#ffd700",
   boxShadow: "0 6px 18px rgba(255, 215, 0, 0.6)",
   transform: "translateY(-2px)",
+  width: "65%",
 };
 
 const backButtonStyle = {
@@ -331,6 +335,7 @@ const backButtonStyle = {
   color: "#f8f9fa",
   borderColor: "#6c757d",
   boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+  width: "35%",
 };
 
 const backButtonHoverStyle = {
@@ -338,5 +343,6 @@ const backButtonHoverStyle = {
   color: "#fff",
   borderColor: "#495057",
   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
-  transform: "translateY(-1px)",
+  transform: "translateY(-2px)",
+  width: "35%",
 };
