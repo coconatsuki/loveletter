@@ -208,4 +208,16 @@ if (!isSelfTarget) => /targetMessage + pushNotification() + setResultModalData()
 
 => completeTurnWithCardIndex()
 
-### Royal Confessor - 2
+### Royal Confessor - 13
+
+RoyalConfessorTargetModal() => <RoyalConfessorTargetModal> => handleTargetConfirm() => applyRoyalConfessorEffect() =>
+
+- Get target1Card, target2Card, royalConfessorCard, attackerSecondCard.
+- Proceed to Hand Swapping. If isSelfTarget => new hand respects the original cardIndex of the royalConfessor
+- Generate narratives
+
+set /targetMessage & (IF Target1 is external => /target2Message) & setRoyalConfessorResultModalData() => <RoyalConfessorResultModal> =>
+
+handleEffectResultClose(); => completeTurnWithCardIndex()
+
+### Assassin - 14

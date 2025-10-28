@@ -64,6 +64,7 @@ const CONFESSOR_STYLES = {
   buttonsContainer: {
     display: "flex",
     justifyContent: "space-between",
+    gap: "1.5rem",
   },
 
   button: {
@@ -75,6 +76,7 @@ const CONFESSOR_STYLES = {
     fontFamily: "Cinzel, serif",
     fontWeight: "bold",
     cursor: "pointer",
+    transform: "translateY(0px)",
     transition: "all 0.3s ease",
     textTransform: "uppercase",
     letterSpacing: "0.5px",
@@ -86,6 +88,7 @@ const CONFESSOR_STYLES = {
     color: "#ffd700",
     borderColor: "#ffd700",
     boxShadow: "0 4px 12px rgba(139, 0, 0, 0.4)",
+    width: "60%",
   },
 
   confirmButtonHover: {
@@ -94,6 +97,7 @@ const CONFESSOR_STYLES = {
     borderColor: "#fff",
     boxShadow: "0 6px 18px rgba(220, 20, 60, 0.6)",
     transform: "translateY(-2px)",
+    width: "60%",
   },
 
   confirmButtonDisabled: {
@@ -103,6 +107,7 @@ const CONFESSOR_STYLES = {
     cursor: "not-allowed",
     transform: "none",
     boxShadow: "none",
+    width: "60%",
   },
 
   backButton: {
@@ -110,6 +115,7 @@ const CONFESSOR_STYLES = {
     color: "#d4d4d4",
     borderColor: "#6a6a7e",
     boxShadow: "0 2px 6px rgba(0, 0, 0, 0.3)",
+    width: "35%",
   },
 
   backButtonHover: {
@@ -117,7 +123,8 @@ const CONFESSOR_STYLES = {
     color: "#ffd700",
     borderColor: "#ffd700",
     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.4)",
-    transform: "translateY(-1px)",
+    transform: "translateY(-2px)",
+    width: "35%",
   },
 };
 
@@ -172,7 +179,7 @@ export default function RoyalConfessorInquisitorTargetModal({
   // Log only once when component mounts or targets change
   useEffect(() => {
     console.log(
-      "🕵️ InquisitorTargetModal opened! validTargets1:",
+      "RoyalConfessorTargetModal opened! validTargets1:",
       validTargets1.length,
       "validTargets2:",
       validTargets2.length,

@@ -2729,50 +2729,11 @@ export default function Play() {
 
                     // Clear all Royal Confessor related state
                     setRoyalConfessorResultModalData(null);
-                    setSelectedCardForUI(null);
-                    setSelectedCardIndex(null);
 
-                    // Royal Confessor effect is already complete, just need to advance turn
-                    // The card has already been discarded and hands swapped by applyRoyalConfessorEffect
-                    // Calculate next player in turn order (skip eliminated players)
-                    const activePlayers = Object.keys(players).filter(
-                      (p) => !players[p].isOut
-                    );
-                    const currentIndex = activePlayers.indexOf(nickname);
-                    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-                    // Skip any players that got eliminated during this turn
-                    while (
-                      players[activePlayers[nextIndex]]?.isOut &&
-                      nextIndex !== currentIndex
-                    ) {
-                      nextIndex = (nextIndex + 1) % activePlayers.length;
+                    // Complete the Royal Confessor turn (discard card, advance turn)
+                    if (selectedCardIndex !== null) {
+                      handleEffectResultClose();
                     }
-
-                    const nextPlayer = activePlayers[nextIndex];
-
-                    // Clean up Handmaid protection for the next player
-                    const currentProtected = roomData?.protectedPlayers || [];
-                    const updatedProtected = currentProtected.filter(
-                      (player) => player !== nextPlayer
-                    );
-
-                    // Update only the current player and protection (hands and discard are already updated by the effect)
-                    await update(ref(db, `rooms/${roomCode}`), {
-                      [`round/currentPlayer`]: nextPlayer,
-                      protectedPlayers: updatedProtected,
-                    });
-
-                    // Notify all players about the turn change
-                    pushNotification(
-                      roomCode,
-                      `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
-                    );
-
-                    console.log(
-                      "🎭 ROYAL CONFESSOR RESULT: Turn completed, advanced to:",
-                      nextPlayer
-                    );
                   })
                 }
               />
