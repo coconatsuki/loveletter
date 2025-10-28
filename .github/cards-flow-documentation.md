@@ -197,3 +197,15 @@ pushNotifications() & Set /regentQueenTarget (in Firebase) for TARGET & setRegen
 reset /regentQueenTarget & RegentQueenResultModalData => handleEffectResultClose() => Regent queen is discarded in completeTurnWithCardIndex()
 
 ### Court Whisperer - 12
+
+setShowTargetModal() => handleTargetConfirm() => applyCourtWhispererEffect() =>
+
+    * just generates narratives (attacker, target, public)
+
+if (!isSelfTarget) => /targetMessage + pushNotification() + setResultModalData() => handleEffectResultClose() => completeCourtWhispererTurn() =>
+
+- set /nextTarget object in Firebase
+
+=> completeTurnWithCardIndex()
+
+### Royal Confessor - 2

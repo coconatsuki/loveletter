@@ -1045,14 +1045,16 @@ export default function Play() {
       // Send the public notification
       pushNotification(roomCode, courtWhispererResult.publicMessage);
 
-      // Send target message to the target
-      await update(ref(db, `rooms/${roomCode}/targetMessage`), {
-        selectedCardId: cardPlayed.id,
-        visibleTo: target,
-        attacker: nickname,
-        message: courtWhispererResult.targetMessage,
-        timestamp: Date.now(),
-      });
+      if (!courtWhispererResult.isSelfTarget) {
+        // Send target message to the target
+        await update(ref(db, `rooms/${roomCode}/targetMessage`), {
+          selectedCardId: cardPlayed.id,
+          visibleTo: target,
+          attacker: nickname,
+          message: courtWhispererResult.targetMessage,
+          timestamp: Date.now(),
+        });
+      }
 
       // Show result modal to the attacker
       setResultModalData({
@@ -1060,7 +1062,8 @@ export default function Play() {
         resultText: courtWhispererResult.attackerMessage,
         isInfoOnly: false,
         isCourtWhispererEffect: true,
-        courtWhispererTarget: target, // Store target for completeCourtWhispererTurn
+        courtWhispererTarget: target,
+        isSelfTarget: courtWhispererResult.isSelfTarget,
       });
 
       // Court Whisperer effect is complete - return early, turn will be completed when result modal is closed
@@ -1456,7 +1459,6 @@ export default function Play() {
     if (resultModalData?.isCourtWhispererEffect) {
       console.log("🗣️ COURT WHISPERER: Using special turn completion");
       await completeCourtWhispererTurn(resultModalData.courtWhispererTarget);
-      return;
     }
 
     // Special handling for Princess - elimination effect is already applied
@@ -1813,33 +1815,6 @@ export default function Play() {
       return;
     }
 
-    // Remove Court Whisperer from hand and add to discard pile
-    const newHand = player.hand.filter(
-      (_, index) => index !== selectedCardIndex
-    );
-    const newDiscard = [...(player.discard || []), courtWhispererCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
-    // Clean up Handmaid protection for the next player (protection expires when their turn starts)
-    const currentProtected = roomData?.protectedPlayers || [];
-    const updatedProtected = currentProtected.filter(
-      (player) => player !== nextPlayer
-    );
-
     // Set the nextTarget in Firebase (this is when the effect actually takes place)
     const targetPlayer = players[target];
     const nextTargetObject = {
@@ -1850,25 +1825,13 @@ export default function Play() {
 
     // Update game state: discard Court Whisperer, advance turn, clear protection, set nextTarget
     await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/hand`]: newHand,
-      [`players/${nickname}/discard`]: newDiscard,
-      [`round/currentPlayer`]: nextPlayer,
       [`round/nextTarget`]: nextTargetObject,
-      protectedPlayers: updatedProtected,
     });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🕰️ The rumors have taken root. The crown now passes to ${nextPlayer}. 🗣️✨`
-    );
 
     // Reset local state
     console.log(
-      "🔄 COURT WHISPERER TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
+      "🔄 COURT WHISPERER TURN COMPLETION: nextTarget set to Firebase"
     );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
   };
 
   /**

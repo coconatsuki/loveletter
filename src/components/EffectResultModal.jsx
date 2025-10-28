@@ -995,8 +995,12 @@ export default function EffectResultModal({
                 >
                   {isJesterEffect
                     ? "🎪✨ Marvelous! ✨🎭"
-                    : isCourtWhispererEffect
+                    : isCourtWhispererTarget
                     ? "💅✨ Fabulous Gossip! ✨💋"
+                    : isCourtWhispererAttacker && !isSelfTarget
+                    ? "🗣️✨ Spread that gossip!"
+                    : isCourtWhispererAttacker && isSelfTarget
+                    ? "💋 Let Them Talk! ✨"
                     : isDukeEffect
                     ? "Thanks, your grace! 🙏🏼"
                     : isHandmaidProtection

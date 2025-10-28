@@ -1453,12 +1453,19 @@ export async function applyCourtWhispererEffect({
 
     const attackerPlayer = data.players[attacker];
     const targetPlayer = data.players[target];
+    const isSelfTarget = attacker === target;
 
     // DON'T set nextTarget here - it will be set in completeCourtWhispererTurn
     // when the attacker clicks "Continue" on their EffectResultModal
 
     // Generate gossip magazine style messages! 💅📰
-    const attackerMessage = `<div class="effect-description">
+    const attackerMessage = isSelfTarget
+      ? `<div class="effect-description top">✨ You lean closer to the <span class="effect-card">Court Whisperer</span> and murmur secrets — about yourself. 😏</div>
+<div class="effect-description">Their painted smile widens. <span class="quotation">“Oh, how daring…”</span> they purr, already savoring the story.</div>
+<div class="effect-description">By nightfall, your name dances through every corridor — servants, courtiers, even the guards at the gate whisper it with delight. 🕯️</div>
+<div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including hers. 💖</div>
+<div class="effect-technical">🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)</div>`
+      : `<div class="effect-description top">
         You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
       </div>
       <div class="effect-description">
@@ -1471,7 +1478,7 @@ export async function applyCourtWhispererEffect({
         🎯 Next player MUST target <span style="font-weight: bold;">${targetPlayer.name}</span> (if their card requires targeting)
       </div>`;
 
-    const targetMessage = `<div class="effect-description">
+    const targetMessage = `<div class="effect-description top">
         You arrive at court and the air changes.
       </div>
       <div class="effect-description">
@@ -1494,6 +1501,7 @@ export async function applyCourtWhispererEffect({
       attackerMessage,
       targetMessage,
       publicMessage,
+      isSelfTarget,
     };
   } catch (error) {
     console.error("🗣️ COURT WHISPERER ERROR:", error);
