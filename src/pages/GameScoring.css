@@ -55,6 +55,139 @@
   }
 }
 
+/* Coronation Overlay Animations */
+@keyframes overlayFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes contentFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes buttonGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.8),
+      0 0 60px rgba(255, 215, 0, 0.6);
+  }
+}
+
+/* Coronation Overlay */
+.coronation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: overlayFadeIn 0.5s ease-out forwards;
+}
+
+.coronation-overlay.fade-out {
+  animation: overlayFadeOut 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+.coronation-content {
+  text-align: center;
+  animation: contentFloatIn 0.8s ease-out 0.3s backwards;
+}
+
+.coronation-title {
+  font-family: "Cinzel", serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+  margin-bottom: 2rem;
+  animation: crownPulse 2s ease-in-out infinite;
+}
+
+.coronation-question {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 2rem;
+  font-style: italic;
+  color: #e0e0e0;
+  margin-bottom: 3rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.coronation-button {
+  display: inline-block;
+  padding: 1.5rem 3rem;
+  background: linear-gradient(135deg, #8b0000, #dc143c);
+  border: 3px solid #d4af37;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  animation: buttonGlow 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.coronation-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 0 60px rgba(255, 215, 0, 0.6);
+}
+
+.button-text {
+  font-family: "Cinzel", serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffd700;
+  display: block;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.button-hint {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1rem;
+  color: #d4af37;
+  display: block;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Music toggle button additional hover effect */
+.music-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.7) !important;
+}
+
+.music-toggle-btn:active {
+  transform: scale(0.95);
+}
+
 /* Main container */
 .game-scoring-container {
   min-height: 100vh;
@@ -256,7 +389,7 @@
 
 .epic-phrase {
   padding: 1rem 0.7rem;
-  margin-top: 2rem;
+  margin-top: 0;
   font-family: "Cormorant Garamond", serif;
   font-size: 1.4rem;
   font-style: italic;
@@ -394,7 +527,7 @@
   );
   border: 2px solid #b8860b;
   border-radius: 15px;
-  padding: 1.5rem;
+  padding: 1rem;
   margin-top: 3rem;
 }
 
@@ -421,7 +554,7 @@
 }
 
 .summary-stats {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .summary-stats-first-row {
@@ -429,12 +562,13 @@
   flex-direction: row;
   justify-content: space-between;
   margin-bottom: 2rem;
+  gap: 1.5rem;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  padding: 1rem;
+  padding: 0.7rem;
   background: rgba(244, 228, 188, 0.1);
   border-radius: 8px;
   border: 1px solid rgba(255, 215, 0, 0.2);

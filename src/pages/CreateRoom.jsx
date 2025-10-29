@@ -6,7 +6,7 @@ import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
 import princessImage from "../img/princess-square.jpeg";
 import loveLetterImage from "../img/love-letter.png";
-import sentimentalMusic from "../sounds/sentimental-classical-gentle-love.mp3";
+import sentimentalMusic from "../sounds/landing1.mp3";
 import "./LandingPage.css";
 
 export default function CreateRoom() {

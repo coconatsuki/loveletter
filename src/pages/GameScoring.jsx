@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { db } from "../utils/firebase";
 import { ref, onValue, update } from "firebase/database";
 import "./GameScoring.css";
+import weddingMusic1 from "../sounds/wedding-music1.mp3";
+import weddingMusic2 from "../sounds/wedding-music2.mp3";
 
 export default function GameScoring() {
   const { id: roomCode } = useParams();
@@ -13,13 +15,328 @@ export default function GameScoring() {
 
   const [roomData, setRoomData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fadeIn, setFadeIn] = useState(false);
+  const [pageVisible, setPageVisible] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
+  // Music state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [showOverlay, setShowOverlay] = useState(true);
+  const [overlayFadeOut, setOverlayFadeOut] = useState(false);
+  const [musicReady, setMusicReady] = useState(false);
+
+  // Audio refs for both tracks
+  const audio1Ref = useRef(null);
+  const audio2Ref = useRef(null);
+  const fadeIntervalRef = useRef(null);
+  const musicTracks = useRef([]);
+  const currentAudioRef = useRef(null);
 
   // Epic entrance animation
   useEffect(() => {
-    const timer = setTimeout(() => setFadeIn(true), 300);
+    const timer = setTimeout(() => setPageVisible(true), 300);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fade utility functions for smooth volume transitions
+  const fadeIn = (audio, targetVolume = 0.6, duration = 3000) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      audio.volume = 0;
+      const steps = 60; // More steps for smoother fade
+      const stepTime = duration / steps;
+      const volumeIncrement = targetVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.min(volumeIncrement * currentStep, targetVolume);
+
+        if (currentStep >= steps) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = targetVolume;
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
+
+  const fadeOut = (audio, duration = 1000) => {
+    return new Promise((resolve) => {
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      // Clear any existing fade
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      const initialVolume = audio.volume;
+      const steps = 30;
+      const stepTime = duration / steps;
+      const volumeDecrement = initialVolume / steps;
+      let currentStep = 0;
+
+      fadeIntervalRef.current = setInterval(() => {
+        currentStep++;
+        audio.volume = Math.max(
+          initialVolume - volumeDecrement * currentStep,
+          0
+        );
+
+        if (currentStep >= steps || audio.volume <= 0) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+          audio.volume = 0;
+          audio.pause();
+          resolve();
+        }
+      }, stepTime);
+    });
+  };
+
+  // Initialize music tracks and shuffle
+  useEffect(() => {
+    console.log("🎵 GAME SCORING MUSIC: Initializing tracks...");
+
+    // Shuffle the two tracks randomly
+    const tracks = [
+      { ref: audio1Ref, src: weddingMusic1, name: "Wedding Music 1" },
+      { ref: audio2Ref, src: weddingMusic2, name: "Wedding Music 2" },
+    ];
+
+    // Fisher-Yates shuffle
+    const shuffled = [...tracks];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    musicTracks.current = shuffled;
+
+    console.log("🎵 Track order:", {
+      first: shuffled[0].name,
+      second: shuffled[1].name,
+    });
+
+    // Set up audio elements
+    if (audio1Ref.current && audio2Ref.current) {
+      // Force load the audio files
+      audio1Ref.current.load();
+      audio2Ref.current.load();
+
+      // Wait for both tracks to be ready
+      const checkReady = () => {
+        const audio1 = audio1Ref.current;
+        const audio2 = audio2Ref.current;
+
+        if (!audio1 || !audio2) return;
+
+        const ready1 = audio1.readyState >= 2; // HAVE_CURRENT_DATA or better (lowered threshold)
+        const ready2 = audio2.readyState >= 2;
+
+        console.log("🎵 Checking audio readiness:", {
+          track1: {
+            readyState: audio1.readyState,
+            networkState: audio1.networkState,
+            ready: ready1,
+          },
+          track2: {
+            readyState: audio2.readyState,
+            networkState: audio2.networkState,
+            ready: ready2,
+          },
+        });
+
+        if (ready1 && ready2) {
+          console.log("🎵 Both music tracks preloaded and ready!");
+          setMusicReady(true);
+        }
+      };
+
+      // Check immediately
+      checkReady();
+
+      // Set up multiple event listeners for better compatibility
+      const events = ["canplay", "canplaythrough", "loadeddata"];
+
+      events.forEach((event) => {
+        audio1Ref.current?.addEventListener(event, checkReady);
+        audio2Ref.current?.addEventListener(event, checkReady);
+      });
+
+      // Fallback: Set ready after a timeout if events don't fire
+      const fallbackTimer = setTimeout(() => {
+        console.log(
+          "🎵 Fallback: Setting music ready after timeout (events may not have fired)"
+        );
+        setMusicReady(true);
+      }, 3000);
+
+      // Cleanup
+      return () => {
+        clearTimeout(fallbackTimer);
+        events.forEach((event) => {
+          audio1Ref.current?.removeEventListener(event, checkReady);
+          audio2Ref.current?.removeEventListener(event, checkReady);
+        });
+      };
+    }
+  }, []);
+
+  // Handle track ending and switch to next
+  const handleTrackEnd = () => {
+    console.log("🎵 Track ended, switching to next...");
+
+    const nextIndex = (currentTrackIndex + 1) % musicTracks.current.length;
+    const nextTrack = musicTracks.current[nextIndex];
+
+    console.log("🎵 Next track:", nextTrack.name);
+
+    // Fade out current, then fade in next
+    if (currentAudioRef.current) {
+      fadeOut(currentAudioRef.current, 2000).then(() => {
+        setCurrentTrackIndex(nextIndex);
+        currentAudioRef.current = nextTrack.ref.current;
+
+        if (isPlaying && currentAudioRef.current) {
+          currentAudioRef.current.currentTime = 0;
+          currentAudioRef.current
+            .play()
+            .then(() => {
+              console.log("🎵 Next track playing, fading in...");
+              fadeIn(currentAudioRef.current, 0.6, 3000);
+            })
+            .catch((err) => console.error("🎵 Error playing next track:", err));
+        }
+      });
+    }
+  };
+
+  // Set up track end listeners
+  useEffect(() => {
+    if (audio1Ref.current && audio2Ref.current) {
+      audio1Ref.current.addEventListener("ended", handleTrackEnd);
+      audio2Ref.current.addEventListener("ended", handleTrackEnd);
+
+      return () => {
+        if (audio1Ref.current) {
+          audio1Ref.current.removeEventListener("ended", handleTrackEnd);
+        }
+        if (audio2Ref.current) {
+          audio2Ref.current.removeEventListener("ended", handleTrackEnd);
+        }
+      };
+    }
+  }, [currentTrackIndex, isPlaying]);
+
+  // Handle overlay click (first user interaction)
+  const handleOverlayClick = () => {
+    if (!musicReady) {
+      console.log("🎵 Music not ready yet, waiting...");
+      return;
+    }
+
+    console.log("🎵 OVERLAY CLICKED: Starting music...");
+
+    // Animate overlay out
+    setOverlayFadeOut(true);
+
+    setTimeout(() => {
+      setShowOverlay(false);
+
+      // Start playing the first track
+      const firstTrack = musicTracks.current[0];
+      currentAudioRef.current = firstTrack.ref.current;
+
+      if (currentAudioRef.current) {
+        console.log("🎵 Playing first track:", firstTrack.name);
+        currentAudioRef.current.currentTime = 0;
+        currentAudioRef.current
+          .play()
+          .then(() => {
+            console.log("🎵 Music started, fading in...");
+            setIsPlaying(true);
+            fadeIn(currentAudioRef.current, 0.6, 3000);
+          })
+          .catch((error) => {
+            console.error("🎵 Error starting music:", error);
+          });
+      }
+    }, 600); // Wait for overlay fade-out animation
+  };
+
+  // Handle keyboard interaction for overlay
+  useEffect(() => {
+    if (!showOverlay || overlayFadeOut) return;
+
+    const handleKeyPress = (e) => {
+      if (!musicReady) return;
+      handleOverlayClick();
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [showOverlay, overlayFadeOut, musicReady]);
+
+  // Music toggle function
+  const toggleMusic = () => {
+    if (!currentAudioRef.current) return;
+
+    console.log("🎵 TOGGLE MUSIC:", { isPlaying });
+
+    if (isPlaying) {
+      console.log("🎵 Fading out music...");
+      setIsPlaying(false);
+      fadeOut(currentAudioRef.current, 1500).then(() => {
+        console.log("🎵 Music paused by user");
+      });
+    } else {
+      currentAudioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          console.log("🎵 Music resumed by user, fading in...");
+          fadeIn(currentAudioRef.current, 0.6, 2000);
+        })
+        .catch((error) => {
+          console.error("🎵 Error resuming music:", error);
+        });
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      console.log("🎵 GameScoring unmounting, cleaning up music...");
+
+      // Clear any fade intervals
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+
+      // Stop all audio
+      if (audio1Ref.current) {
+        audio1Ref.current.pause();
+        audio1Ref.current.currentTime = 0;
+      }
+      if (audio2Ref.current) {
+        audio2Ref.current.pause();
+        audio2Ref.current.currentTime = 0;
+      }
+    };
   }, []);
 
   // Firebase listener for room data
@@ -173,7 +490,72 @@ export default function GameScoring() {
   }
 
   return (
-    <div className={`game-scoring-container ${fadeIn ? "fade-in" : ""}`}>
+    <div className={`game-scoring-container ${pageVisible ? "fade-in" : ""}`}>
+      {/* Audio elements for both tracks */}
+      <audio ref={audio1Ref} src={weddingMusic1} preload="auto" />
+      <audio ref={audio2Ref} src={weddingMusic2} preload="auto" />
+
+      {/* Royal Coronation Overlay */}
+      {showOverlay && (
+        <div
+          className={`coronation-overlay ${overlayFadeOut ? "fade-out" : ""}`}
+          onClick={handleOverlayClick}
+        >
+          <div className="coronation-content">
+            <h1 className="coronation-title">🏰 ROYAL CORONATION 🏰</h1>
+            <p className="coronation-question">
+              "Who has won the Princess' heart?"
+            </p>
+            <div className="coronation-button">
+              {musicReady ? (
+                <>
+                  <span className="button-text">✨ Click to Reveal ✨</span>
+                  <span className="button-hint">(or press any key)</span>
+                </>
+              ) : (
+                <>
+                  <span className="button-text">⏳ Preparing ceremony...</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Music toggle button */}
+      {!showOverlay && (
+        <button
+          onClick={toggleMusic}
+          className="music-toggle-btn"
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            border: "2px solid #d4af37",
+            background: isPlaying
+              ? "linear-gradient(135deg, #4CAF50, #45a049)"
+              : "linear-gradient(135deg, #666, #555)",
+            color: "white",
+            fontSize: "24px",
+            cursor: "pointer",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.3s ease",
+            boxShadow: isPlaying
+              ? "0 0 20px rgba(76, 175, 80, 0.5)"
+              : "0 2px 10px rgba(0,0,0,0.3)",
+          }}
+          title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
+        >
+          {isPlaying ? "🎵" : "🔇"}
+        </button>
+      )}
+
       <div className="game-scoring-main">
         <div className="game-scoring-content-layout">
           <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>

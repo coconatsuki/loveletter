@@ -232,4 +232,8 @@ setShowTargetModal() => BaronessTargetModal() => <BaronessTargetModal> => handle
 
 - Get Target1Card and (if Target2) get Target2Card & generate narratives
 
-Set /targetMessage (and IF NECESSARY also /target2Message) and setResultModalData()
+Set /targetMessage (and IF NECESSARY also /target2Message) and setResultModalData() and pushNotification()
+
+=> handleEffectResultClose() => completeTurnWithCardIndex()
+
+### Duke - 16
