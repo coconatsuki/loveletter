@@ -87,17 +87,6 @@
   }
 }
 
-@keyframes buttonGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.8),
-      0 0 60px rgba(255, 215, 0, 0.6);
-  }
-}
-
 /* Coronation Overlay */
 .coronation-overlay {
   position: fixed;
@@ -132,7 +121,6 @@
   color: #ffd700;
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
   margin-bottom: 2rem;
-  animation: crownPulse 2s ease-in-out infinite;
 }
 
 .coronation-question {
@@ -151,7 +139,6 @@
   border: 3px solid #d4af37;
   border-radius: 15px;
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-  animation: buttonGlow 2s ease-in-out infinite;
   transition: all 0.3s ease;
 }
 

@@ -317,7 +317,7 @@ export default function EffectResultModal({
               : isPrincessEffect
               ? "💔"
               : isAssassinEffect
-              ? "🌙"
+              ? "🌒"
               : "📜"}
           </div>
           <h3
@@ -333,7 +333,8 @@ export default function EffectResultModal({
               isDukeEffect,
               isCountessEffect,
               isPrinceEffect,
-              isPrincessEffect
+              isPrincessEffect,
+              isAssassinEffect
             )}
           >
             {isPriestEffect
@@ -693,6 +694,7 @@ export default function EffectResultModal({
                       <div style={phantomKingCardEffectStyle}>
                         {cardDetails.target1Card.effect}
                       </div>
+                      <CardCountStars count={cardDetails.target1Card.count} />
                     </div>
                     <p style={baronessCardLabelStyle}>
                       {cardDetails.target1Name}'s ally
@@ -720,6 +722,7 @@ export default function EffectResultModal({
                         <div style={phantomKingCardEffectStyle}>
                           {cardDetails.target2Card.effect}
                         </div>
+                        <CardCountStars count={cardDetails.target2Card.count} />
                       </div>
                       <p style={baronessCardLabelStyle}>
                         {cardDetails.target2Name}'s ally
@@ -1087,10 +1090,13 @@ const getHeaderStyle = (
   isDukeEffect,
   isCountessEffect,
   isPrinceEffect,
-  isPrincessEffect
+  isPrincessEffect,
+  isAssassinEffect
 ) => ({
   background: isPriestEffect
     ? "linear-gradient(135deg, #4a0028 0%, #6a4c93 100%)"
+    : isAssassinEffect
+    ? "linear-gradient(135deg, rgb(7 7 9) 0%, rgb(24 38 102) 100%)"
     : isJesterEffect
     ? "linear-gradient(135deg, #0017a2 0%, #c24e16 100%)"
     : isCourtWhispererEffect

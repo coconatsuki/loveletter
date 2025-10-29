@@ -237,3 +237,11 @@ Set /targetMessage (and IF NECESSARY also /target2Message) and setResultModalDat
 => handleEffectResultClose() => completeTurnWithCardIndex()
 
 ### Duke - 16
+
+playCard() => playDuke() => applyDukeEffect() => generate attacker & public messages =>
+
+=> pushNotification() & setResultModalData() => handleEffectResultClose() =>
+
+=> completeDukeTurn() => increment /dukeToken in firebase =>
+
+=> handleEffectResultClose() => completeTurnWithCardIndex()

@@ -680,7 +680,6 @@ export default function Play() {
 
     // Apply Duke noble favor effect
     const result = await applyDukeEffect({
-      roomCode,
       player: nickname,
     });
 
@@ -1450,7 +1449,7 @@ export default function Play() {
           noDiscarding: true,
         });
         return;
-      } // ELSE, go through normal completeTurnWithCardIndex, with Guard discarded
+      } // ELSE, go through normal CompleteTurnWithCardIndex, with Guard discarded
     }
 
     // Special handling for Court Whisperer - effect must be applied now
@@ -1474,7 +1473,6 @@ export default function Play() {
     if (resultModalData?.hasDukeFavor) {
       console.log("👑🐕 DUKE: Using special turn completion");
       await completeDukeTurn();
-      return;
     }
 
     // Special handling for Prince - check for self-elimination
@@ -1512,6 +1510,15 @@ export default function Play() {
   /*Completes the turn using a specific card index (used by target message modals) */
 
   const completeTurnWithCardIndex = async (cardIndex, options = {}) => {
+    // Get the most recent data from Firebase to avoid stale state issues
+    const snapshot = await get(ref(db, `rooms/${roomCode}`));
+    const updatedData = snapshot.val();
+
+    setRoomData(updatedData);
+    setPlayer(updatedData?.players?.[nickname]);
+
+    const updatedPlayers = updatedData?.players || players;
+
     console.log("🔄 completeTurnWithCardIndex: Starting with data:", {
       cardIndex,
       cardIndexType: typeof cardIndex,
@@ -1521,6 +1528,7 @@ export default function Play() {
       nickname,
       roomCode,
       options,
+      updatedPlayers,
     });
 
     if (options.noDiscarding) {
@@ -1528,12 +1536,6 @@ export default function Play() {
         "🔄 completeTurnWithCardIndex - noDiscarding option - Skipping discard"
       );
     } else {
-      // Get the most recent data from Firebase to avoid stale state issues
-      const snapshot = await get(ref(db, `rooms/${roomCode}`));
-      const updatedData = snapshot.val();
-      setRoomData(updatedData);
-      setPlayer(updatedData?.players?.[nickname]);
-
       // Validate that we have the necessary data to complete the turn
       if (
         cardIndex === null ||
@@ -1541,7 +1543,9 @@ export default function Play() {
         cardIndex < 0 ||
         !player?.hand ||
         player.hand.length === 0 ||
-        cardIndex >= player.hand.length
+        cardIndex >= player.hand.length ||
+        !updatedPlayers ||
+        updatedPlayers == undefined
       ) {
         console.error(
           "🔄 completeTurnWithCardIndex (should discard) - TURN COMPLETION ERROR: invalid cardIndex or hand state:",
@@ -1611,19 +1615,22 @@ export default function Play() {
         await triggerRoundEnd(roomCode);
       }, 2000);
 
-      return; // Don't reset isPlaying yet, let the round end handle it
+      return;
     } else {
+      // If round is not ending, advance to the next player
+
       console.log("🔄 completeTurnWithCardIndex - ADVANCING TO NEXT PLAYER");
+
       // Calculate next player in turn order (skip eliminated players)
-      const activePlayers = Object.keys(players).filter(
-        (p) => !players[p].isOut
+      const activePlayers = Object.keys(updatedPlayers).filter(
+        (p) => !updatedPlayers[p].isOut
       );
       const currentIndex = activePlayers.indexOf(nickname);
       let nextIndex = (currentIndex + 1) % activePlayers.length;
 
       // Skip any players that got eliminated during this turn
       while (
-        players[activePlayers[nextIndex]]?.isOut &&
+        updatedPlayers[activePlayers[nextIndex]]?.isOut &&
         nextIndex !== currentIndex
       ) {
         nextIndex = (nextIndex + 1) % activePlayers.length;
@@ -1733,51 +1740,14 @@ export default function Play() {
       return;
     }
 
-    // Remove Duke from hand and add to discard pile
-    const newHand = player.hand.filter(
-      (_, index) => index !== selectedCardIndex
-    );
-    const newDiscard = [...(player.discard || []), dukeCard];
-
-    // Calculate next player in turn order (skip eliminated players)
-    const activePlayers = Object.keys(players).filter((p) => !players[p].isOut);
-    const currentIndex = activePlayers.indexOf(nickname);
-    let nextIndex = (currentIndex + 1) % activePlayers.length;
-
-    // Skip any players that got eliminated during this turn
-    while (
-      players[activePlayers[nextIndex]]?.isOut &&
-      nextIndex !== currentIndex
-    ) {
-      nextIndex = (nextIndex + 1) % activePlayers.length;
-    }
-
-    const nextPlayer = activePlayers[nextIndex];
-
     // Increment Duke token for this player (can stack)
     const currentDukeToken = player.dukeToken || 0;
     const newDukeToken = currentDukeToken + 1;
 
     // Update game state: discard Duke, advance turn, set Duke token
     await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/hand`]: newHand,
-      [`players/${nickname}/discard`]: newDiscard,
       [`players/${nickname}/dukeToken`]: newDukeToken,
-      [`round/currentPlayer`]: nextPlayer,
     });
-
-    // Notify all players about the turn change
-    pushNotification(
-      roomCode,
-      `🏛️ The Duke's favor has been granted. The crown now passes to ${nextPlayer}. 👑🐕`
-    );
-
-    // Reset local state
-    console.log(
-      "🔄 DUKE TURN COMPLETION: Resetting card selection state (isPlaying handled by Firebase listener)"
-    );
-    // Don't set isPlaying(false) here - let Firebase listener handle it when turn actually changes
-    setSelectedCardIndex(null);
   };
 
   /**
