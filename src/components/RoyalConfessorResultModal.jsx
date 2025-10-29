@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getCardImage } from "../utils/cardsData";
+import CardCountStars from "./CardCountStars";
 
 // CSS styles for card effect formatting
 const effectTextStyles = `
@@ -269,6 +270,7 @@ export default function RoyalConfessorResultModal({
                       <div style={confessorCardEffectStyle}>
                         {revealedCard.effect}
                       </div>
+                      <CardCountStars count={revealedCard.count} />
                     </div>
                   </div>
                 )
@@ -594,6 +596,7 @@ const confessorCardContentStyle = {
   display: "flex",
   flexDirection: "column",
   textAlign: "center",
+  height: "40%",
 };
 
 const confessorCardNameStyle = {

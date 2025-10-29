@@ -595,6 +595,7 @@ export default function EffectResultModal({
                       <div style={royalConfessorCardEffectStyle}>
                         {swappedCards.targetGave.effect}
                       </div>
+                      <CardCountStars count={swappedCards.targetGave.count} />
                     </div>
                     <p style={royalConfessorCardLabelStyle}>You Gave</p>
                   </div>
@@ -621,6 +622,9 @@ export default function EffectResultModal({
                       <div style={royalConfessorCardEffectStyle}>
                         {swappedCards.targetReceived.effect}
                       </div>
+                      <CardCountStars
+                        count={swappedCards.targetReceived.count}
+                      />
                     </div>
                     <p style={royalConfessorCardLabelStyle}>You Received</p>
                   </div>
