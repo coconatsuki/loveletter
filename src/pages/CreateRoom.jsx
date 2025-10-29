@@ -6,7 +6,9 @@ import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
 import princessImage from "../img/princess-square.jpeg";
 import loveLetterImage from "../img/love-letter.png";
-import sentimentalMusic from "../sounds/landing1.mp3";
+import landingMusic1 from "../sounds/landing1.mp3";
+import landingMusic2 from "../sounds/landing2.mp3";
+import landingMusic3 from "../sounds/landing3.mp3";
 import "./LandingPage.css";
 
 export default function CreateRoom() {
@@ -17,8 +19,10 @@ export default function CreateRoom() {
   const [isCreating, setIsCreating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef(null);
   const fadeIntervalRef = useRef(null);
+  const musicTracks = useRef([]);
   const navigate = useNavigate();
 
   // Fade utility functions for smooth volume transitions
@@ -118,26 +122,84 @@ export default function CreateRoom() {
     }
   };
 
-  // Music setup and first-interaction trigger
+  // Initialize and shuffle music tracks
   useEffect(() => {
-    console.log(
-      "🎵 MUSIC DEBUG: CreateRoom page mounted, setting up first-interaction trigger..."
-    );
+    console.log("🎵 MUSIC DEBUG: Initializing and shuffling tracks...");
 
+    // Shuffle the three tracks randomly using Fisher-Yates
+    const tracks = [
+      { src: landingMusic1, name: "Landing Music 1" },
+      { src: landingMusic2, name: "Landing Music 2" },
+      { src: landingMusic3, name: "Landing Music 3" },
+    ];
+
+    const shuffled = [...tracks];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    musicTracks.current = shuffled;
+
+    console.log("🎵 Track order:", {
+      first: shuffled[0].name,
+      second: shuffled[1].name,
+      third: shuffled[2].name,
+    });
+
+    // Set up the first track
     if (audioRef.current) {
-      // Set up audio properties
-      audioRef.current.loop = true;
+      audioRef.current.src = shuffled[0].src;
       audioRef.current.volume = 0.7;
-
-      // Ensure audio is loaded before attempting to play
       audioRef.current.load();
 
-      console.log("🎵 Audio element prepared:", {
+      console.log("🎵 Audio element prepared with first track:", {
         src: audioRef.current.src,
         readyState: audioRef.current.readyState,
         networkState: audioRef.current.networkState,
       });
     }
+  }, []);
+
+  // Handle track ending and switch to next
+  useEffect(() => {
+    const handleTrackEnd = () => {
+      console.log("🎵 Track ended, switching to next...");
+
+      const nextIndex = (currentTrackIndex + 1) % musicTracks.current.length;
+      const nextTrack = musicTracks.current[nextIndex];
+
+      console.log("🎵 Next track:", nextTrack.name);
+
+      if (audioRef.current) {
+        audioRef.current.src = nextTrack.src;
+        audioRef.current.load();
+        audioRef.current
+          .play()
+          .then(() => {
+            console.log("🎵 Next track started playing");
+            setCurrentTrackIndex(nextIndex);
+            fadeIn(audioRef.current, 0.7, 2000);
+          })
+          .catch((error) => {
+            console.error("🎵 Error playing next track:", error);
+          });
+      }
+    };
+
+    if (audioRef.current) {
+      audioRef.current.addEventListener("ended", handleTrackEnd);
+      return () => {
+        audioRef.current?.removeEventListener("ended", handleTrackEnd);
+      };
+    }
+  }, [currentTrackIndex]);
+
+  // Music setup and first-interaction trigger
+  useEffect(() => {
+    console.log(
+      "🎵 MUSIC DEBUG: CreateRoom page mounted, setting up first-interaction trigger..."
+    );
 
     // Function to handle first user interaction
     const handleFirstInteraction = () => {
@@ -257,7 +319,7 @@ export default function CreateRoom() {
   return (
     <div className="royal-landing-container">
       {/* Audio element for background music */}
-      <audio ref={audioRef} src={sentimentalMusic} preload="auto" />
+      <audio ref={audioRef} preload="auto" />
 
       {/* Music toggle button */}
       <button
