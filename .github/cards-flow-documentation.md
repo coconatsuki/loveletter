@@ -230,4 +230,6 @@ playCard() => playAssassin() => applyAssassinEffect() => generates narratives =>
 
 setShowTargetModal() => BaronessTargetModal() => <BaronessTargetModal> => handleTargetConfirm() => applyBaronessEffect() =>
 
--
+- Get Target1Card and (if Target2) get Target2Card & generate narratives
+
+Set /targetMessage (and IF NECESSARY also /target2Message) and setResultModalData()
