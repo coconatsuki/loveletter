@@ -8,12 +8,8 @@
 /* Epic entrance animation */
 @keyframes royalEntrance {
   0% {
-    opacity: 0;
-    transform: translateY(50px) scale(0.95);
-  }
-  50% {
-    opacity: 0.7;
-    transform: translateY(-10px) scale(1.02);
+    opacity: 0.6;
+    transform: translateY(50px) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -34,11 +30,11 @@
 @keyframes crownPulse {
   0%,
   100% {
-    transform: scale(1);
+    transform: scale(0.98);
     text-shadow: 0 0 10px #ffd700;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1);
     text-shadow: 0 0 20px #ffd700, 0 0 30px #ffa500;
   }
 }
@@ -50,41 +46,23 @@
     text-shadow: 0 0 10px #ffd700;
   }
   50% {
-    transform: scale(1.01);
+    transform: scale(1);
     text-shadow: 0 0 20px #ffd700, 0 0 30px #ffa500;
   }
 }
 
 /* Coronation Overlay Animations */
-@keyframes overlayFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes overlayFadeOut {
   0% {
     opacity: 1;
-    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: scale(1.1);
   }
 }
 
-@keyframes contentFloatIn {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.wrapper {
+  background-color: black;
 }
 
 /* Coronation Overlay */
@@ -101,17 +79,17 @@
   justify-content: center;
   z-index: 9999;
   cursor: pointer;
-  animation: overlayFadeIn 0.5s ease-out forwards;
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
 }
 
 .coronation-overlay.fade-out {
-  animation: overlayFadeOut 0.6s ease-out forwards;
+  opacity: 0;
   pointer-events: none;
 }
 
 .coronation-content {
   text-align: center;
-  animation: contentFloatIn 0.8s ease-out 0.3s backwards;
 }
 
 .coronation-title {
@@ -121,6 +99,7 @@
   color: #ffd700;
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
   margin-bottom: 2rem;
+  animation: crownPulse 2s ease-in-out infinite;
 }
 
 .coronation-question {
@@ -128,41 +107,26 @@
   font-size: 2rem;
   font-style: italic;
   color: #e0e0e0;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-.coronation-button {
-  display: inline-block;
-  padding: 1.5rem 3rem;
-  background: linear-gradient(135deg, #8b0000, #dc143c);
-  border: 3px solid #d4af37;
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-  transition: all 0.3s ease;
-}
-
-.coronation-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 0 60px rgba(255, 215, 0, 0.6);
-}
-
-.button-text {
+.coronation-reveal-hint {
   font-family: "Cinzel", serif;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: #ffd700;
-  display: block;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  margin: 0;
 }
 
-.button-hint {
+.coronation-key-hint {
   font-family: "Cormorant Garamond", serif;
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: #d4af37;
+  font-style: italic;
   display: block;
   margin-top: 0.5rem;
-  font-style: italic;
 }
 
 /* Music toggle button additional hover effect */
@@ -184,7 +148,7 @@
 }
 
 .game-scoring-container.fade-in {
-  animation: royalEntrance 1.5s ease-out forwards;
+  animation: royalEntrance 1s ease-out forwards;
 }
 
 /* Loading states */
@@ -242,8 +206,8 @@
       #742c2c 75%,
       #935353cf 100%
     );
-  border: 4px solid #ffd700;
-  border-radius: 25px;
+  border: 3px solid #ffd700;
+  border-radius: 15px;
   padding: 1rem;
   box-shadow: 0 0 40px rgba(255, 215, 0, 0.5),
     inset 0 0 30px rgba(255, 215, 0, 0.1), 0 0 80px rgba(139, 0, 0, 0.3);

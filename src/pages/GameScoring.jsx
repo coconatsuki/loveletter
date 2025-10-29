@@ -23,7 +23,6 @@ export default function GameScoring() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showOverlay, setShowOverlay] = useState(true);
   const [overlayFadeOut, setOverlayFadeOut] = useState(false);
-  const [musicReady, setMusicReady] = useState(false);
 
   // Audio refs for both tracks
   const audio1Ref = useRef(null);
@@ -131,68 +130,10 @@ export default function GameScoring() {
       second: shuffled[1].name,
     });
 
-    // Set up audio elements
+    // Preload audio files
     if (audio1Ref.current && audio2Ref.current) {
-      // Force load the audio files
       audio1Ref.current.load();
       audio2Ref.current.load();
-
-      // Wait for both tracks to be ready
-      const checkReady = () => {
-        const audio1 = audio1Ref.current;
-        const audio2 = audio2Ref.current;
-
-        if (!audio1 || !audio2) return;
-
-        const ready1 = audio1.readyState >= 2; // HAVE_CURRENT_DATA or better (lowered threshold)
-        const ready2 = audio2.readyState >= 2;
-
-        console.log("🎵 Checking audio readiness:", {
-          track1: {
-            readyState: audio1.readyState,
-            networkState: audio1.networkState,
-            ready: ready1,
-          },
-          track2: {
-            readyState: audio2.readyState,
-            networkState: audio2.networkState,
-            ready: ready2,
-          },
-        });
-
-        if (ready1 && ready2) {
-          console.log("🎵 Both music tracks preloaded and ready!");
-          setMusicReady(true);
-        }
-      };
-
-      // Check immediately
-      checkReady();
-
-      // Set up multiple event listeners for better compatibility
-      const events = ["canplay", "canplaythrough", "loadeddata"];
-
-      events.forEach((event) => {
-        audio1Ref.current?.addEventListener(event, checkReady);
-        audio2Ref.current?.addEventListener(event, checkReady);
-      });
-
-      // Fallback: Set ready after a timeout if events don't fire
-      const fallbackTimer = setTimeout(() => {
-        console.log(
-          "🎵 Fallback: Setting music ready after timeout (events may not have fired)"
-        );
-        setMusicReady(true);
-      }, 3000);
-
-      // Cleanup
-      return () => {
-        clearTimeout(fallbackTimer);
-        events.forEach((event) => {
-          audio1Ref.current?.removeEventListener(event, checkReady);
-          audio2Ref.current?.removeEventListener(event, checkReady);
-        });
-      };
     }
   }, []);
 
@@ -244,11 +185,6 @@ export default function GameScoring() {
 
   // Handle overlay click (first user interaction)
   const handleOverlayClick = () => {
-    if (!musicReady) {
-      console.log("🎵 Music not ready yet, waiting...");
-      return;
-    }
-
     console.log("🎵 OVERLAY CLICKED: Starting music...");
 
     // Animate overlay out
@@ -262,34 +198,29 @@ export default function GameScoring() {
       currentAudioRef.current = firstTrack.ref.current;
 
       if (currentAudioRef.current) {
-        console.log("🎵 Playing first track:", firstTrack.name);
-        currentAudioRef.current.currentTime = 0;
         currentAudioRef.current
           .play()
           .then(() => {
-            console.log("🎵 Music started, fading in...");
+            console.log("🎵 First track started playing");
             setIsPlaying(true);
             fadeIn(currentAudioRef.current, 0.6, 3000);
           })
           .catch((error) => {
-            console.error("🎵 Error starting music:", error);
+            console.error("🎵 Error starting first track:", error);
           });
       }
     }, 600); // Wait for overlay fade-out animation
-  };
-
-  // Handle keyboard interaction for overlay
+  }; // Handle keyboard interaction for overlay
   useEffect(() => {
     if (!showOverlay || overlayFadeOut) return;
 
     const handleKeyPress = (e) => {
-      if (!musicReady) return;
       handleOverlayClick();
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [showOverlay, overlayFadeOut, musicReady]);
+  }, [showOverlay, overlayFadeOut]);
 
   // Music toggle function
   const toggleMusic = () => {
@@ -490,265 +421,268 @@ export default function GameScoring() {
   }
 
   return (
-    <div className={`game-scoring-container ${pageVisible ? "fade-in" : ""}`}>
-      {/* Audio elements for both tracks */}
-      <audio ref={audio1Ref} src={weddingMusic1} preload="auto" />
-      <audio ref={audio2Ref} src={weddingMusic2} preload="auto" />
+    <div className="wrapper">
+      <div className={`game-scoring-container ${pageVisible ? "fade-in" : ""}`}>
+        {/* Audio elements for both tracks */}
+        <audio ref={audio1Ref} src={weddingMusic1} preload="auto" />
+        <audio ref={audio2Ref} src={weddingMusic2} preload="auto" />
 
-      {/* Royal Coronation Overlay */}
-      {showOverlay && (
-        <div
-          className={`coronation-overlay ${overlayFadeOut ? "fade-out" : ""}`}
-          onClick={handleOverlayClick}
-        >
-          <div className="coronation-content">
-            <h1 className="coronation-title">🏰 ROYAL CORONATION 🏰</h1>
-            <p className="coronation-question">
-              "Who has won the Princess' heart?"
-            </p>
-            <div className="coronation-button">
-              {musicReady ? (
-                <>
-                  <span className="button-text">✨ Click to Reveal ✨</span>
-                  <span className="button-hint">(or press any key)</span>
-                </>
-              ) : (
-                <>
-                  <span className="button-text">⏳ Preparing ceremony...</span>
-                </>
-              )}
+        {/* Royal Coronation Overlay */}
+        {showOverlay && (
+          <div
+            className={`coronation-overlay ${overlayFadeOut ? "fade-out" : ""}`}
+            onClick={handleOverlayClick}
+          >
+            <div className="coronation-content">
+              <h1 className="coronation-title">🏰 ROYAL CORONATION 🏰</h1>
+              <p className="coronation-question">
+                "Who has won the Princess' heart?"
+              </p>
+              <p className="coronation-reveal-hint">
+                ✨ Click to Reveal ✨
+                <br />
+                <span className="coronation-key-hint">(or press any key)</span>
+              </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Music toggle button */}
-      {!showOverlay && (
-        <button
-          onClick={toggleMusic}
-          className="music-toggle-btn"
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            border: "2px solid #d4af37",
-            background: isPlaying
-              ? "linear-gradient(135deg, #4CAF50, #45a049)"
-              : "linear-gradient(135deg, #666, #555)",
-            color: "white",
-            fontSize: "24px",
-            cursor: "pointer",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.3s ease",
-            boxShadow: isPlaying
-              ? "0 0 20px rgba(76, 175, 80, 0.5)"
-              : "0 2px 10px rgba(0,0,0,0.3)",
-          }}
-          title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
-        >
-          {isPlaying ? "🎵" : "🔇"}
-        </button>
-      )}
+        {/* Music toggle button */}
+        {!showOverlay && (
+          <button
+            onClick={toggleMusic}
+            className="music-toggle-btn"
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              border: "2px solid #d4af37",
+              background: isPlaying
+                ? "linear-gradient(135deg, #4CAF50, #45a049)"
+                : "linear-gradient(135deg, #666, #555)",
+              color: "white",
+              fontSize: "24px",
+              cursor: "pointer",
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease",
+              boxShadow: isPlaying
+                ? "0 0 20px rgba(76, 175, 80, 0.5)"
+                : "0 2px 10px rgba(0,0,0,0.3)",
+            }}
+            title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
+          >
+            {isPlaying ? "🎵" : "🔇"}
+          </button>
+        )}
 
-      <div className="game-scoring-main">
-        <div className="game-scoring-content-layout">
-          <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
-          <div className="game-scoring-columns-container">
-            <div className="game-scoring-main-column">
-              {/* Winner Announcement */}
-              {finalResult && (
-                <div className="winner-announcement">
-                  {finalResult.istie ? (
-                    <>
-                      <div className="winner-text">
-                        Multiple suitors have won the Princess's heart with{" "}
-                        <span className="token-count">
-                          {finalResult.maxTokens}
-                        </span>{" "}
-                        love tokens each:
-                      </div>
-                      <div className="winners-list">
-                        {finalResult.winners.map((winner, index) => {
-                          const nameFormat = formatPlayerName(winner);
-                          return (
-                            <div key={winner.name} className="winner-name">
-                              🎭 {nameFormat.primary}
-                              {nameFormat.secondary && (
-                                <span className="winner-real-name">
-                                  {" "}
-                                  ({nameFormat.secondary})
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="epic-phrase">
-                        "In matters of the heart, even the wisest Princess
-                        cannot choose between such worthy suitors! A royal
-                        wedding feast shall honor them all!"
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {(() => {
-                        const champion = finalResult.winners[0];
-                        const nameFormat = formatPlayerName(champion);
-                        return (
-                          <>
-                            <div className="winner-text">
-                              The Princess's heart belongs to:{" "}
-                              <span className="champion-name">
-                                {nameFormat.primary}
-                              </span>
-                              {nameFormat.secondary && (
-                                <span className="champion-real-name">
-                                  {" "}
-                                  ({nameFormat.secondary})
-                                </span>
-                              )}
-                            </div>
-                            <div className="token-display">
-                              With{" "}
-                              <span className="token-count">
-                                {finalResult.maxTokens}
-                              </span>{" "}
-                              precious love tokens!
-                            </div>
-                            <div className="epic-phrase">
-                              "Through wit, charm, and noble deeds, our champion
-                              has proven worthy of the Princess's hand. Let the
-                              royal wedding bells ring throughout the kingdom!"
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Final Leaderboard */}
-              <div className="final-leaderboard">
-                <h3 className="game-scoring-leaderboard-title">
-                  🏆 Final Court Rankings 🏆
-                </h3>
-                <div className="game-scoring-leaderboard-list">
-                  {sortedPlayers.map((player, index) => {
-                    const nameFormat = formatPlayerName(player);
-                    const isCurrentUser = player.name === nickname;
-                    const isWinner =
-                      finalResult &&
-                      finalResult.winners.some((w) => w.name === player.name);
-
-                    return (
-                      <div
-                        key={player.name}
-                        className={`final-player-row ${
-                          index === 0 ? "champion" : "noble"
-                        } ${isWinner ? "winner" : ""}`}
-                      >
-                        <div className="player-rank-section">
-                          <span className="player-rank">
-                            {index === 0
-                              ? "👑"
-                              : index === 1
-                              ? "🥈"
-                              : index === 2
-                              ? "🥉"
-                              : `${index + 1}.`}
-                          </span>
-                          <div className="player-names">
-                            <div className="player-nickname">
-                              {nameFormat.primary}
-                              {isCurrentUser && (
-                                <span className="player-you-indicator">
-                                  (You)
-                                </span>
-                              )}
-                            </div>
-                            {nameFormat.secondary && (
-                              <div className="player-realname">
-                                {nameFormat.secondary}
+        <div className="game-scoring-main">
+          <div className="game-scoring-content-layout">
+            <h1 className="royal-title">🏰 ROYAL TOURNAMENT FINALE 🏰</h1>
+            <div className="game-scoring-columns-container">
+              <div className="game-scoring-main-column">
+                {/* Winner Announcement */}
+                {finalResult && (
+                  <div className="winner-announcement">
+                    {finalResult.istie ? (
+                      <>
+                        <div className="winner-text">
+                          Multiple suitors have won the Princess's heart with{" "}
+                          <span className="token-count">
+                            {finalResult.maxTokens}
+                          </span>{" "}
+                          love tokens each:
+                        </div>
+                        <div className="winners-list">
+                          {finalResult.winners.map((winner, index) => {
+                            const nameFormat = formatPlayerName(winner);
+                            return (
+                              <div key={winner.name} className="winner-name">
+                                🎭 {nameFormat.primary}
+                                {nameFormat.secondary && (
+                                  <span className="winner-real-name">
+                                    {" "}
+                                    ({nameFormat.secondary})
+                                  </span>
+                                )}
                               </div>
+                            );
+                          })}
+                        </div>
+                        <div className="epic-phrase">
+                          "In matters of the heart, even the wisest Princess
+                          cannot choose between such worthy suitors! A royal
+                          wedding feast shall honor them all!"
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {(() => {
+                          const champion = finalResult.winners[0];
+                          const nameFormat = formatPlayerName(champion);
+                          return (
+                            <>
+                              <div className="winner-text">
+                                The Princess's heart belongs to:{" "}
+                                <span className="champion-name">
+                                  {nameFormat.primary}
+                                </span>
+                                {nameFormat.secondary && (
+                                  <span className="champion-real-name">
+                                    {" "}
+                                    ({nameFormat.secondary})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="token-display">
+                                With{" "}
+                                <span className="token-count">
+                                  {finalResult.maxTokens}
+                                </span>{" "}
+                                precious love tokens!
+                              </div>
+                              <div className="epic-phrase">
+                                "Through wit, charm, and noble deeds, our
+                                champion has proven worthy of the Princess's
+                                hand. Let the royal wedding bells ring
+                                throughout the kingdom!"
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Final Leaderboard */}
+                <div className="final-leaderboard">
+                  <h3 className="game-scoring-leaderboard-title">
+                    🏆 Final Court Rankings 🏆
+                  </h3>
+                  <div className="game-scoring-leaderboard-list">
+                    {sortedPlayers.map((player, index) => {
+                      const nameFormat = formatPlayerName(player);
+                      const isCurrentUser = player.name === nickname;
+                      const isWinner =
+                        finalResult &&
+                        finalResult.winners.some((w) => w.name === player.name);
+
+                      return (
+                        <div
+                          key={player.name}
+                          className={`final-player-row ${
+                            index === 0 ? "champion" : "noble"
+                          } ${isWinner ? "winner" : ""}`}
+                        >
+                          <div className="player-rank-section">
+                            <span className="player-rank">
+                              {index === 0
+                                ? "👑"
+                                : index === 1
+                                ? "🥈"
+                                : index === 2
+                                ? "🥉"
+                                : `${index + 1}.`}
+                            </span>
+                            <div className="player-names">
+                              <div className="player-nickname">
+                                {nameFormat.primary}
+                                {isCurrentUser && (
+                                  <span className="player-you-indicator">
+                                    (You)
+                                  </span>
+                                )}
+                              </div>
+                              {nameFormat.secondary && (
+                                <div className="player-realname">
+                                  {nameFormat.secondary}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="player-score">
+                            <span className="final-tokens">
+                              {player.tokens || 0} love token
+                              {(player.tokens || 0) !== 1 ? "s" : ""}
+                            </span>
+                            {isWinner && (
+                              <span className="winner-badge">👑 Champion</span>
                             )}
                           </div>
                         </div>
-
-                        <div className="player-score">
-                          <span className="final-tokens">
-                            {player.tokens || 0} love token
-                            {(player.tokens || 0) !== 1 ? "s" : ""}
-                          </span>
-                          {isWinner && (
-                            <span className="winner-badge">👑 Champion</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Host Actions */}
-              {isHost && (
-                <div className="host-final-actions">
-                  <button
-                    onClick={returnToLanding}
-                    className="return-to-court-button"
-                  >
-                    🏰 Return to Royal Court
-                  </button>
-                </div>
-              )}
-
-              {/* Non-host message */}
-              {!isHost && (
-                <div className="awaiting-host-message">
-                  🕰️ Awaiting the host's command to return to the royal court...
-                </div>
-              )}
-            </div>
-
-            <div className="game-scoring-side-column">
-              {/* Princess Wedding Image */}
-              <div className="princess-wedding">
-                <div className="wedding-frame">
-                  <div className="princess-image"></div>
-                  <div className="wedding-caption">
-                    💐 The Princess awaits her champion 💐
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Tournament Chronicle - Moved from main column */}
-                <div className="tournament-summary">
-                  <h3 className="summary-title">⚔️ Tournament Chronicle ⚔️</h3>
-                  <div className="summary-stats">
-                    <div className="summary-stats-first-row">
-                      <div className="stat-item">
-                        <span className="stat-label">Total Rounds Played:</span>
-                        <span className="stat-value">{totalRounds}</span>
+                {/* Host Actions */}
+                {isHost && (
+                  <div className="host-final-actions">
+                    <button
+                      onClick={returnToLanding}
+                      className="return-to-court-button"
+                    >
+                      🏰 Return to Royal Court
+                    </button>
+                  </div>
+                )}
+
+                {/* Non-host message */}
+                {!isHost && (
+                  <div className="awaiting-host-message">
+                    🕰️ Awaiting the host's command to return to the royal
+                    court...
+                  </div>
+                )}
+              </div>
+
+              <div className="game-scoring-side-column">
+                {/* Princess Wedding Image */}
+                <div className="princess-wedding">
+                  <div className="wedding-frame">
+                    <div className="princess-image"></div>
+                    <div className="wedding-caption">
+                      💐 The Princess awaits her champion 💐
+                    </div>
+                  </div>
+
+                  {/* Tournament Chronicle - Moved from main column */}
+                  <div className="tournament-summary">
+                    <h3 className="summary-title">
+                      ⚔️ Tournament Chronicle ⚔️
+                    </h3>
+                    <div className="summary-stats">
+                      <div className="summary-stats-first-row">
+                        <div className="stat-item">
+                          <span className="stat-label">
+                            Total Rounds Played:
+                          </span>
+                          <span className="stat-value">{totalRounds}</span>
+                        </div>
+                        <div className="stat-item">
+                          <span className="stat-label">
+                            Noble Participants:
+                          </span>
+                          <span className="stat-value">
+                            {sortedPlayers.length}
+                          </span>
+                        </div>
                       </div>
-                      <div className="stat-item">
-                        <span className="stat-label">Noble Participants:</span>
+                      <div className="stat-item stat-item-second-row">
+                        <span className="stat-label">Game Mode:</span>
                         <span className="stat-value">
-                          {sortedPlayers.length}
+                          {roomData.mode === "premium"
+                            ? "👑 Premium Court"
+                            : "🏰 Classic Court"}
                         </span>
                       </div>
-                    </div>
-                    <div className="stat-item stat-item-second-row">
-                      <span className="stat-label">Game Mode:</span>
-                      <span className="stat-value">
-                        {roomData.mode === "premium"
-                          ? "👑 Premium Court"
-                          : "🏰 Classic Court"}
-                      </span>
                     </div>
                   </div>
                 </div>
