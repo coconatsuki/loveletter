@@ -258,7 +258,7 @@ export default function RoyalConfessorResultModal({
                     <div
                       style={{
                         ...confessorCardImageStyle,
-                        backgroundImage: `url('/src/img/${getCardImage(
+                        backgroundImage: `url('/img/${getCardImage(
                           revealedCard.name
                         )}')`,
                       }}
