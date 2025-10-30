@@ -531,11 +531,9 @@ export async function applyRegentQueenEffect({
     isTie: !eliminatedPlayer,
     result: eliminatedPlayer ? "elimination" : "tie",
     publicMessage: eliminatedPlayer
-      ? `The Regent Queen, ever protective of her influence, took an interest in the suitor ${
+      ? `The Regent Queen took an interest in the suitor ${
           data.players[attacker]?.name || attacker
-        }. Not long after, ${
-          data.players[eliminatedPlayer]?.name || eliminatedPlayer
-        } vanished from the court. The Queen's idea of 'help,' it seems, is a dangerous blessing. 👑💀`
+        } who, not long after, vanished from the court. The Queen's idea of 'help,' it seems, is a dangerous blessing. 👑💀`
       : `The Regent Queen studied both suitors carefully. '${
           data.players[attacker]?.name || attacker
         }' and '${

@@ -1961,7 +1961,7 @@ export default function Play() {
                         <div className="player-stat">
                           <span className="player-stat-label">Last Played</span>
                           <span className="player-stat-value">
-                            {p.discard[p.discard.length - 1].name} (Strength{" "}
+                            {p.discard[p.discard.length - 1].name} (
                             {p.discard[p.discard.length - 1].strength})
                           </span>
                         </div>

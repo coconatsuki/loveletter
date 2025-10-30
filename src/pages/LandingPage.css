@@ -1072,3 +1072,49 @@ Medieval-themed CSS for the most glorious card game experience
   box-shadow: 0 15px 40px var(--shadow-dark);
   border-color: var(--gold-accent);
 }
+
+/* 🫖 Room Welcome Overlay - Simple & Smooth */
+.room-welcome-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+.room-welcome-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.room-welcome-content {
+  text-align: center;
+  padding: 3rem;
+  max-width: 70%;
+}
+
+.room-welcome-title {
+  font-family: "Metamorphous", serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gold-accent);
+  text-shadow: 0 2px 15px rgba(212, 175, 55, 0.6);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.room-welcome-hint {
+  font-family: "Metamorphous", serif;
+  font-size: 1.2rem;
+  color: var(--parchment);
+  margin: 4rem 0 0;
+}
