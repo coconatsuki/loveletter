@@ -42,9 +42,6 @@ const styles = {
     borderRadius: "20px",
     padding: "30px",
     width: "85%",
-    maxWidth: "900px",
-    maxHeight: "85vh",
-    overflowY: "auto",
     boxShadow:
       "0 20px 60px rgba(0, 0, 0, 0.9), 0 8px 25px rgba(212, 175, 55, 0.6), inset 0 2px 0 rgba(212, 175, 55, 0.4), inset 0 -2px 0 rgba(15, 15, 15, 0.8)",
     animation:
@@ -247,12 +244,14 @@ const styles = {
     fontWeight: "bold",
     padding: "1.5% 8%",
     cursor: "pointer",
+    transform: "translateY(0)",
     transition: "all 0.3s ease",
     textTransform: "uppercase",
     letterSpacing: "1px",
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
     boxShadow:
       "0 6px 20px rgba(0, 0, 0, 0.7), 0 3px 8px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(212, 175, 55, 0.3)",
+    width: "40%",
   },
 
   continueButtonHover: {
@@ -263,12 +262,6 @@ const styles = {
     transform: "translateY(-2px)",
     boxShadow:
       "0 8px 25px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(212, 175, 55, 0.5), inset 0 1px 0 rgba(230, 197, 117, 0.4)",
-  },
-
-  continueButtonActive: {
-    transform: "translateY(0)",
-    boxShadow:
-      "0 4px 15px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(212, 175, 55, 0.3)",
   },
 
   waitingText: {
@@ -404,7 +397,7 @@ const RegentQueenResultModal = ({
         return `The Regent Queen's eyes narrow. Her attempt to strike down a perceived threat only exposes her folly — ${targetName} proves to be more dangerous than anticipated. The Queen's judgment has backfired.`;
       } else {
         // Target lost
-        return "The Regent Queen's gaze lingers on you — too sharp, too knowing. 'Such confidence,' she says. 'It reminds me of my late husband. One was enough.' Her guards step forward before you can answer.";
+        return "The Regent Queen's gaze lingers on you. 'Such confidence,' she says. 'It reminds me of my late husband. One was enough!'Her guards step forward before you can answer.";
       }
     }
   };
@@ -545,12 +538,6 @@ const RegentQueenResultModal = ({
                   }
                   onMouseLeave={(e) =>
                     Object.assign(e.target.style, styles.continueButton)
-                  }
-                  onMouseDown={(e) =>
-                    Object.assign(e.target.style, styles.continueButtonActive)
-                  }
-                  onMouseUp={(e) =>
-                    Object.assign(e.target.style, styles.continueButtonHover)
                   }
                 >
                   Continue

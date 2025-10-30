@@ -21,11 +21,13 @@ export default function Room() {
   const [roomMode, setRoomMode] = useState("normal");
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(true);
+  const [overlayFadeOut, setOverlayFadeOut] = useState(false);
   const audioRef = useRef(null);
   const fadeIntervalRef = useRef(null);
 
   // Fade utility functions for smooth volume transitions
-  const fadeIn = (audio, targetVolume = 0.7, duration = 1000) => {
+  const fadeIn = (audio, targetVolume = 0.7, duration = 800) => {
     return new Promise((resolve) => {
       if (!audio) {
         resolve();
@@ -103,7 +105,7 @@ export default function Room() {
         realName: realName || "",
         isOut: false,
         tokens: 0,
-        gameTokens: 0,
+        roundTokens: 0,
       });
     }
 
@@ -148,11 +150,49 @@ export default function Room() {
     }
   }, [players, nickname, navigate]);
 
-  // Music setup for Room page (manual control only)
+  // Handle overlay click/keypress (first user interaction)
+  const handleOverlayDismiss = () => {
+    console.log("🎵 OVERLAY DISMISSED: Starting music...");
+
+    // Animate overlay out
+    setOverlayFadeOut(true);
+
+    setTimeout(() => {
+      setShowOverlay(false);
+      setHasUserInteracted(true);
+
+      // Start playing music with fade-in
+      if (audioRef.current) {
+        audioRef.current.currentTime = 6; // Skip the silence at the beginning
+        audioRef.current
+          .play()
+          .then(() => {
+            console.log("🎵 Medieval music started playing");
+            setIsPlaying(true);
+            fadeIn(audioRef.current);
+          })
+          .catch((error) => {
+            console.error("🎵 Error starting music:", error);
+          });
+      }
+    }, 500); // Wait for overlay fade-out animation
+  };
+
+  // Handle keyboard interaction for overlay
   useEffect(() => {
-    console.log(
-      "🎵 MUSIC DEBUG: Room page mounted, setting up manual music control..."
-    );
+    if (!showOverlay || overlayFadeOut) return;
+
+    const handleKeyPress = (e) => {
+      handleOverlayDismiss();
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [showOverlay, overlayFadeOut]);
+
+  // Music setup for Room page
+  useEffect(() => {
+    console.log("🎵 MUSIC DEBUG: Room page mounted, setting up music...");
 
     if (audioRef.current) {
       // Set up audio properties
@@ -320,33 +360,52 @@ export default function Room() {
       {/* Audio element for background music */}
       <audio ref={audioRef} src={medievalMusic} preload="auto" />
 
+      {/* Welcome Overlay */}
+      {showOverlay && (
+        <div
+          className={`room-welcome-overlay ${overlayFadeOut ? "fade-out" : ""}`}
+          onClick={handleOverlayDismiss}
+        >
+          <div className="room-welcome-content">
+            <h2 className="room-welcome-title">
+              🫖 Welcome to the Royal Antechamber, {nickname}! ☕
+            </h2>
+            <p className="room-welcome-hint">
+              ✨ Click anywhere or press any key to enter ✨
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Music toggle button */}
-      <button
-        onClick={toggleMusic}
-        className="music-toggle-btn"
-        style={{
-          position: "absolute",
-          top: "20px",
-          left: "20px",
-          width: "50px",
-          height: "50px",
-          borderRadius: "50%",
-          border: "none",
-          background: isPlaying ? "#4CAF50" : "#666",
-          color: "white",
-          fontSize: "24px",
-          cursor: "pointer",
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.3s ease",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-        }}
-        title={isPlaying ? "Stop Music" : "Play Music"}
-      >
-        {isPlaying ? "🔊" : "🔇"}
-      </button>
+      {!showOverlay && (
+        <button
+          onClick={toggleMusic}
+          className="music-toggle-btn"
+          style={{
+            position: "absolute",
+            top: "20px",
+            left: "20px",
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            border: "none",
+            background: isPlaying ? "#4CAF50" : "#666",
+            color: "white",
+            fontSize: "24px",
+            cursor: "pointer",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.3s ease",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+          }}
+          title={isPlaying ? "Stop Music" : "Play Music"}
+        >
+          {isPlaying ? "🔊" : "🔇"}
+        </button>
+      )}
 
       {/* 🏰 Royal Header */}
       <div className="royal-header">

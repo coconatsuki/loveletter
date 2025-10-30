@@ -4,21 +4,30 @@ import { db } from "../utils/firebase";
 import { ref, set } from "firebase/database";
 import { generateNickname } from "../utils/names";
 import { generateRoomCode } from "../utils/room";
+import { validateCreator } from "../utils/auth";
 import princessImage from "../img/princess-square.jpeg";
 import loveLetterImage from "../img/love-letter.png";
-import sentimentalMusic from "../sounds/sentimental-classical-gentle-love.mp3";
+import landingMusic1 from "../sounds/landing1.mp3";
+import landingMusic2 from "../sounds/landing2.mp3";
+import landingMusic3 from "../sounds/landing3.mp3";
 import "./LandingPage.css";
 
 export default function CreateRoom() {
   const [nickname, setNickname] = useState("");
   const [realName, setRealName] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [preferredGender, setPreferredGender] = useState("");
   const [mode, setMode] = useState("normal");
   const [isCreating, setIsCreating] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [isValidated, setIsValidated] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef(null);
   const fadeIntervalRef = useRef(null);
+  const musicTracks = useRef([]);
   const navigate = useNavigate();
 
   // Fade utility functions for smooth volume transitions
@@ -90,8 +99,36 @@ export default function CreateRoom() {
     });
   };
 
+  // Validate credentials when user selects a mode
+  const handleModeSelection = async (selectedMode) => {
+    // Clear any previous errors
+    setAuthError("");
+
+    // Check if both fields are filled
+    if (!realName.trim() || !password.trim()) {
+      setAuthError("⚠️ Please enter both thy noble name and password first!");
+      return;
+    }
+
+    // Validate credentials
+    const isValid = await validateCreator(realName, password);
+
+    if (isValid) {
+      console.log("✅ Authentication successful!");
+      setIsValidated(true);
+      setMode(selectedMode);
+      setAuthError("");
+    } else {
+      console.log("❌ Authentication failed");
+      setAuthError(
+        "🚫 Alas! Only the game's creator and trusted companions may establish royal courts. If thou art meant to be here, verify thy credentials!"
+      );
+      setIsValidated(false);
+    }
+  };
+
   const handleCreate = async () => {
-    if (!nickname || !realName) return;
+    if (!nickname || !realName || !isValidated) return;
 
     setIsCreating(true);
     try {
@@ -104,7 +141,7 @@ export default function CreateRoom() {
             name: nickname,
             realName,
             tokens: 0,
-            gameTokens: 0,
+            roundTokens: 0,
             discard: [],
             isOut: false,
           },
@@ -118,26 +155,84 @@ export default function CreateRoom() {
     }
   };
 
-  // Music setup and first-interaction trigger
+  // Initialize and shuffle music tracks
   useEffect(() => {
-    console.log(
-      "🎵 MUSIC DEBUG: CreateRoom page mounted, setting up first-interaction trigger..."
-    );
+    console.log("🎵 MUSIC DEBUG: Initializing and shuffling tracks...");
 
+    // Shuffle the three tracks randomly using Fisher-Yates
+    const tracks = [
+      { src: landingMusic1, name: "Landing Music 1" },
+      { src: landingMusic2, name: "Landing Music 2" },
+      { src: landingMusic3, name: "Landing Music 3" },
+    ];
+
+    const shuffled = [...tracks];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    musicTracks.current = shuffled;
+
+    console.log("🎵 Track order:", {
+      first: shuffled[0].name,
+      second: shuffled[1].name,
+      third: shuffled[2].name,
+    });
+
+    // Set up the first track
     if (audioRef.current) {
-      // Set up audio properties
-      audioRef.current.loop = true;
+      audioRef.current.src = shuffled[0].src;
       audioRef.current.volume = 0.7;
-
-      // Ensure audio is loaded before attempting to play
       audioRef.current.load();
 
-      console.log("🎵 Audio element prepared:", {
+      console.log("🎵 Audio element prepared with first track:", {
         src: audioRef.current.src,
         readyState: audioRef.current.readyState,
         networkState: audioRef.current.networkState,
       });
     }
+  }, []);
+
+  // Handle track ending and switch to next
+  useEffect(() => {
+    const handleTrackEnd = () => {
+      console.log("🎵 Track ended, switching to next...");
+
+      const nextIndex = (currentTrackIndex + 1) % musicTracks.current.length;
+      const nextTrack = musicTracks.current[nextIndex];
+
+      console.log("🎵 Next track:", nextTrack.name);
+
+      if (audioRef.current) {
+        audioRef.current.src = nextTrack.src;
+        audioRef.current.load();
+        audioRef.current
+          .play()
+          .then(() => {
+            console.log("🎵 Next track started playing");
+            setCurrentTrackIndex(nextIndex);
+            fadeIn(audioRef.current, 0.7, 2000);
+          })
+          .catch((error) => {
+            console.error("🎵 Error playing next track:", error);
+          });
+      }
+    };
+
+    if (audioRef.current) {
+      audioRef.current.addEventListener("ended", handleTrackEnd);
+      return () => {
+        audioRef.current?.removeEventListener("ended", handleTrackEnd);
+      };
+    }
+  }, [currentTrackIndex]);
+
+  // Music setup and first-interaction trigger
+  useEffect(() => {
+    console.log(
+      "🎵 MUSIC DEBUG: CreateRoom page mounted, setting up first-interaction trigger..."
+    );
 
     // Function to handle first user interaction
     const handleFirstInteraction = () => {
@@ -254,10 +349,14 @@ export default function CreateRoom() {
     }
   };
 
+  // Check if auth fields are filled (computed at render time)
+  const canSelectMode =
+    realName.trim().length > 0 && password.trim().length > 0;
+
   return (
     <div className="royal-landing-container">
       {/* Audio element for background music */}
-      <audio ref={audioRef} src={sentimentalMusic} preload="auto" />
+      <audio ref={audioRef} preload="auto" />
 
       {/* Music toggle button */}
       <button
@@ -313,15 +412,60 @@ export default function CreateRoom() {
       <div className="royal-main-content">
         {/* 📜 Left Panel - The Royal Game Master Form */}
         <div className="royal-form-panel">
-          <div className="royal-form-group">
-            <label className="royal-label">Thy Noble Name:</label>
-            <input
-              className="royal-input"
-              value={realName}
-              onChange={(e) => setRealName(e.target.value)}
-              placeholder="By what name shall the court know thee?"
-            />
+          {/* Authentication Row - Name & Password */}
+          <div className="auth-row">
+            <div className="auth-field">
+              <label className="royal-label auth">Thy Noble Name:</label>
+              <input
+                className="royal-input auth"
+                value={realName}
+                onChange={(e) => {
+                  setRealName(e.target.value);
+                  setIsValidated(false);
+                  setAuthError("");
+                }}
+                placeholder="Thy name..."
+              />
+            </div>
+
+            <div className="auth-field">
+              <label className="royal-label auth">Sacred Password:</label>
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="royal-input password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setIsValidated(false);
+                    setAuthError("");
+                  }}
+                  placeholder="Passphrase..."
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+            </div>
           </div>
+
+          <p
+            style={{
+              fontSize: "0.8rem",
+              opacity: 0.7,
+              marginTop: "0.5rem",
+              marginBottom: "1.5rem",
+              fontStyle: "italic",
+              textAlign: "center",
+            }}
+          >
+            🔐 Only authorized Game Masters may create royal courts
+          </p>
 
           <fieldset className="royal-fieldset">
             <legend className="royal-legend">
@@ -382,13 +526,31 @@ export default function CreateRoom() {
           <fieldset className="royal-fieldset">
             <legend className="royal-legend">Royal Tournament Mode</legend>
 
+            {authError && (
+              <div
+                className="validation-errors"
+                style={{ marginBottom: "1rem" }}
+              >
+                <div className="error-message">{authError}</div>
+              </div>
+            )}
+
             <div className="mode-options">
-              <label className="mode-option">
+              <label
+                className={`mode-option ${
+                  !canSelectMode ? "mode-disabled" : ""
+                }`}
+                style={{
+                  opacity: !canSelectMode ? 0.5 : 1,
+                  cursor: !canSelectMode ? "not-allowed" : "pointer",
+                }}
+              >
                 <input
                   type="radio"
                   value="normal"
                   checked={mode === "normal"}
-                  onChange={(e) => setMode(e.target.value)}
+                  onChange={(e) => handleModeSelection(e.target.value)}
+                  disabled={!canSelectMode}
                   style={{ display: "none" }}
                 />
                 <div className="mode-option-content">
@@ -407,12 +569,21 @@ export default function CreateRoom() {
                   </div>
                 </div>
               </label>
-              <label className="mode-option">
+              <label
+                className={`mode-option ${
+                  !canSelectMode ? "mode-disabled" : ""
+                }`}
+                style={{
+                  opacity: !canSelectMode ? 0.5 : 1,
+                  cursor: !canSelectMode ? "not-allowed" : "pointer",
+                }}
+              >
                 <input
                   type="radio"
                   value="premium"
                   checked={mode === "premium"}
-                  onChange={(e) => setMode(e.target.value)}
+                  onChange={(e) => handleModeSelection(e.target.value)}
+                  disabled={!canSelectMode}
                   style={{ display: "none" }}
                 />
                 <div className="mode-option-content">
@@ -432,24 +603,41 @@ export default function CreateRoom() {
                 </div>
               </label>
             </div>
+
+            {!canSelectMode ? (
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  opacity: 0.7,
+                  marginTop: "1rem",
+                  textAlign: "center",
+                  fontStyle: "italic",
+                }}
+              >
+                ⬆️ Fill in thy name and password above to select a mode
+              </p>
+            ) : null}
           </fieldset>
 
           <button
             onClick={handleCreate}
             className="royal-button create-button"
-            disabled={!nickname || !realName || isCreating}
+            disabled={!nickname || !realName || !isValidated || isCreating}
             style={{
               width: "100%",
               fontSize: "1.2rem",
-              opacity: !nickname || !realName || isCreating ? 0.6 : 1,
+              opacity:
+                !nickname || !realName || !isValidated || isCreating ? 0.6 : 1,
               cursor:
-                !nickname || !realName || isCreating
+                !nickname || !realName || !isValidated || isCreating
                   ? "not-allowed"
                   : "pointer",
             }}
           >
             {isCreating ? (
               <>🏗️ Establishing Royal Court... 🏗️</>
+            ) : !isValidated ? (
+              <>🔒 Select a Mode to Verify & Create 🔒</>
             ) : (
               <>👑 Establish thy Royal Court 👑</>
             )}

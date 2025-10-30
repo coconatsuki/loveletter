@@ -85,8 +85,7 @@ export const cards = [
     countPremium: 2,
     effectDetails:
       "Choose a player (or yourself) who must discard their card (without applying its effect, unless it's the Princess) and draw a new one. If everyone is protected, you must choose yourself. If the deck is empty, the Prince won't have any effect.",
-    effect:
-      "Choose a target (or yourself) who must discard their card and draw a new one.",
+    effect: "Choose a target (or yourself) who must renew their hand.",
   },
   {
     id: 6,
@@ -105,7 +104,7 @@ export const cards = [
     countNormal: 1,
     countPremium: 1,
     effectDetails:
-      "This card has no effect when played (better keeping it until the Round ends, as it's powerful!), but you'll be forced to play it if your 2nd card is Phantom King or Prince.",
+      "This card has no effect when played (better keeping it until the Round ends, as it's powerful!), but you'll be forced to play it if your second card is Phantom King or Prince.",
     effect: "Must be played if you also have a Prince or the Phantom King.",
   },
   {

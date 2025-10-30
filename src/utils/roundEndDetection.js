@@ -270,6 +270,11 @@ export async function triggerRoundEnd(roomCode) {
         roomData.players[roundEndResult.winner]?.tokens || 0;
       updates[`players/${roundEndResult.winner}/tokens`] = currentTokens + 1;
 
+      const currentRoundTokens =
+        roomData.players[roundEndResult.winner]?.roundTokens || 0;
+      updates[`players/${roundEndResult.winner}/roundTokens`] =
+        currentRoundTokens + 1;
+
       // 🏆 Track love token origin for round winner
       updates[`players/${roundEndResult.winner}/loveTokenOrigin`] = {
         roundWinner: 1,
@@ -284,6 +289,10 @@ export async function triggerRoundEnd(roomCode) {
         if (jesterGiver !== roundEndResult.winner) {
           const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
           updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+          const jesterRoundTokens =
+            roomData.players[jesterGiver]?.roundTokens || 0;
+          updates[`players/${jesterGiver}/roundTokens`] = jesterRoundTokens + 1;
 
           // 🃏 Track love token origin for jester bonus
           const existingOrigin =
@@ -319,6 +328,9 @@ export async function triggerRoundEnd(roomCode) {
         const currentTokens = roomData.players[winner]?.tokens || 0;
         updates[`players/${winner}/tokens`] = currentTokens + 1;
 
+        const currentRoundTokens = roomData.players[winner]?.roundTokens || 0;
+        updates[`players/${winner}/roundTokens`] = currentRoundTokens + 1;
+
         // 🏆 Track love token origin for round winner
         updates[`players/${winner}/loveTokenOrigin`] = {
           roundWinner: 1,
@@ -333,6 +345,11 @@ export async function triggerRoundEnd(roomCode) {
           if (!roundEndResult.winners.includes(jesterGiver)) {
             const jesterTokens = roomData.players[jesterGiver]?.tokens || 0;
             updates[`players/${jesterGiver}/tokens`] = jesterTokens + 1;
+
+            const jesterRoundTokens =
+              roomData.players[jesterGiver]?.roundTokens || 0;
+            updates[`players/${jesterGiver}/roundTokens`] =
+              jesterRoundTokens + 1;
 
             // 🃏 Track love token origin for jester bonus
             const existingOrigin =
@@ -374,6 +391,7 @@ export async function triggerRoundEnd(roomCode) {
         if (playerData?.chamberlainToken === true) {
           // Get current token count BEFORE checking if it was already updated by Jester bonus
           const currentTokens = playerData.tokens || 0;
+          const currentRoundTokens = playerData.tokens || 0;
 
           // Check if this player already got a Jester bonus in the updates object
           const existingJesterUpdate = updates[`players/${playerName}/tokens`];
@@ -382,12 +400,20 @@ export async function triggerRoundEnd(roomCode) {
               ? existingJesterUpdate
               : currentTokens;
 
+          const existingJesterRoundUpdate =
+            updates[`players/${playerName}/roundTokens`];
+          const baseRoundTokens =
+            existingJesterRoundUpdate !== undefined
+              ? existingJesterRoundUpdate
+              : currentRoundTokens;
+
           console.log(
             `🏰💰 CHAMBERLAIN BONUS: Player ${playerName} - base tokens: ${currentTokens}, existing update: ${existingJesterUpdate}, using base: ${baseTokens}`
           );
 
           // Award this eliminated player 1 love token for their Chamberlain's influence
           updates[`players/${playerName}/tokens`] = baseTokens + 1;
+          updates[`players/${playerName}/roundTokens`] = baseRoundTokens + 1;
 
           // 🏰💰 Track love token origin for chamberlain bonus
           const existingOrigin = playerData.loveTokenOrigin || {};

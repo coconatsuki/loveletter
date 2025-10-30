@@ -1,1 +1,4 @@
 node_modules
+.github
+AUTH_SETUP.md
+cards-flow-documentation.md
