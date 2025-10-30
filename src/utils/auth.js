@@ -1,15 +1,4 @@
 /**
- * 🔐 ROOM CREATOR AUTHENTICATION
- *
- * This file validates credentials for creating new game rooms.
- * Uses SHA-256 hashing to obscure credentials from casual inspection.
- *
- * NOTE: This is client-side validation - provides good protection against
- * casual users but not against determined hackers. For your team use case,
- * this should be sufficient.
- */
-
-/**
  * Hash a string using SHA-256
  * @param {string} text - Text to hash
  * @returns {Promise<string>} - Hex string of hash
@@ -23,21 +12,11 @@ async function hashText(text) {
 }
 
 /**
- * Allowed room creators (hashed credentials)
- *
- * Format: hash of "realName:password"
- *
- * TO ADD A NEW TRUSTED CREATOR:
- * 1. Open browser console
- * 2. Run: await crypto.subtle.digest("SHA-256", new TextEncoder().encode("YourName:YourPassword"))
- *         .then(buffer => Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join(""))
- * 3. Add the resulting hash to the array below
- *
+
  * CURRENT ALLOWED CREATORS:
  * - Add your name and password hash below
  */
 const ALLOWED_CREATORS = [
-  // TODO: Replace with your actual hashed credentials
   "f56fc0760d7e4db95ee0ec1f4ab8a3e7e22fff7ae51b6476dc8db6a4704a8c6c", // Main host
 ];
 
