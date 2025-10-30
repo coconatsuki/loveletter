@@ -41,36 +41,14 @@ import { pushNotification } from "../utils/pushNotification";
 import {
   checkRoundEndConditions,
   triggerRoundEnd,
-  triggerRoundEndIfNeeded,
 } from "../utils/roundEndDetection";
-import { cards, getCardImage } from "../utils/cardsData";
+import { getCardImage } from "../utils/cardsData";
 import {
-  getCardCount,
   handleCardDiscard,
   handlePlayerElimination,
 } from "../utils/gamehelpers";
 import { shouldShowPopoverOnLeft } from "../utils/popoverPositioning";
 import "./Play.css";
-
-const cardNames = {
-  0: "Jester",
-  1: "Guard",
-  2: "Priest",
-  3: "Baron",
-  4: "Handmaid",
-  5: "Prince",
-  6: "Phantom King",
-  7: "Countess",
-  8: "Princess",
-  9: "Inquisitor",
-  10: "Chamberlain",
-  11: "Regent Queen",
-  12: "Court Whisperer",
-  13: "Royal Confessor",
-  14: "Assassin",
-  15: "Baroness",
-  16: "Duke",
-};
 
 export default function Play() {
   const { id: roomCode } = useParams();

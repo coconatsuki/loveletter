@@ -221,16 +221,7 @@ export async function applyGuard2Effect({
       // Set elimination flag for attacker - they'll be eliminated when they confirm modal
     };
 
-    // Handle card discard and check for special tokens (like Chamberlain)
-    const finalUpdates = handleCardDiscard({
-      roomCode,
-      playerName: target,
-      card: assassinCard,
-      gameMode: roomData?.mode,
-      existingUpdates: baseUpdates,
-    });
-
-    await update(ref(db, `rooms/${roomCode}`), finalUpdates);
+    await update(ref(db, `rooms/${roomCode}`), baseUpdates);
 
     attackerMarkedForElimination = true;
 
@@ -371,21 +362,13 @@ export async function applyBaronEffect({
 
   if (eliminatedPlayer === attacker) {
     // Discard second card now, and the Baron card later, in completeTurnWithCardIndex()
-    const baseDiscardUpdates = {
+    const discardUpdate = {
       [`players/${attacker}/discard`]: [
         ...(data.players[attacker].discard || []),
         attackerCard,
       ],
       [`players/${attacker}/hand`]: [baronCard],
     };
-
-    const discardUpdate = handleCardDiscard({
-      roomCode,
-      playerName: attacker,
-      card: attackerCard,
-      gameMode: data?.mode,
-      existingUpdates: baseDiscardUpdates,
-    });
 
     await update(ref(db, `rooms/${roomCode}`), discardUpdate);
 
@@ -517,21 +500,13 @@ export async function applyRegentQueenEffect({
 
   if (eliminatedPlayer === attacker) {
     // Discard second card now, and the Baron card later, in completeTurnWithCardIndex()
-    const baseDiscardUpdates = {
+    const discardUpdate = {
       [`players/${attacker}/discard`]: [
         ...(data.players[attacker].discard || []),
         attackerCard,
       ],
       [`players/${attacker}/hand`]: [regentQueenCard],
     };
-
-    const discardUpdate = handleCardDiscard({
-      roomCode,
-      playerName: attacker,
-      card: attackerCard,
-      gameMode: data?.mode,
-      existingUpdates: baseDiscardUpdates,
-    });
 
     await update(ref(db, `rooms/${roomCode}`), discardUpdate);
 
@@ -1217,9 +1192,6 @@ export async function applyInquisitorEffect({
         targetCard.name
       } (strength ${targetCard.strength})`
     );
-
-    // ---------------------------------
-    // MOVED FROM PLAY.JSX => TO DO => ADJUST LOGIC
 
     if (wasCorrect) {
       // Award love token to attacker first
