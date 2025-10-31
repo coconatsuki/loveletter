@@ -18,10 +18,9 @@ export default function CreateRoom() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [preferredGender, setPreferredGender] = useState("");
-  const [mode, setMode] = useState("normal");
+  const [mode, setMode] = useState(""); // No default mode - force user to select
   const [isCreating, setIsCreating] = useState(false);
   const [authError, setAuthError] = useState("");
-  const [isValidated, setIsValidated] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -99,36 +98,45 @@ export default function CreateRoom() {
     });
   };
 
-  // Validate credentials when user selects a mode
-  const handleModeSelection = async (selectedMode) => {
+  const handleCreate = async () => {
     // Clear any previous errors
     setAuthError("");
 
-    // Check if both fields are filled
-    if (!realName.trim() || !password.trim()) {
-      setAuthError("⚠️ Please enter both thy noble name and password first!");
+    // Check all required fields with proper length validation
+    if (!nickname.trim() || nickname.trim().length < 3) {
+      setAuthError(
+        "⚠️ Please enter thy courtly title (at least 3 characters)!"
+      );
+      return;
+    }
+
+    if (!realName.trim() || realName.trim().length < 3) {
+      setAuthError("⚠️ Thy noble name must be at least 3 characters long!");
+      return;
+    }
+
+    if (!password.trim() || password.trim().length < 1) {
+      setAuthError("⚠️ Please enter thy sacred password!");
+      return;
+    }
+
+    if (!mode) {
+      setAuthError("⚠️ Please select a Royal Tournament Mode!");
       return;
     }
 
     // Validate credentials
     const isValid = await validateCreator(realName, password);
 
-    if (isValid) {
-      console.log("✅ Authentication successful!");
-      setIsValidated(true);
-      setMode(selectedMode);
-      setAuthError("");
-    } else {
+    if (!isValid) {
       console.log("❌ Authentication failed");
       setAuthError(
         "🚫 Alas! Only the game's creator and trusted companions may establish royal courts. If thou art meant to be here, verify thy credentials!"
       );
-      setIsValidated(false);
+      return;
     }
-  };
 
-  const handleCreate = async () => {
-    if (!nickname || !realName || !isValidated) return;
+    console.log("✅ Authentication successful! Creating room...");
 
     setIsCreating(true);
     try {
@@ -151,6 +159,7 @@ export default function CreateRoom() {
       navigate(`/room/${roomCode}`, { state: { nickname, realName } });
     } catch (error) {
       console.error("Failed to create room:", error);
+      setAuthError("❌ Failed to create room. Please try again.");
       setIsCreating(false);
     }
   };
@@ -349,9 +358,12 @@ export default function CreateRoom() {
     }
   };
 
-  // Check if auth fields are filled (computed at render time)
-  const canSelectMode =
-    realName.trim().length > 0 && password.trim().length > 0;
+  // Check if all required conditions are met for the button to be "ready"
+  const isFormReady =
+    nickname.trim().length >= 3 &&
+    realName.trim().length >= 3 &&
+    password.trim().length >= 1 &&
+    mode !== "";
 
   return (
     <div className="royal-landing-container">
@@ -421,7 +433,6 @@ export default function CreateRoom() {
                 value={realName}
                 onChange={(e) => {
                   setRealName(e.target.value);
-                  setIsValidated(false);
                   setAuthError("");
                 }}
                 placeholder="Thy name..."
@@ -437,7 +448,6 @@ export default function CreateRoom() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    setIsValidated(false);
                     setAuthError("");
                   }}
                   placeholder="Passphrase..."
@@ -477,7 +487,10 @@ export default function CreateRoom() {
                 <input
                   className="royal-input"
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    setAuthError("");
+                  }}
                   placeholder="Enter thy majestic court name"
                 />
               </div>
@@ -526,31 +539,16 @@ export default function CreateRoom() {
           <fieldset className="royal-fieldset">
             <legend className="royal-legend">Royal Tournament Mode</legend>
 
-            {authError && (
-              <div
-                className="validation-errors"
-                style={{ marginBottom: "1rem" }}
-              >
-                <div className="error-message">{authError}</div>
-              </div>
-            )}
-
             <div className="mode-options">
-              <label
-                className={`mode-option ${
-                  !canSelectMode ? "mode-disabled" : ""
-                }`}
-                style={{
-                  opacity: !canSelectMode ? 0.5 : 1,
-                  cursor: !canSelectMode ? "not-allowed" : "pointer",
-                }}
-              >
+              <label className="mode-option">
                 <input
                   type="radio"
                   value="normal"
                   checked={mode === "normal"}
-                  onChange={(e) => handleModeSelection(e.target.value)}
-                  disabled={!canSelectMode}
+                  onChange={(e) => {
+                    setMode(e.target.value);
+                    setAuthError("");
+                  }}
                   style={{ display: "none" }}
                 />
                 <div className="mode-option-content">
@@ -569,21 +567,15 @@ export default function CreateRoom() {
                   </div>
                 </div>
               </label>
-              <label
-                className={`mode-option ${
-                  !canSelectMode ? "mode-disabled" : ""
-                }`}
-                style={{
-                  opacity: !canSelectMode ? 0.5 : 1,
-                  cursor: !canSelectMode ? "not-allowed" : "pointer",
-                }}
-              >
+              <label className="mode-option">
                 <input
                   type="radio"
                   value="premium"
                   checked={mode === "premium"}
-                  onChange={(e) => handleModeSelection(e.target.value)}
-                  disabled={!canSelectMode}
+                  onChange={(e) => {
+                    setMode(e.target.value);
+                    setAuthError("");
+                  }}
                   style={{ display: "none" }}
                 />
                 <div className="mode-option-content">
@@ -603,41 +595,32 @@ export default function CreateRoom() {
                 </div>
               </label>
             </div>
-
-            {!canSelectMode ? (
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  opacity: 0.7,
-                  marginTop: "1rem",
-                  textAlign: "center",
-                  fontStyle: "italic",
-                }}
-              >
-                ⬆️ Fill in thy name and password above to select a mode
-              </p>
-            ) : null}
           </fieldset>
+
+          {/* Error Messages Display - Above Button */}
+          {authError && (
+            <div className="validation-errors">
+              <div className="error-message">{authError}</div>
+            </div>
+          )}
 
           <button
             onClick={handleCreate}
             className="royal-button create-button"
-            disabled={!nickname || !realName || !isValidated || isCreating}
+            disabled={isCreating}
             style={{
               width: "100%",
               fontSize: "1.2rem",
-              opacity:
-                !nickname || !realName || !isValidated || isCreating ? 0.6 : 1,
-              cursor:
-                !nickname || !realName || !isValidated || isCreating
-                  ? "not-allowed"
-                  : "pointer",
+              opacity: isCreating ? 0.6 : isFormReady ? 1 : 0.5,
+              filter: !isFormReady && !isCreating ? "blur(0.5px)" : "none",
+              cursor: isCreating ? "not-allowed" : "pointer",
+              transition: "all 0.3s ease",
             }}
           >
             {isCreating ? (
               <>🏗️ Establishing Royal Court... 🏗️</>
-            ) : !isValidated ? (
-              <>🔒 Select a Mode to Verify & Create 🔒</>
+            ) : !isFormReady ? (
+              <>🔒 Complete the form to proceed 🔒</>
             ) : (
               <>👑 Establish thy Royal Court 👑</>
             )}
