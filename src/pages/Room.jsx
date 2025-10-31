@@ -4,6 +4,7 @@ import { db } from "../utils/firebase";
 import { ref, onValue, update, remove } from "firebase/database";
 import { generateNickname } from "../utils/names";
 import { buildDeck } from "../utils/deckBuilder";
+import { useImagePreloader } from "../utils/imagePreloader";
 import "./LandingPage.css"; // Import royal styles
 import waitingRoomPicture from "../img/waiting-room.jpeg";
 import medievalMusic from "../sounds/medieval-ambient.mp3";
@@ -25,6 +26,9 @@ export default function Room() {
   const [overlayFadeOut, setOverlayFadeOut] = useState(false);
   const audioRef = useRef(null);
   const fadeIntervalRef = useRef(null);
+
+  // 🖼️ Preload all card images in the background while players wait in lobby
+  const { imagesLoaded, loadedCount, totalImages } = useImagePreloader();
 
   // Fade utility functions for smooth volume transitions
   const fadeIn = (audio, targetVolume = 0.7, duration = 800) => {
