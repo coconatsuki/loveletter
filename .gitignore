@@ -1,4 +1,43 @@
-node_modules
-.github
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment variables (if you add them later)
+.env
+.env.local
+.env.production
+
+# Firebase cache and debug
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Editor directories
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Internal documentation (keep these private)
+.github/
 AUTH_SETUP.md
 cards-flow-documentation.md
+copilot-instructions.md
+DEPLOYMENT.md
+PRODUCTION-READY.md

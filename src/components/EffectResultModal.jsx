@@ -393,7 +393,7 @@ export default function EffectResultModal({
                   <div
                     style={{
                       ...priestCardImageStyle,
-                      backgroundImage: `url('/src/img/${getCardImage(
+                      backgroundImage: `url('/img/${getCardImage(
                         revealedCard.name
                       )}')`,
                     }}
@@ -463,7 +463,7 @@ export default function EffectResultModal({
                       <div
                         style={{
                           ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
+                          backgroundImage: `url(/img/${getCardImage(
                             role === "attacker"
                               ? swappedCards.attackerGave.name
                               : swappedCards.targetGave.name
@@ -504,7 +504,7 @@ export default function EffectResultModal({
                       <div
                         style={{
                           ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
+                          backgroundImage: `url(/img/${getCardImage(
                             role === "attacker"
                               ? swappedCards.attackerReceived.name
                               : swappedCards.targetReceived.name
@@ -585,7 +585,7 @@ export default function EffectResultModal({
                       <div
                         style={{
                           ...royalConfessorCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
+                          backgroundImage: `url(/img/${getCardImage(
                             swappedCards.targetGave.name
                           )})`,
                         }}
@@ -612,7 +612,7 @@ export default function EffectResultModal({
                       <div
                         style={{
                           ...royalConfessorCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
+                          backgroundImage: `url(/img/${getCardImage(
                             swappedCards.targetReceived.name
                           )})`,
                         }}
@@ -683,7 +683,7 @@ export default function EffectResultModal({
                       <div
                         style={{
                           ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/src/img/${getCardImage(
+                          backgroundImage: `url(/img/${getCardImage(
                             cardDetails.target1Card.name
                           )})`,
                         }}
@@ -711,7 +711,7 @@ export default function EffectResultModal({
                         <div
                           style={{
                             ...phantomKingCardImageStyle,
-                            backgroundImage: `url(/src/img/${getCardImage(
+                            backgroundImage: `url(/img/${getCardImage(
                               cardDetails.target2Card.name
                             )})`,
                           }}

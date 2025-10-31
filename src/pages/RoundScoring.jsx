@@ -442,7 +442,7 @@ export default function RoundScoring() {
                     <div
                       className="hidden-card-image"
                       style={{
-                        backgroundImage: `url('/src/img/${getCardImage(
+                        backgroundImage: `url('/img/${getCardImage(
                           hiddenCard.name
                         )}')`,
                       }}

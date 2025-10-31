@@ -2128,7 +2128,7 @@ export default function Play() {
                                               <div
                                                 className="card-image"
                                                 style={{
-                                                  backgroundImage: `url('/src/img/${getCardImage(
+                                                  backgroundImage: `url('/img/${getCardImage(
                                                     card.name
                                                   )}')`,
                                                 }}
@@ -2188,7 +2188,7 @@ export default function Play() {
                                             <div
                                               className="card-image"
                                               style={{
-                                                backgroundImage: `url('/src/img/${getCardImage(
+                                                backgroundImage: `url('/img/${getCardImage(
                                                   card.name
                                                 )}')`,
                                               }}
