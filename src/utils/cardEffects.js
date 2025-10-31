@@ -1495,10 +1495,10 @@ export async function applyBaronessEffect({
     }
 
     const publicMessage = target2
-      ? `<div class="effect-description">🍷✨ <span class="quotation">💋 At her grand soirée,</span> the Baroness — ever eager to play the royal matchmakers — drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation. 💬🌹</div>
-<div class="effect-description">Later, she obviously shared their secrets with the suitor who, in her opinion, would match the best with the princess: <span class="effect-player">${attacker}</span>! 💕👑</div>`
-      : `<div class="effect-description">🍷✨ <span class="quotation">💋 At her grand soirée,</span> the Baroness — ever eager to play the royal matchmakers — drew <span class="effect-player">${target1}</span> into a most revealing conversation. 💬🌹</div>
-<div class="effect-description">Later, she obviously shared their secrets with the suitor who, in her opinion, would match the best with the princess: <span class="effect-player">${attacker}</span>! 💕👑</div>`;
+      ? `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation 💬🌹</div>
+<div class="effect-description">that she shared, later, with <span class="effect-player">${attacker}</span> (who, in her opinion, would be a better match for the princess! 💕👑)</div>`
+      : `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> into a most revealing conversation 💬🌹</div>
+<div class="effect-description">that she shared, later, with <span class="effect-player">${attacker}</span> (who, in her opinion, would be a better match for the princess! 💕👑)</div>`;
 
     return {
       result: "baronessReveal",
