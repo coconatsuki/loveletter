@@ -414,7 +414,7 @@ export default function CreateRoom() {
         <div className="royal-form-panel">
           {/* Authentication Row - Name & Password */}
           <div className="auth-row">
-            <div className="auth-field">
+            <div className="auth-field name">
               <label className="royal-label auth">Thy Noble Name:</label>
               <input
                 className="royal-input auth"
@@ -428,7 +428,7 @@ export default function CreateRoom() {
               />
             </div>
 
-            <div className="auth-field">
+            <div className="auth-field pwd">
               <label className="royal-label auth">Sacred Password:</label>
               <div className="password-input-wrapper">
                 <input
