@@ -1348,8 +1348,7 @@ export async function applyCourtWhispererEffect({
       ? `<div class="effect-description top">✨ You lean closer to the <span class="effect-card">Court Whisperer</span> and murmur secrets — about yourself. 😏</div>
 <div class="effect-description">Her painted smile widens. <span class="quotation">“Oh, how daring…”</span> she purrs, savoring the story.</div>
 <div class="effect-description">By nightfall, your name dances through every corridor — servants, courtiers, even the guards at the gate whisper it with delight. 🕯️</div>
-<div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including hers! 👸🏼💖</div>
-<div class="effect-technical">🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)</div>`
+<div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including the princesss'! 👸🏼💖</div>`
       : `<div class="effect-description top">
         You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
       </div>

@@ -192,11 +192,11 @@ export default function AssassinPromptModal({
         />
         <div>
           <p style={ASSASSIN_STYLES.message}>
-            🚪 A <span style={ASSASSIN_STYLES.highlightedText}>guard</span>{" "}
-            bursts into your residence, sent by{" "}
-            <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> with tales
-            of treachery. He searches every corner, looking for the "traitor"
-            your rival described (
+            A <span style={ASSASSIN_STYLES.highlightedText}>guard</span> bursts
+            into your residence, sent by{" "}
+            <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>. He
+            searches every corner, looking for the "traitor" your rival
+            described (
             <span style={ASSASSIN_STYLES.highlightedText}>
               strength {guessedStrength}
             </span>

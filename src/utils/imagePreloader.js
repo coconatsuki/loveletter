@@ -37,7 +37,7 @@ export const useImagePreloader = () => {
       return imageMap[card.name];
     });
 
-    // Effect illustration images (for EffectResultModal)
+    // Effect illustration images (for EffectResultModal & other pages)
     const effectIllustrations = [
       "01-guard-arrest.png",
       "01-guard-failure.png",
@@ -61,6 +61,7 @@ export const useImagePreloader = () => {
       "00-jester-trinket.png",
       "15-baroness-soiree.png",
       "16-duke-favor.png",
+      "princess-wedding1.jpeg", // GameScoring page
     ];
 
     // Combine card images and effect illustrations
