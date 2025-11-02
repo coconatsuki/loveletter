@@ -59,6 +59,11 @@ const effectTextStyles = `
     text-align: justify;
   }
 
+  .effect-description.jester {
+    color: #ee8863;
+    font-weight: 600;
+  }
+
   .quotation {
     font-style: italic;
     color: rgb(244 135 182);
@@ -66,6 +71,10 @@ const effectTextStyles = `
 
   .quotation.countess {
     color: rgb(222 218 132);
+  }
+
+  .quotation.jester {
+      color: #ee8863;
   }
 
   .effect-description.justify {
@@ -87,9 +96,8 @@ const effectTextStyles = `
   }
 
 .effect-technical {
-    border-top: 1px #dfdf73 dashed;
     padding-top: 1rem;
-    margin-top: 1.2rem;
+    margin-top: 1.5rem;
     text-align: center;
     color: #dfdf73;
 }
@@ -234,6 +242,9 @@ export default function EffectResultModal({
     }
     if (isHandmaidProtection) {
       return "/img/04-handmaid-tea.jpeg";
+    }
+    if (isPriestTarget) {
+      return "/img/02-priest-divination.png";
     }
 
     return null; // No image for this effect/role combination
@@ -468,6 +479,7 @@ export default function EffectResultModal({
                   style={{
                     ...buttonContainerStyle,
                     ...priestButtonContainerStyle,
+                    border: "none",
                   }}
                 >
                   <button
@@ -831,6 +843,9 @@ export default function EffectResultModal({
                 color: "#ffe4e6",
                 fontFamily: "Lora, serif",
                 textAlign: "justify",
+                fontSize: "1.1rem",
+                lineHeight: "1.6",
+                ...(effectImageUrl ? { overflow: "auto" } : {}),
               }}
             >
               {/* Effect illustration image (if available) */}
@@ -842,18 +857,9 @@ export default function EffectResultModal({
                 />
               )}
 
-              {/* Result text with proper clearfix when image is present */}
-              <div
-                style={{
-                  fontSize: "1.1rem",
-                  lineHeight: "1.6",
-                  marginBottom: "2rem",
-                  ...(effectImageUrl ? effectTextWithImageWrapper : {}),
-                }}
-              >
-                {formatText(resultText)}
-              </div>
-              <div style={buttonContainerStyle}>
+              {/* Result text flows around the floated image */}
+              {formatText(resultText)}
+              <div style={{ ...buttonContainerStyle, marginTop: "2rem" }}>
                 <button
                   onClick={onClose}
                   style={{
@@ -889,13 +895,16 @@ export default function EffectResultModal({
             </div>
           ) : (
             <div
-              style={getMessageStyle(
-                isCourtWhispererEffect,
-                isDukeEffect,
-                isCountessEffect,
-                isPrinceEffect,
-                isPrincessEffect
-              )}
+              style={{
+                ...getMessageStyle(
+                  isCourtWhispererEffect,
+                  isDukeEffect,
+                  isCountessEffect,
+                  isPrinceEffect,
+                  isPrincessEffect
+                ),
+                ...(effectImageUrl ? { overflow: "auto" } : {}),
+              }}
             >
               {/* Effect illustration image (if available) */}
               {effectImageUrl && (
@@ -906,10 +915,8 @@ export default function EffectResultModal({
                 />
               )}
 
-              {/* Result text with proper clearfix when image is present */}
-              <div style={effectImageUrl ? effectTextWithImageWrapper : {}}>
-                {formatText(resultText)}
-              </div>
+              {/* Result text flows around the floated image */}
+              {formatText(resultText)}
               <div
                 style={{
                   ...buttonContainerStyle,
@@ -1304,7 +1311,7 @@ const cardDetailsStyle = {
 const buttonContainerStyle = {
   display: "flex",
   padding: "25px 25px 0",
-  marginTop: "1rem",
+  marginTop: "1.5rem",
   borderRadius: "0 0 20px 20px",
   justifyContent: "center",
   borderTop: "1px inset #ffff00b0",

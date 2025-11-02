@@ -320,13 +320,12 @@ export default function AssassinPromptModal({
             ! 🔍
           </p>
           <p style={{ ...ASSASSIN_STYLES.message, marginBottom: "0" }}>
-            ⚠️ The guard knows your{" "}
+            The guard knows your{" "}
             <span style={ASSASSIN_STYLES.highlightedText}>secret</span>. If he
             arrests both of you for treason, your reputation will be ruined...
           </p>
           <p
             style={{
-              margin: "0",
               fontSize: "1.3rem",
               fontWeight: "bold",
               color: "#ffd700",

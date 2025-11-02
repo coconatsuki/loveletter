@@ -46,6 +46,7 @@ export const useImagePreloader = () => {
       "01-guard-success.png",
       "01-guard-assassin-discovered.png",
       "01-guard-assassin-not-discovered.png",
+      "02-priest-divination.png",
       "04-handmaid-tea.jpeg",
       "05-prince-angry.png",
       "05-prince-punishment.png",

@@ -41,9 +41,14 @@ export async function applyJesterEffect({ roomCode, attacker, target }) {
     attacker,
     target,
     // 🎭 Colorful, joyful medieval narrative! 🎭
-    attackerMessage: `<div class="effect-description">🎭✨ With a laugh and a bow, you hand the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>!</div><div class="effect-description">🎪💎 If they should win, this shiny charm will also bring you the Princess's affection! 👑💕</div>`,
-    targetMessage: `<div class="effect-description">🃏🎪 The Jester dances before you, pressing into your hand a shiny charm:</div><div class="effect-description">✨💍 "Keep it close, my friend, and the Princess will surely smile on you!" It feels more like a joke than a gift... but you cannot refuse. 🎭😊</div>`,
-    publicMessage: `<div class="effect-description">🎭🎪 <span class="effect-player">${attackerPlayer.name}</span> handed the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>!</div><div class="effect-description">🃏✨ The court laughs — is it a gift, or a trick? 😄🎪</div>`,
+    attackerMessage: `
+<div class="effect-description">💰 After your generous tip for his little juggling show, the <span class="effect-card">Jester</span> offers you a shiny charm — the <span class="effect-card">Fool's Favor</span>! 💎</div>
+<div class="effect-description">You smile, hand raised in refusal, and whisper a name: <span class="effect-player">${targetPlayer.name}</span>.</div>
+<div class="effect-description">Delighted, he spins on his heels and bounds away to your rival. 🎪</div>
+<div class="effect-description jester">If they win, this charm will bring you the Princess’s affection! 👑💕</div>
+`,
+    targetMessage: `<div class="effect-description">🎪 The Jester dances before you, pressing into your hand a shiny charm:</div><div class="effect-description">✨💍 "<span class="quotation jester">Keep it close, my friend, and the Princess will surely smile on you!</span>" It feels more like a joke than a gift... but you cannot refuse. 🎭😊</div>`,
+    publicMessage: `<div class="effect-description">🎭🎪 <span class="effect-player">${attackerPlayer.name}</span> asked the <span class="effect-card">Jester</span> to hand the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>! Is it a gift... or a trick? 🤔✨</div>`,
   };
 }
 
@@ -309,12 +314,11 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
 <div class="effect-description justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul…</div>
 <div class="effect-description justify">Their secret ally is <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>`,
     targetMessage: `
-<div class="effect-description top">🙈⚡ The Priest turns his shining gaze upon you, murmuring words too ancient to follow.</div>
+<div class="effect-description top">🙈⚡ The Priest turns his shining gaze upon you:</div>
 <div class="effect-description"><span class="quotation">“The soul hides nothing from the light,”</span> he declares, peering straight through your composure.</div>
 <div class="effect-description">You feel the chill of divine intrusion — your trusted ally, the <span class="effect-card">${targetCard.name}</span>, who could have helped you in this game of love (and throne!), has been revealed to <span class="effect-player">${attacker}</span>!</div>`,
     publicMessage: `
-<div class="effect-description">🔮📿 <span class="effect-player">${attacker}</span> seeks the Priest’s divine guidance.</div>
-<div class="effect-description">A blinding light flashes as he glimpses into <span class="effect-player">${targetPlayer.name}</span>’s soul — the court falls silent under heaven’s gaze. ✨</div>`,
+<div class="effect-description">🔮📿 <span class="effect-player">${attacker}</span> seeks the Priest’s divine guidance, asking him to glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul. ✨</div>`,
   };
 }
 
@@ -798,14 +802,14 @@ export async function applyCountessEffect({ roomCode, player }) {
       result: "countess_played",
       message: `The Countess has graced the court with her presence!`,
       // Royal notification for everyone in the court
-      publicMessage: `<div class="effect-description">💃 The graceful <span class="effect-card">Countess</span> turns on her heel, eyes aflame. Without a word, she leaves <span class="effect-player">${
+      publicMessage: `<div class="effect-description">💃 The <span class="effect-card">Countess</span> turns on her heel, eyes aflame, leaving <span class="effect-player">${
         playerData.name || player
       }</span> behind, her fan snapping shut with an icy hiss ❄️.</div>`,
       // Personal message for the player's modal (if needed)
-      playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her expression caught between hurt and outrage 🔥.</div>
+      playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her voice trembling with indignation:</div>
 <div class="effect-description"><span class="quotation countess">“I had faith in your judgment, but to seek counsel among such men?”</span> 😠</div>
 <div class="effect-description">Her fan closes with a sharp crack 🪭. <span class="quotation countess">“That drunkard of a King… that possessive fool of a Prince! You would lower yourself to their level? <strong>Then you no longer need *my* counsel.</strong>”</span></div>
-<div class="effect-description">She turns away, perfume and resentment trailing behind her 🥀. You just lost a precious ally whose pride burns brighter than any crown 👑.</div>`,
+<div class="effect-description">She turns away, perfume and resentment trailing behind her 🥀. You just lost a precious ally —the Princess' most trusted confidant! 👑.</div>`,
     };
   } catch (error) {
     console.error("🎭 COUNTESS ERROR: Royal scandal!", error);
@@ -1036,8 +1040,8 @@ export async function applyRoyalConfessorEffect({
     const newTarget1Card = target2Card;
     const newTarget2Card = target1Card;
 
-    const externalAttackerMessage = `<div class="effect-description top">The Royal Confessor clasps his hands piously. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
-<div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense 👀✨. Then he turns to you with a knowing grin:</div>
+    const externalAttackerMessage = `<div class="effect-description top">The Royal Confessor clasps his hands. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
+<div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense 👀✨. Then he turns to you with a grin:</div>
 <div class="effect-description quotation">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
 
     // Attacker message (when attacker = target1)
@@ -1045,17 +1049,17 @@ export async function applyRoyalConfessorEffect({
     const attackerSelfTargetMessage = `<div class="effect-description top">Seeking divine favor, you step forth before the Royal Confessor.</div>
 <div class="effect-description"><span class="quotation">“Such humility warms the heavens,”</span> he proclaims. <span class="quotation">“<span class="effect-player">${target2}</span> shall join you — for nothing cleanses the soul like mutual confession.”</span></div>
 <div class="effect-description">As your whispers fade, he leans closer, smirking beneath his hood:</div>
-<div class="effect-description quotation">“A brave act, my child. And between us… their secret was well worth the effort, don’t you think?”</div>`;
+<div class="effect-description quotation">“A brave act, my child. And between us… their secret was worth the effort, don’t you think?”</div>`;
 
     const target2Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${
       isSelfTarget ? "them" : target1
     }</span> shall purify your hearts before the light!”</span></div>
 <div class="effect-description confessor">You kneel beside <span class="effect-player">${target1}</span>, exchanging your hidden sins as incense clouds the air.</div>
-<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets 👀✨.</div>`;
+<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some Court's secrets 👀✨.</div>`;
 
     const target1Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${target2}</span> shall purify your hearts before the light!”</span></div>
 <div class="effect-description confessor">You kneel beside <span class="effect-player">${target2}</span>, exchanging your hidden sins as incense clouds the air.</div>
-<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some delicious court's secrets 👀✨.</div>`;
+<div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some Court's secrets 👀✨.</div>`;
 
     const publicMessage = `<div class="effect-description">✝️ The Royal Confessor summoned <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> to share their sins in a holy rite. The court applauded the piety — though few missed the sparkle of curiosity in the Confessor’s eyes.</div>`;
 
@@ -1365,18 +1369,18 @@ export async function applyCourtWhispererEffect({
     // Generate gossip magazine style messages! 💅📰
     const attackerMessage = isSelfTarget
       ? `<div class="effect-description top">✨ You lean closer to the <span class="effect-card">Court Whisperer</span> and murmur secrets — about yourself. 😏</div>
-<div class="effect-description">Their painted smile widens. <span class="quotation">“Oh, how daring…”</span> they purr, already savoring the story.</div>
+<div class="effect-description">Her painted smile widens. <span class="quotation">“Oh, how daring…”</span> she purrs, savoring the story.</div>
 <div class="effect-description">By nightfall, your name dances through every corridor — servants, courtiers, even the guards at the gate whisper it with delight. 🕯️</div>
-<div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including hers. 💖</div>
+<div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including hers! 👸🏼💖</div>
 <div class="effect-technical">🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)</div>`
       : `<div class="effect-description top">
         You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
       </div>
       <div class="effect-description">
-        A knowing smile spreads across their painted face. Within hours, every servant, scribe, and stable boy is whispering that name.
+        A wide grin spreads across her painted face. Within hours, every servant, scribe, and stable boy is whispering that name!
       </div>
       <div class="effect-description">
-        Your rival now glitters at the center of every scandal — a royal disaster in progress. ✨�
+        Your rival now glitters at the center of every scandal! ✨
       </div>
       <div class="effect-technical">
         🎯 Next player MUST target <span style="font-weight: bold;">${targetPlayer.name}</span> (if their card requires targeting)
@@ -1395,7 +1399,7 @@ export async function applyCourtWhispererEffect({
         🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)
       </div>`;
 
-    const publicMessage = `<div class="effect-description">🗣️👂🏼 <span class="effect-player">${attackerPlayer.name}</span> whispers into the right ear...</div><div class="effect-description"> giving the ever-talkative Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
+    const publicMessage = `<div class="effect-description">🗣️ <span class="effect-player">${attackerPlayer.name}</span> gives the Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
 
     return {
       result: "success",
@@ -1523,7 +1527,6 @@ export async function applyDukeEffect({ player }) {
 <div class="effect-description top">👑 The Duke approaches you with quiet authority. His loyal little hound 🐕 trots proudly at his heels, wearing a velvet collar far too grand for its size.</div>
 <div class="effect-description"><span class="quotation duke">"My dear <span class="effect-player">${player}</span>,"</span> the Duke says, <span class="quotation duke">"my niece deserves sincerity, not showmanship. And you have shown both courage and patience — virtues I hold dear."</span></div>
 <div class="effect-description quotation">"Take my blessing. While I stand in your corner, your name shall carry greater weight in this court."</div>
-<div class="effect-description">The tiny dog lets out a solemn <span class="quotation duke">"woof,"</span> 🐾 as if sealing the vow.</div>
 <div class="effect-technical">✨ If you're still standing when the round ends, add +1 to your last card's strength!</div>`;
 
     const publicMessage = `
