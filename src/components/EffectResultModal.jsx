@@ -59,6 +59,11 @@ const effectTextStyles = `
     text-align: justify;
   }
 
+  .effect-description.jester {
+    color: #ee8863;
+    font-weight: 600;
+  }
+
   .quotation {
     font-style: italic;
     color: rgb(244 135 182);
@@ -66,6 +71,10 @@ const effectTextStyles = `
 
   .quotation.countess {
     color: rgb(222 218 132);
+  }
+
+  .quotation.jester {
+      color: #ee8863;
   }
 
   .effect-description.justify {
@@ -87,9 +96,8 @@ const effectTextStyles = `
   }
 
 .effect-technical {
-    border-top: 1px #dfdf73 dashed;
     padding-top: 1rem;
-    margin-top: 1.2rem;
+    margin-top: 1.5rem;
     text-align: center;
     color: #dfdf73;
 }
@@ -190,11 +198,75 @@ export default function EffectResultModal({
   const isPriestAttacker = isPriestEffect && role === "attacker";
   const isPriestTarget = isPriestEffect && role === "target";
 
+  // Helper function to get the effect illustration image URL
+  const getEffectImage = (revealedCard) => {
+    // Guard: Correct guess, target gets eliminated
+    if (selectedCardId === -1) return null; // Safety check
+    if (isGuardCorrectGuess) {
+      return "/img/01-guard-success.png";
+    }
+    if (isGuardElimination) {
+      return "/img/01-guard-self-elimination.png";
+    }
+    if (isGuardWrongGuess) {
+      return "/img/01-guard-failure.png";
+    }
+    if (isCountessEffect) {
+      return "/img/07-countess-furious.png";
+    }
+    if (isInquisitorEffect) {
+      return "/img/09-inquisitor-investigation.png";
+    }
+    if (isChamberlainEffect) {
+      return "/img/10-chamberlain-friend.png";
+    }
+    if (isPrinceAttacker) {
+      return "/img/05-prince-angry.png";
+    }
+    if (isPrinceExternalTarget && princessDiscarded) {
+      return "/img/05-prince-punishment.png";
+    }
+    if (isPrinceExternalTarget && !princessDiscarded) {
+      return "/img/05-prince-disapproving.png";
+    }
+    if (isCourtWhispererEffect) {
+      return "/img/12-court-whisperer-boudoir.png";
+    }
+    if (isAssassinEffect) {
+      return "/img/14-assassin-disappear.png";
+    }
+    if (isJesterEffect) {
+      return "/img/00-jester-trinket.png";
+    }
+    if (isDukeEffect) {
+      return "/img/16-duke-favor.png";
+    }
+    if (isBaronessTarget) {
+      return "/img/15-baroness-soiree.png";
+    }
+    if (isHandmaidProtection) {
+      return "/img/04-handmaid-tea.jpeg";
+    }
+    if (isPriestEffect && !revealedCard) {
+      return "/img/02-priest-divination.png";
+    }
+    if (isPrinceSelfTarget && !princessDiscarded) {
+      return "/img/05-prince-help.png";
+    }
+    if (isPrincessEffect) {
+      return "/img/08-princess-rejection.png";
+    }
+
+    return null; // No image for this effect/role combination
+  };
+
   // Extract card information for Priest effect
   let revealedCard = null;
   if (isPriestAttacker && cardDetails) {
     revealedCard = cardDetails["Revealed Card"];
   }
+
+  const effectImageUrl = getEffectImage(revealedCard);
 
   return (
     <>
@@ -358,7 +430,7 @@ export default function EffectResultModal({
               : isDukeEffect
               ? "🐾 A Noble Pat and a Loyal Paw 🐾"
               : isHandmaidProtection
-              ? "Protected by the Handmaid"
+              ? "🍪 The Handmaid's refuge 🍪"
               : isPrinceSelfTarget && !princessDiscarded
               ? "👑✨ ROYAL SELF-REFLECTION! ✨👑"
               : isPrinceExternalTarget && !princessDiscarded
@@ -417,6 +489,7 @@ export default function EffectResultModal({
                   style={{
                     ...buttonContainerStyle,
                     ...priestButtonContainerStyle,
+                    border: "none",
                   }}
                 >
                   <button
@@ -543,6 +616,7 @@ export default function EffectResultModal({
                   style={{
                     ...buttonContainerStyle,
                     ...phantomKingButtonContainerStyle,
+                    border: "none",
                   }}
                 >
                   <button
@@ -780,18 +854,23 @@ export default function EffectResultModal({
                 color: "#ffe4e6",
                 fontFamily: "Lora, serif",
                 textAlign: "justify",
+                fontSize: "1.1rem",
+                lineHeight: "1.6",
+                ...(effectImageUrl ? { overflow: "auto" } : {}),
               }}
             >
-              <div
-                style={{
-                  fontSize: "1.1rem",
-                  lineHeight: "1.6",
-                  marginBottom: "2rem",
-                }}
-              >
-                {formatText(resultText)}
-              </div>
-              <div style={buttonContainerStyle}>
+              {/* Effect illustration image (if available) */}
+              {effectImageUrl && (
+                <img
+                  src={effectImageUrl}
+                  alt="Effect illustration"
+                  style={effectImageStyle}
+                />
+              )}
+
+              {/* Result text flows around the floated image */}
+              {formatText(resultText)}
+              <div style={{ ...buttonContainerStyle, marginTop: "2rem" }}>
                 <button
                   onClick={onClose}
                   style={{
@@ -827,14 +906,27 @@ export default function EffectResultModal({
             </div>
           ) : (
             <div
-              style={getMessageStyle(
-                isCourtWhispererEffect,
-                isDukeEffect,
-                isCountessEffect,
-                isPrinceEffect,
-                isPrincessEffect
-              )}
+              style={{
+                ...getMessageStyle(
+                  isCourtWhispererEffect,
+                  isDukeEffect,
+                  isCountessEffect,
+                  isPrinceEffect,
+                  isPrincessEffect
+                ),
+                ...(effectImageUrl ? { overflow: "auto" } : {}),
+              }}
             >
+              {/* Effect illustration image (if available) */}
+              {effectImageUrl && (
+                <img
+                  src={effectImageUrl}
+                  alt="Effect illustration"
+                  style={effectImageStyle}
+                />
+              )}
+
+              {/* Result text flows around the floated image */}
               {formatText(resultText)}
               <div
                 style={{
@@ -1229,10 +1321,11 @@ const cardDetailsStyle = {
 
 const buttonContainerStyle = {
   display: "flex",
-  padding: "15px 25px 0",
-  marginTop: "1rem",
+  padding: "25px 25px 0",
+  marginTop: "1.5rem",
   borderRadius: "0 0 20px 20px",
   justifyContent: "center",
+  borderTop: "1px inset #ffff00b0",
 };
 
 const buttonStyle = {
@@ -1329,6 +1422,25 @@ const princessButtonStyle = {
   fontWeight: "700",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
   fontFamily: "Cinzel, serif",
+};
+
+// 🎨 Effect Image Styles - For illustrative images accompanying result text
+const effectImageStyle = {
+  float: "left",
+  width: "clamp(150px, 20vw, 200px)", // Responsive: 150px min, 20% viewport width, 200px max
+  height: "clamp(150px, 20vw, 200px)", // Perfect square that scales
+  marginRight: "20px",
+  marginBottom: "15px",
+  borderRadius: "8px",
+  border: "3px solid #d4af37",
+  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.6), 0 3px 10px rgba(255, 215, 0, 0.3)",
+  objectFit: "cover",
+  objectPosition: "center",
+};
+
+const effectTextWithImageWrapper = {
+  overflow: "auto", // Clearfix for float
+  textAlign: "justify",
 };
 
 // �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰

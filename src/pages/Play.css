@@ -470,29 +470,494 @@
   transform: translateY(-50%) scale(1.1);
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 1200px) {
-  .royal-play-container {
-    grid-template-columns: 1fr 280px;
+/* ==========================================
+   RESPONSIVE DESIGN - Desktop to Small Desktop
+   ========================================== */
+
+/* Large Desktop - 1400px and above: Everything stays as designed */
+
+/* Medium Desktop - 1200px to 1399px */
+@media (max-width: 1399px) {
+  /* Reduce round counter width */
+  .round-container {
+    width: 45%;
   }
 
+  .round-content {
+    padding: 0.35rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .round-number {
+    font-size: 1.1rem;
+  }
+
+  /* Slightly reduce player section size */
+  .royal-player-section {
+    width: 230px;
+    min-height: 110px;
+    max-height: 140px;
+    padding: 0.7rem;
+  }
+
+  .player-name {
+    font-size: 0.95rem;
+  }
+
+  .player-real-name {
+    font-size: 0.8rem;
+  }
+
+  .player-tokens {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem 0.25rem 0.35rem;
+  }
+
+  /* Reduce game grid gap */
   .game-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2.5rem !important;
+    padding: 1.8rem 1rem 5.5rem;
+  }
+
+  /* Reduce chronicle sidebar width slightly */
+  .royal-chronicle-sidebar {
+    width: 22%;
+  }
+
+  .royal-game-area {
+    width: 78%;
+  }
+
+  /* Adjust banner font size */
+  .current-player-banner {
+    font-size: 1.2rem;
+    padding: 0.7rem;
+  }
+
+  /* Reduce elimination banner size */
+  .elimination-icon {
+    font-size: 1.8rem;
+  }
+
+  .elimination-title {
+    font-size: 1rem;
+  }
+
+  .elimination-subtitle {
+    font-size: 0.85rem;
   }
 }
 
+/* Small Desktop - 1000px to 1199px */
+@media (max-width: 1199px) {
+  /* Further reduce round counter */
+  .round-container {
+    width: 40%;
+  }
+
+  .round-content {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .round-number {
+    font-size: 1rem;
+  }
+
+  /* Smaller player sections */
+  .royal-player-section {
+    width: 210px;
+    min-height: 100px;
+    max-height: 130px;
+    padding: 0.6rem;
+  }
+
+  .player-name {
+    font-size: 0.9rem;
+  }
+
+  .player-real-name {
+    font-size: 0.75rem;
+  }
+
+  .player-tokens {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem 0.2rem 0.3rem;
+  }
+
+  /* Tighter game grid */
+  .game-grid {
+    gap: 2rem !important;
+    padding: 1.5rem 0.8rem 5rem;
+  }
+
+  /* Wider chronicle to compensate */
+  .royal-chronicle-sidebar {
+    width: 24%;
+  }
+
+  .royal-game-area {
+    width: 76%;
+  }
+
+  /* Smaller banner */
+  .current-player-banner {
+    font-size: 1.1rem;
+    padding: 0.6rem;
+  }
+
+  /* Smaller chronicle content */
+  .chronicle-header {
+    font-size: 1rem;
+  }
+
+  .chronicle-message {
+    font-size: 0.85rem;
+  }
+
+  /* Adjust card modal sizing */
+  .royal-actions-area {
+    width: 60%;
+    max-width: 550px;
+    padding: 20px;
+  }
+
+  .royal-actions-area::before {
+    font-size: 1.1rem;
+    padding: 4px 12px;
+  }
+
+  /* Scale down card buttons in modal */
+  .card-button {
+    width: 180px;
+    height: 290px;
+  }
+
+  .card-image {
+    height: 55%;
+  }
+
+  .card-strength {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    top: -8px;
+    left: -8px;
+  }
+
+  .card-name {
+    font-size: 1.1rem;
+  }
+
+  .card-effect {
+    font-size: 0.95rem;
+  }
+
+  .turn-section h3 {
+    font-size: 1.2rem;
+    margin: 1.2rem 0 1.5rem 0;
+  }
+
+  /* Adjust discard history link */
+  .royal-actions-area .discard-history-link {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.4rem;
+    gap: 0.8rem;
+  }
+
+  /* Scale down elimination banner */
+  .elimination-icon {
+    font-size: 1.6rem;
+  }
+
+  .elimination-title {
+    font-size: 0.95rem;
+  }
+
+  .elimination-subtitle {
+    font-size: 0.8rem;
+  }
+}
+
+/* Smaller Desktop - 900px to 999px */
+@media (max-width: 999px) {
+  /* Even smaller round counter */
+  .round-container {
+    width: 35%;
+  }
+
+  .round-content {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .round-number {
+    font-size: 0.95rem;
+  }
+
+  /* Compact player sections */
+  .royal-player-section {
+    width: 190px;
+    min-height: 95px;
+    max-height: 120px;
+    padding: 0.5rem;
+  }
+
+  .player-header {
+    width: 75%;
+  }
+
+  .player-name {
+    font-size: 0.85rem;
+  }
+
+  .player-real-name {
+    font-size: 0.7rem;
+  }
+
+  .player-tokens {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem 0.18rem 0.25rem;
+    width: 20%;
+  }
+
+  /* Very tight grid */
+  .game-grid {
+    gap: 1.5rem !important;
+    padding: 1.2rem 0.6rem 4.5rem;
+  }
+
+  /* Even wider chronicle */
+  .royal-chronicle-sidebar {
+    width: 26%;
+  }
+
+  .royal-game-area {
+    width: 74%;
+  }
+
+  /* Compact banner */
+  .current-player-banner {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+
+  /* Smaller modal */
+  .royal-actions-area {
+    width: 70%;
+    max-width: 500px;
+    padding: 18px;
+  }
+
+  .royal-actions-area::before {
+    font-size: 1rem;
+    padding: 3px 10px;
+    top: -20px;
+  }
+
+  /* Further scale cards */
+  .card-button {
+    width: 160px;
+    height: 260px;
+  }
+
+  .card-image {
+    height: 50%;
+  }
+
+  .card-strength {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+    top: -7px;
+    left: -7px;
+  }
+
+  .card-name {
+    font-size: 1rem;
+    margin: 1.5% 0;
+  }
+
+  .card-effect {
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .turn-section h3 {
+    font-size: 1.1rem;
+    margin: 1rem 0 1.2rem 0;
+  }
+
+  /* Smaller discard history link */
+  .royal-actions-area .discard-history-link {
+    font-size: 0.75rem;
+    padding: 0.45rem 0.35rem;
+    gap: 0.6rem;
+  }
+
+  /* Compact chronicle */
+  .chronicle-header {
+    font-size: 0.95rem;
+  }
+
+  .chronicle-message {
+    font-size: 0.8rem;
+  }
+
+  .chronicle-notification {
+    margin-bottom: 0.6rem;
+    padding: 0.4rem;
+  }
+}
+
+/* Tablet/Smaller screens - 768px to 899px */
+@media (max-width: 899px) {
+  /* Move round counter to top center */
+  .round-container {
+    width: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .round-content {
+    border-radius: 0 0 20px 20px;
+    border-right: 2px solid #ffd700;
+    padding: 0.25rem 1rem;
+  }
+
+  /* Further reduce player sections */
+  .royal-player-section {
+    width: 180px;
+    min-height: 90px;
+    max-height: 115px;
+  }
+
+  .game-grid {
+    gap: 1.2rem !important;
+    padding: 1rem 0.5rem 4rem;
+  }
+
+  /* Balance sidebar and game area */
+  .royal-chronicle-sidebar {
+    width: 28%;
+  }
+
+  .royal-game-area {
+    width: 72%;
+  }
+
+  /* Very compact modal */
+  .royal-actions-area {
+    width: 80%;
+    max-width: 450px;
+    padding: 15px;
+  }
+
+  .card-button {
+    width: 150px;
+    height: 245px;
+  }
+
+  .card-image {
+    height: 48%;
+  }
+
+  .card-name {
+    font-size: 0.95rem;
+  }
+
+  .card-effect {
+    font-size: 0.85rem;
+  }
+
+  /* When card is selected, stack vertically on smaller screens */
+  .card-selection-container.card-selected {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .target-modal-display {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .assassin-waiting-display {
+    max-width: 100%;
+  }
+}
+
+/* Mobile/Very small screens - 768px and below */
 @media (max-width: 768px) {
   .royal-play-container {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr; /* Single row - no action bar */
+    grid-template-rows: 1fr;
   }
 
   .royal-right-sidebar {
-    display: none; /* Hide sidebar on mobile, add toggle button */
+    display: none;
   }
 
   .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  /* Hide or reduce chronicle for mobile */
+  .royal-chronicle-sidebar {
+    width: 30%;
+  }
+
+  .royal-game-area {
+    width: 70%;
+  }
+
+  .royal-actions-area {
+    min-width: 350px;
+    max-width: 90vw;
+    padding: 20px;
+  }
+
+  .card-selection-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-selection-container.card-selected {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .target-modal-display {
+    max-width: 95%;
+    min-width: auto;
+  }
+
+  .assassin-waiting-display {
+    max-width: 95%;
+    min-width: auto;
+  }
+
+  .assassin-waiting-content {
+    padding: 20px;
+  }
+
+  .assassin-waiting-title {
+    font-size: 1.2rem;
+  }
+
+  .assassin-waiting-message {
+    font-size: 1rem;
+  }
+
+  .card-button {
+    width: 180px;
+    min-height: 300px;
+  }
+
+  .card-image {
+    height: 140px;
   }
 }
 .game-header h2 {
@@ -935,47 +1400,60 @@
   font-weight: bold;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .play-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 0.5rem;
-  }
-
-  .round-counter-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-
-  .round-counter {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-  }
-
-  .cards-container {
-    flex-direction: column;
-  }
-
-  .card {
-    min-width: auto;
-  }
-}
-
+/* Very small mobile screens - 480px and below */
 @media (max-width: 480px) {
-  .play-container {
-    padding: 0.25rem;
+  .round-container {
+    width: auto;
   }
 
-  .round-counter {
-    padding: 0.4rem 0.8rem;
+  .round-content {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .round-number {
+    font-size: 0.85rem;
+  }
+
+  .royal-player-section {
+    width: 160px;
+    min-height: 85px;
+    max-height: 105px;
+    padding: 0.4rem;
+  }
+
+  .player-name {
+    font-size: 0.75rem;
+  }
+
+  .player-real-name {
+    font-size: 0.65rem;
+  }
+
+  .game-grid {
+    gap: 1rem !important;
+    padding: 0.8rem 0.4rem 3.5rem;
+  }
+
+  .current-player-banner {
     font-size: 0.9rem;
+    padding: 0.4rem;
   }
 
-  .hand-section,
-  .right-sidebar {
-    padding: 1rem;
+  .royal-chronicle-sidebar {
+    width: 35%;
+  }
+
+  .royal-game-area {
+    width: 65%;
+  }
+
+  .chronicle-header {
+    font-size: 0.85rem;
+  }
+
+  .chronicle-message {
+    font-size: 0.75rem;
   }
 }
 
@@ -1433,84 +1911,7 @@
   z-index: 10;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .royal-actions-area {
-    min-width: 350px;
-    max-width: 90vw;
-    padding: 20px;
-  }
-
-  .card-selection-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-
-  /* On mobile, stack selected card and target modal vertically */
-  .card-selection-container.card-selected {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .target-modal-display {
-    max-width: 95%;
-    min-width: auto;
-  }
-
-  .assassin-waiting-display {
-    max-width: 95%;
-    min-width: auto;
-  }
-
-  .assassin-waiting-content {
-    padding: 20px;
-  }
-
-  .assassin-waiting-title {
-    font-size: 1.2rem;
-  }
-
-  .assassin-waiting-message {
-    font-size: 1rem;
-  }
-
-  .card-button {
-    width: 180px;
-    min-height: 300px;
-  }
-
-  .card-image {
-    height: 140px;
-  }
-}
-
-@media (max-width: 480px) {
-  .royal-actions-area {
-    min-width: 300px;
-    max-width: 95vw;
-    padding: 15px;
-    max-height: 85vh;
-  }
-
-  .card-button {
-    width: 160px;
-    min-height: 280px;
-  }
-
-  .card-image {
-    height: 120px;
-  }
-
-  .card-strength {
-    width: 28px;
-    height: 28px;
-    font-size: 1rem;
-    top: 10px;
-    left: 10px;
-  }
-}
+/* Modal responsive adjustments for mobile - handled above in main responsive section */
 
 /* Royal Select Dropdown Styling */
 .royal-select {

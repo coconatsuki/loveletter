@@ -95,6 +95,8 @@ const ASSASSIN_STYLES = {
     display: "flex",
     justifyContent: "space-between",
     gap: "15px",
+    borderTop: "1px inset #ffff00b0",
+    marginTop: "1rem",
   },
   button: {
     fontFamily: '"Cinzel", serif',
@@ -128,6 +130,23 @@ const ASSASSIN_STYLES = {
     border: "2px solid #8b4513",
     width: "60%",
   },
+  // Effect illustration image styles
+  effectImage: {
+    float: "left",
+    width: "clamp(150px, 20vw, 200px)", // Responsive: 150px min, 20% viewport width, 200px max
+    height: "clamp(150px, 20vw, 200px)", // Perfect square that scales
+    marginRight: "20px",
+    marginBottom: "15px",
+    borderRadius: "8px",
+    border: "3px solid #d4af37",
+    boxShadow:
+      "0 8px 20px rgba(0, 0, 0, 0.6), 0 3px 10px rgba(255, 215, 0, 0.3)",
+    objectFit: "cover",
+    objectPosition: "center",
+  },
+  bodyWithImage: {
+    overflow: "auto", // Clearfix for float
+  },
 };
 
 export default function AssassinPromptModal({
@@ -140,29 +159,59 @@ export default function AssassinPromptModal({
   const hasAssassin = targetCard?.id === 14;
   const isCorrectGuess = promptData?.isCorrectGuess;
 
+  // Helper function to get the appropriate illustration image
+  const getAssassinImage = () => {
+    if (!hasAssassin && !isCorrectGuess) {
+      return "/img/01-guard-failure-target.png";
+    } else if (!hasAssassin && isCorrectGuess) {
+      return "/img/01-guard-arrest.png";
+    } else if (hasAssassin && isCorrectGuess) {
+      return "/img/01-guard-assassin-discovered.png";
+    } else if (hasAssassin && !isCorrectGuess) {
+      return "/img/01-guard-assassin-not-discovered.png";
+    }
+    return null; // Fallback (should never happen)
+  };
+
+  const assassinImageUrl = getAssassinImage();
+
   let title = "";
   let body = null;
 
   if (!hasAssassin && !isCorrectGuess) {
     title = "🛡️ An Unfounded Accusation!";
     body = (
-      <div style={ASSASSIN_STYLES.body}>
-        <p style={ASSASSIN_STYLES.message}>
-          🚪 A <span style={ASSASSIN_STYLES.highlightedText}>guard</span> bursts
-          into your residence, sent by{" "}
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> with tales
-          of treachery. He searches every corner, looking for the “traitor” your
-          rival described… but finds only your loyal ally, the{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>
-            {targetCard.name} (Strength {targetCard.strength})
-          </span>
-          .
-        </p>
-        <p style={ASSASSIN_STYLES.message}>
-          Realizing his mistake, he stammers an apology and retreats, leaving
-          your servants rattled but unharmed. You're <strong>safe…</strong> for
-          now. 😌
-        </p>
+      <div
+        style={{ ...ASSASSIN_STYLES.body, ...ASSASSIN_STYLES.bodyWithImage }}
+      >
+        {/* Effect illustration image */}
+        <img
+          src={assassinImageUrl}
+          alt="Guard search illustration"
+          style={ASSASSIN_STYLES.effectImage}
+        />
+        <div>
+          <p style={ASSASSIN_STYLES.message}>
+            🚪 A <span style={ASSASSIN_STYLES.highlightedText}>guard</span>{" "}
+            bursts into your residence, sent by{" "}
+            <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> with tales
+            of treachery. He searches every corner, looking for the "traitor"
+            your rival described (
+            <span style={ASSASSIN_STYLES.highlightedText}>
+              strength {guessedStrength}
+            </span>
+            )… but finds only your loyal ally, the{" "}
+            <span style={ASSASSIN_STYLES.highlightedText}>
+              {targetCard.name} (strength {targetCard.strength})
+            </span>
+            .
+          </p>
+          <p style={ASSASSIN_STYLES.message}>
+            Realizing his mistake, he stammers an apology and retreats, leaving
+            your servants rattled but unharmed. You're <strong>safe…</strong>{" "}
+            for now. 😌
+          </p>
+        </div>
         <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
           <button
             style={{
@@ -192,26 +241,37 @@ export default function AssassinPromptModal({
     title = "💥 The Trap Springs Shut!";
 
     body = (
-      <div style={ASSASSIN_STYLES.body}>
-        <p style={ASSASSIN_STYLES.message}>
-          🚨 Heavy boots echo through your hall—{" "}
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>’s guard
-          storms in, armed with a royal warrant.
-        </p>
-        <p style={ASSASSIN_STYLES.message}>
-          He finds and arrests your secret accomplice, the{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>
-            {targetCard.name}, for conspiracy.
-          </span>
-          !
-        </p>
-        <p style={ASSASSIN_STYLES.finalPunchLine}>
-          The scandal spreads like fire, damaging your reputation.{" "}
-          <strong>
-            You’re{" "}
-            <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span> 💔
-          </strong>
-        </p>
+      <div
+        style={{ ...ASSASSIN_STYLES.body, ...ASSASSIN_STYLES.bodyWithImage }}
+      >
+        {/* Effect illustration image */}
+        <img
+          src={assassinImageUrl}
+          alt="Guard arrest illustration"
+          style={ASSASSIN_STYLES.effectImage}
+        />
+        <div>
+          <p style={ASSASSIN_STYLES.message}>
+            🚨 Heavy boots echo through your hall—{" "}
+            <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>'s guard
+            storms in, armed with a royal warrant.
+          </p>
+          <p style={ASSASSIN_STYLES.message}>
+            He finds and arrests your secret accomplice, the{" "}
+            <span style={ASSASSIN_STYLES.highlightedText}>
+              {targetCard.name}, for conspiracy
+            </span>
+            !
+          </p>
+          <p style={ASSASSIN_STYLES.finalPunchLine}>
+            The scandal spreads like fire, damaging your reputation.{" "}
+            <strong>
+              You're{" "}
+              <span style={ASSASSIN_STYLES.highlightedText}>ELIMINATED.</span>{" "}
+              💔
+            </strong>
+          </p>
+        </div>
         <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
           <button
             style={{
@@ -240,36 +300,45 @@ export default function AssassinPromptModal({
   } else if (hasAssassin && isCorrectGuess) {
     title = "🗡️ Cornered in the Dark!";
     body = (
-      <div style={ASSASSIN_STYLES.body}>
-        <p style={ASSASSIN_STYLES.message}>
-          ⚔️ <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>’s guard
-          forces his way into your quarters, hunting the traitor your rival
-          described.
-        </p>
-        <p style={ASSASSIN_STYLES.message}>
-          He pulls back a curtain and uncovers your accomplice — the beautiful
-          and deadly{" "}
-          <span style={{ color: "rgb(195, 92, 212)", fontWeight: "bold" }}>
-            Royal Assassin
-          </span>
-          ! 🔍
-        </p>
-        <p style={{ ...ASSASSIN_STYLES.message, marginBottom: "0" }}>
-          ⚠️ The guard knows your{" "}
-          <span style={ASSASSIN_STYLES.highlightedText}>secret</span>. If he
-          arrests both of you for treason, your reputation will be ruined...
-        </p>
-        <p
-          style={{
-            margin: "0",
-            fontSize: "1.3rem",
-            fontWeight: "bold",
-            color: "#ffd700",
-            textAlign: "center",
-          }}
-        >
-          Strike now, or face elimination! ⚔️
-        </p>
+      <div
+        style={{ ...ASSASSIN_STYLES.body, ...ASSASSIN_STYLES.bodyWithImage }}
+      >
+        {/* Effect illustration image */}
+        <img
+          src={assassinImageUrl}
+          alt="Assassin discovered illustration"
+          style={ASSASSIN_STYLES.effectImage}
+        />
+        <div>
+          <p style={ASSASSIN_STYLES.message}>
+            ⚔️ <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>'s guard
+            forces his way into your quarters, hunting the traitor your rival
+            described.
+          </p>
+          <p style={ASSASSIN_STYLES.message}>
+            He pulls back a curtain and uncovers your accomplice — the beautiful
+            and deadly{" "}
+            <span style={{ color: "rgb(195, 92, 212)", fontWeight: "bold" }}>
+              Royal Assassin
+            </span>
+            ! 🔍
+          </p>
+          <p style={{ ...ASSASSIN_STYLES.message, marginBottom: "0" }}>
+            The guard knows your{" "}
+            <span style={ASSASSIN_STYLES.highlightedText}>secret</span>. If he
+            arrests both of you for treason, your reputation will be ruined...
+          </p>
+          <p
+            style={{
+              fontSize: "1.3rem",
+              fontWeight: "bold",
+              color: "#ffd700",
+              textAlign: "center",
+            }}
+          >
+            Strike now, or face elimination! ⚔️
+          </p>
+        </div>
         <div style={{ ...ASSASSIN_STYLES.footer, justifyContent: "center" }}>
           <button
             style={{
@@ -299,29 +368,39 @@ export default function AssassinPromptModal({
   } else if (hasAssassin && !isCorrectGuess) {
     title = "🌙 Shadows Stir in the Hall";
     body = (
-      <div style={ASSASSIN_STYLES.body}>
-        <p style={ASSASSIN_STYLES.message}>
-          Under orders from{" "}
-          <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>, a guard
-          prowls your halls, hunting the conspirator they described.
-        </p>
-        <p style={ASSASSIN_STYLES.message}>
-          He passes within a breath of your hidden ally — the{" "}
-          <span style={{ color: "rgb(195 92 212)", fontWeight: "bold" }}>
-            Royal Assassin
-          </span>{" "}
-          — and suspects nothing. The door is half-open… the night very quiet.
-        </p>
-        <p
-          style={{
-            margin: "0",
-            fontSize: "1.3rem",
-            fontWeight: "bold",
-            color: "#ffd700",
-          }}
-        >
-          ⚔️ Silence him to terrify your rival, or let him leave in ignorance.
-        </p>
+      <div
+        style={{ ...ASSASSIN_STYLES.body, ...ASSASSIN_STYLES.bodyWithImage }}
+      >
+        {/* Effect illustration image */}
+        <img
+          src={assassinImageUrl}
+          alt="Assassin concealed illustration"
+          style={ASSASSIN_STYLES.effectImage}
+        />
+        <div>
+          <p style={ASSASSIN_STYLES.message}>
+            Under orders from{" "}
+            <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span>, a guard
+            prowls your halls, hunting the conspirator they described.
+          </p>
+          <p style={ASSASSIN_STYLES.message}>
+            He passes within a breath of your hidden ally — the{" "}
+            <span style={{ color: "rgb(195 92 212)", fontWeight: "bold" }}>
+              Royal Assassin
+            </span>{" "}
+            — and suspects nothing. The door is half-open… the night very quiet.
+          </p>
+          <p
+            style={{
+              margin: "0",
+              fontSize: "1.3rem",
+              fontWeight: "bold",
+              color: "#ffd700",
+            }}
+          >
+            ⚔️ Silence him to terrify your rival, or let him leave in ignorance.
+          </p>
+        </div>
         <div style={ASSASSIN_STYLES.footer}>
           <button
             style={{

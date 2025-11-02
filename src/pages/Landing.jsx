@@ -3,8 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ref, get } from "firebase/database";
 import { db } from "../utils/firebase";
 import { generateNickname } from "../utils/names";
-import princessImage from "../img/princess-square.jpeg";
-import loveLetterImage from "../img/love-letter.png";
 import landingMusic1 from "../sounds/landing1.mp3";
 import landingMusic2 from "../sounds/landing2.mp3";
 import landingMusic3 from "../sounds/landing3.mp3";
@@ -447,7 +445,7 @@ export default function Landing() {
       {/* Full width centered title */}
       <div className="royal-header">
         <img
-          src={loveLetterImage}
+          src="/img/love-letter.png"
           alt="Love Letter"
           className="royal-header-image"
         />
@@ -458,7 +456,7 @@ export default function Landing() {
           </p>
         </div>
         <img
-          src={loveLetterImage}
+          src="/img/love-letter.png"
           alt="Love Letter"
           className="royal-header-image"
         />
@@ -625,7 +623,7 @@ export default function Landing() {
           </div>
 
           <img
-            src={princessImage}
+            src="/img/princess-square.jpeg"
             alt="Princess of the Royal Court"
             className="princess-artwork"
           />
