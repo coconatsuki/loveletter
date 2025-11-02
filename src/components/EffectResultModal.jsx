@@ -232,6 +232,9 @@ export default function EffectResultModal({
     if (isBaronessTarget) {
       return "/img/15-baroness-soiree.png";
     }
+    if (isHandmaidProtection) {
+      return "/img/04-handmaid-tea.jpeg";
+    }
 
     return null; // No image for this effect/role combination
   };
@@ -406,7 +409,7 @@ export default function EffectResultModal({
               : isDukeEffect
               ? "🐾 A Noble Pat and a Loyal Paw 🐾"
               : isHandmaidProtection
-              ? "Protected by the Handmaid"
+              ? "🍪 The Handmaid's refuge 🍪"
               : isPrinceSelfTarget && !princessDiscarded
               ? "👑✨ ROYAL SELF-REFLECTION! ✨👑"
               : isPrinceExternalTarget && !princessDiscarded
@@ -1300,10 +1303,11 @@ const cardDetailsStyle = {
 
 const buttonContainerStyle = {
   display: "flex",
-  padding: "15px 25px 0",
+  padding: "25px 25px 0",
   marginTop: "1rem",
   borderRadius: "0 0 20px 20px",
   justifyContent: "center",
+  borderTop: "1px inset #ffff00b0",
 };
 
 const buttonStyle = {

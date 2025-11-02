@@ -41,9 +41,12 @@ export const useImagePreloader = () => {
     const effectIllustrations = [
       "01-guard-arrest.png",
       "01-guard-failure.png",
+      "01-guard-failure-target.png",
       "01-guard-self-elimination.png",
       "01-guard-success.png",
       "01-guard-assassin-discovered.png",
+      "01-guard-assassin-not-discovered.png",
+      "04-handmaid-tea.jpeg",
       "05-prince-angry.png",
       "05-prince-punishment.png",
       "07-countess-furious.png",

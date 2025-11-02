@@ -770,12 +770,10 @@ export async function applyHandmaidEffect({ roomCode, player }) {
       data.players[player]?.name || player
     }</span> for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
     // Personal message for the protected player's modal
-    playerMessage: `<div class="effect-description">The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers.</div>
-    <div class="effect-success">☕ Protection Status: ACTIVE ☕</div>
-    <div class="effect-description">⏰ Duration: Until your next turn begins</div>
-    <div class="effect-description">🛡️ Effect: You cannot be targeted by any cards</div>
-    <div class="effect-quote">"Come, dear. Let us chat by the fireplace while the others play their games. You're safe with me!"</div>
-    <div class="effect-signature">- The Princess' Handmaid</div>`,
+    playerMessage: `<div class="effect-description">The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers 🫖✨.</div>
+    <div class="effect-description quotation">"Come, dear. Let us chat by the fireplace while the others play their games. You're safe with me!"</div>
+    <div class="effect-technical">Effect: You cannot be targeted by any cards until your next turn. 🛡️</div>
+`,
   };
 }
 
@@ -805,7 +803,7 @@ export async function applyCountessEffect({ roomCode, player }) {
       }</span> behind, her fan snapping shut with an icy hiss ❄️.</div>`,
       // Personal message for the player's modal (if needed)
       playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her expression caught between hurt and outrage 🔥.</div>
-<div class="effect-description"><span class="quotation countess">“I had faith in your judgment,”</span> she says, voice trembling with indignation. <span class="quotation countess">“But to seek counsel among such men?”</span> 😠</div>
+<div class="effect-description"><span class="quotation countess">“I had faith in your judgment, but to seek counsel among such men?”</span> 😠</div>
 <div class="effect-description">Her fan closes with a sharp crack 🪭. <span class="quotation countess">“That drunkard of a King… that possessive fool of a Prince! You would lower yourself to their level? <strong>Then you no longer need *my* counsel.</strong>”</span></div>
 <div class="effect-description">She turns away, perfume and resentment trailing behind her 🥀. You just lost a precious ally whose pride burns brighter than any crown 👑.</div>`,
     };
@@ -1269,7 +1267,7 @@ export async function applyInquisitorEffect({
         attackerPlayer.name || attacker
       }</span>'s Inquisitor investigated <span class="effect-player">${
         targetPlayer.name || target
-      }</span>'s place, but didn't find the heretic of rank <span class="effect-strength">${guess}</span> they were looking for.</div>`;
+      }</span>'s place, but didn't find the heretic of strength <span class="effect-strength">${guess}</span> they were looking for.</div>`;
     } else if (isPrincessFound) {
       // Correct guess AND Princess found - SCANDAL!
       attackerMessage = `<div class="effect-description top">SCANDALOUS DISCOVERY! 😱 Your Inquisitor found <span class="effect-player">${
