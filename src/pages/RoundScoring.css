@@ -108,7 +108,7 @@ body {
   background: rgba(139, 0, 0, 0.3);
   border: 2px solid #dc143c;
   border-radius: 15px;
-  padding: 1rem 0;
+  padding: 1rem;
   text-align: center;
   position: relative;
 }

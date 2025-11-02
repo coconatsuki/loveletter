@@ -37,8 +37,38 @@ export const useImagePreloader = () => {
       return imageMap[card.name];
     });
 
+    // Effect illustration images (for EffectResultModal & other pages)
+    const effectIllustrations = [
+      "01-guard-arrest.png",
+      "01-guard-failure.png",
+      "01-guard-failure-target.png",
+      "01-guard-self-elimination.png",
+      "01-guard-success.png",
+      "01-guard-assassin-discovered.png",
+      "01-guard-assassin-not-discovered.png",
+      "02-priest-divination.png",
+      "04-handmaid-tea.jpeg",
+      "05-prince-angry.png",
+      "05-prince-punishment.png",
+      "05-prince-help.png",
+      "05-prince-disapproving.png",
+      "07-countess-furious.png",
+      "08-princess-rejection.png",
+      "09-inquisitor-investigation.png",
+      "10-chamberlain-friend.png",
+      "12-court-whisperer-boudoir.png",
+      "14-assassin-disappear.png",
+      "00-jester-trinket.png",
+      "15-baroness-soiree.png",
+      "16-duke-favor.png",
+      "princess-wedding1.jpeg", // GameScoring page
+    ];
+
+    // Combine card images and effect illustrations
+    const allImages = [...imageNames, ...effectIllustrations];
+
     // Remove duplicates
-    const uniqueImages = [...new Set(imageNames)];
+    const uniqueImages = [...new Set(allImages)];
     let loaded = 0;
 
     console.log(
