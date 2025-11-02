@@ -37,8 +37,30 @@ export const useImagePreloader = () => {
       return imageMap[card.name];
     });
 
+    // Effect illustration images (for EffectResultModal)
+    const effectIllustrations = [
+      "01-guard-arrest.png",
+      "01-guard-failure.png",
+      "01-guard-self-elimination.png",
+      "01-guard-success.png",
+      "01-guard-assassin-discovered.png",
+      "05-prince-angry.png",
+      "05-prince-punishment.png",
+      "07-countess-furious.png",
+      "09-inquisitor-investigation.png",
+      "10-chamberlain-friend.png",
+      "12-court-whisperer-boudoir.png",
+      "14-assassin-disappear.png",
+      "00-jester-trinket.png",
+      "15-baroness-soiree.png",
+      "16-duke-favor.png",
+    ];
+
+    // Combine card images and effect illustrations
+    const allImages = [...imageNames, ...effectIllustrations];
+
     // Remove duplicates
-    const uniqueImages = [...new Set(imageNames)];
+    const uniqueImages = [...new Set(allImages)];
     let loaded = 0;
 
     console.log(

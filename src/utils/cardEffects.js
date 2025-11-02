@@ -1269,7 +1269,7 @@ export async function applyInquisitorEffect({
         attackerPlayer.name || attacker
       }</span>'s Inquisitor investigated <span class="effect-player">${
         targetPlayer.name || target
-      }</span> but found no evidence of wrongdoing.</div>`;
+      }</span>'s place, but didn't find the heretic of rank <span class="effect-strength">${guess}</span> they were looking for.</div>`;
     } else if (isPrincessFound) {
       // Correct guess AND Princess found - SCANDAL!
       attackerMessage = `<div class="effect-description top">SCANDALOUS DISCOVERY! 😱 Your Inquisitor found <span class="effect-player">${
@@ -1472,33 +1472,31 @@ export async function applyBaronessEffect({
 
     // Generate romantic narratives 💋✨
     const attackerMessage = target2
-      ? `<div class="effect-description baroness top">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. 💋 <span class="quotation">"Allow me to see which rivals might stand in your way!"</span></div>
-<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span>, filling their glasses and their hearts with confidence until they speak too freely. 🥂</div>
+      ? `<div class="effect-description baroness top">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rivals might stand in your way!"</span></div>
+<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span>, filling their glasses until they speak too freely. 🥂</div>
 <div class="effect-description baroness">Later, she returns to you, eyes sparkling. ✨ <span class="quotation">"Well,"</span> she whispers, <span class="quotation">"I've uncovered the allies who guard their letters... and what a charming tangle of love it is!"</span> 💕</div>`
-      : `<div class="effect-description baroness">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. 💋 <span class="quotation">"Allow me to see which rival might stand in your way!"</span></div>
-<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span>, filling their glass and their heart with confidence until they speak too freely. 🥂</div>
+      : `<div class="effect-description baroness">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rival might stand in your way!"</span></div>
+<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span>, filling their glass until they speak too freely. 🥂</div>
 <div class="effect-description baroness">Later, she returns to you, eyes sparkling. ✨ <span class="quotation">"Well,"</span> she whispers, <span class="quotation">"I've uncovered the ally who guards their letter... what a charming secret it is."</span> 💕</div>`;
 
     const target1Message = target2
-      ? `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes your arm. <span class="quotation">"Darling <span class="effect-player">${target2}</span>, you and I need a little talk of love,"</span> she says with a playful smile. 😘</div>
-<div class="effect-description baroness">🍷 Moments later, you find yourself across from <span class="effect-player">${target2}</span>, your every word flowing far too freely. 💬✨</div>
+      ? `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target2}</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile. 😉</div>
+<div class="effect-description baroness">Moments (and some wine) later, both of you find yourselves telling her ALL about your lives! 💬✨</div>
 <div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`
-      : `<div class="effect-description baroness">🎉💋 The Baroness' soirée hums with laughter when she takes your arm with a playful smile. 😘</div>
-<div class="effect-description baroness">🍷 Moments later, you find yourself speaking far too freely about your romantic intentions. 💬✨</div>
+      : `<div class="effect-description baroness">🎉💋 The Baroness' soirée hums with laughter when she takes your arm with a playful smile. 😉</div>
+<div class="effect-description baroness">Moments (and some wine) later, you find yourself speaking far too freely about your romantic intentions. 💬✨</div>
 <div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
 
     let target2Message = null;
     if (target2) {
-      target2Message = `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes your arm. <span class="quotation">"Darling <span class="effect-player">${target1}</span>, you and I need a little talk of love,"</span> she says with a playful smile. 😘</div>
-<div class="effect-description baroness">🍷 Moments later, you find yourself across from <span class="effect-player">${target1}</span>, your every word flowing far too freely. 💬✨</div>
+      target2Message = `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target1}</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile. 😉</div>
+<div class="effect-description baroness">Moments (and some wine) later, both of you find yourselves telling her ALL about your lives! 💬✨</div>
 <div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
     }
 
     const publicMessage = target2
-      ? `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation 💬🌹</div>
-<div class="effect-description">that she shared, later, with <span class="effect-player">${attacker}</span> (who, in her opinion, would be a better match for the princess! 💕👑)</div>`
-      : `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> into a most revealing conversation 💬🌹</div>
-<div class="effect-description">that she shared, later, with <span class="effect-player">${attacker}</span> (who, in her opinion, would be a better match for the princess! 💕👑)</div>`;
+      ? `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation 💬🌹 that she shared, later, with <span class="effect-player">${attacker}</span> (who, she thinks, would be a better match for the princess! 💕👑)</div>`
+      : `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> into a most revealing conversation 💬🌹 that she shared, later, with <span class="effect-player">${attacker}</span> (who, she thinks, would be a better match for the princess! 💕👑)</div>`;
 
     return {
       result: "baronessReveal",

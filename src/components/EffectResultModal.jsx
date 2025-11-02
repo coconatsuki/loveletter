@@ -190,6 +190,54 @@ export default function EffectResultModal({
   const isPriestAttacker = isPriestEffect && role === "attacker";
   const isPriestTarget = isPriestEffect && role === "target";
 
+  // Helper function to get the effect illustration image URL
+  const getEffectImage = () => {
+    // Guard: Correct guess, target gets eliminated
+    if (isGuardCorrectGuess) {
+      return "/img/01-guard-success.png";
+    }
+    if (isGuardElimination) {
+      return "/img/01-guard-self-elimination.png";
+    }
+    if (isGuardWrongGuess) {
+      return "/img/01-guard-failure.png";
+    }
+    if (isCountessEffect) {
+      return "/img/07-countess-furious.png";
+    }
+    if (isInquisitorEffect) {
+      return "/img/09-inquisitor-investigation.png";
+    }
+    if (isChamberlainEffect) {
+      return "/img/10-chamberlain-friend.png";
+    }
+    if (isPrinceAttacker) {
+      return "/img/05-prince-angry.png";
+    }
+    if (isPrinceExternalTarget && princessDiscarded) {
+      return "/img/05-prince-punishment.png";
+    }
+    if (isCourtWhispererEffect) {
+      return "/img/12-court-whisperer-boudoir.png";
+    }
+    if (isAssassinEffect) {
+      return "/img/14-assassin-disappear.png";
+    }
+    if (isJesterEffect) {
+      return "/img/00-jester-trinket.png";
+    }
+    if (isDukeEffect) {
+      return "/img/16-duke-favor.png";
+    }
+    if (isBaronessTarget) {
+      return "/img/15-baroness-soiree.png";
+    }
+
+    return null; // No image for this effect/role combination
+  };
+
+  const effectImageUrl = getEffectImage();
+
   // Extract card information for Priest effect
   let revealedCard = null;
   if (isPriestAttacker && cardDetails) {
@@ -782,11 +830,22 @@ export default function EffectResultModal({
                 textAlign: "justify",
               }}
             >
+              {/* Effect illustration image (if available) */}
+              {effectImageUrl && (
+                <img
+                  src={effectImageUrl}
+                  alt="Effect illustration"
+                  style={effectImageStyle}
+                />
+              )}
+
+              {/* Result text with proper clearfix when image is present */}
               <div
                 style={{
                   fontSize: "1.1rem",
                   lineHeight: "1.6",
                   marginBottom: "2rem",
+                  ...(effectImageUrl ? effectTextWithImageWrapper : {}),
                 }}
               >
                 {formatText(resultText)}
@@ -835,7 +894,19 @@ export default function EffectResultModal({
                 isPrincessEffect
               )}
             >
-              {formatText(resultText)}
+              {/* Effect illustration image (if available) */}
+              {effectImageUrl && (
+                <img
+                  src={effectImageUrl}
+                  alt="Effect illustration"
+                  style={effectImageStyle}
+                />
+              )}
+
+              {/* Result text with proper clearfix when image is present */}
+              <div style={effectImageUrl ? effectTextWithImageWrapper : {}}>
+                {formatText(resultText)}
+              </div>
               <div
                 style={{
                   ...buttonContainerStyle,
@@ -1329,6 +1400,25 @@ const princessButtonStyle = {
   fontWeight: "700",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.8)",
   fontFamily: "Cinzel, serif",
+};
+
+// 🎨 Effect Image Styles - For illustrative images accompanying result text
+const effectImageStyle = {
+  float: "left",
+  width: "clamp(150px, 20vw, 200px)", // Responsive: 150px min, 20% viewport width, 200px max
+  height: "clamp(150px, 20vw, 200px)", // Perfect square that scales
+  marginRight: "20px",
+  marginBottom: "15px",
+  borderRadius: "8px",
+  border: "3px solid #d4af37",
+  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.6), 0 3px 10px rgba(255, 215, 0, 0.3)",
+  objectFit: "cover",
+  objectPosition: "center",
+};
+
+const effectTextWithImageWrapper = {
+  overflow: "auto", // Clearfix for float
+  textAlign: "justify",
 };
 
 // �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰

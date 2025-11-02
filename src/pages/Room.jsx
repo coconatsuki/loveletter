@@ -6,7 +6,6 @@ import { generateNickname } from "../utils/names";
 import { buildDeck } from "../utils/deckBuilder";
 import { useImagePreloader } from "../utils/imagePreloader";
 import "./LandingPage.css"; // Import royal styles
-import waitingRoomPicture from "../img/waiting-room.jpeg";
 import medievalMusic from "../sounds/medieval-ambient.mp3";
 
 export default function Room() {
@@ -553,7 +552,7 @@ export default function Room() {
             </p>
           </div>
           <img
-            src={waitingRoomPicture}
+            src="/img/waiting-room.jpeg"
             alt="Royal Waiting Chamber"
             className="waiting-room-artwork"
           />
