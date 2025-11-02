@@ -199,8 +199,9 @@ export default function EffectResultModal({
   const isPriestTarget = isPriestEffect && role === "target";
 
   // Helper function to get the effect illustration image URL
-  const getEffectImage = () => {
+  const getEffectImage = (revealedCard) => {
     // Guard: Correct guess, target gets eliminated
+    if (selectedCardId === -1) return null; // Safety check
     if (isGuardCorrectGuess) {
       return "/img/01-guard-success.png";
     }
@@ -225,6 +226,9 @@ export default function EffectResultModal({
     if (isPrinceExternalTarget && princessDiscarded) {
       return "/img/05-prince-punishment.png";
     }
+    if (isPrinceExternalTarget && !princessDiscarded) {
+      return "/img/05-prince-disapproving.png";
+    }
     if (isCourtWhispererEffect) {
       return "/img/12-court-whisperer-boudoir.png";
     }
@@ -243,20 +247,26 @@ export default function EffectResultModal({
     if (isHandmaidProtection) {
       return "/img/04-handmaid-tea.jpeg";
     }
-    if (isPriestTarget) {
+    if (isPriestEffect && !revealedCard) {
       return "/img/02-priest-divination.png";
+    }
+    if (isPrinceSelfTarget && !princessDiscarded) {
+      return "/img/05-prince-help.png";
+    }
+    if (isPrincessEffect) {
+      return "/img/08-princess-rejection.png";
     }
 
     return null; // No image for this effect/role combination
   };
-
-  const effectImageUrl = getEffectImage();
 
   // Extract card information for Priest effect
   let revealedCard = null;
   if (isPriestAttacker && cardDetails) {
     revealedCard = cardDetails["Revealed Card"];
   }
+
+  const effectImageUrl = getEffectImage(revealedCard);
 
   return (
     <>
@@ -606,6 +616,7 @@ export default function EffectResultModal({
                   style={{
                     ...buttonContainerStyle,
                     ...phantomKingButtonContainerStyle,
+                    border: "none",
                   }}
                 >
                   <button

@@ -651,7 +651,7 @@
 .princess-image {
   width: 100%;
   min-height: 380px;
-  background-image: url("/src/img/princess-wedding1.jpeg");
+  background-image: url("/img/princess-wedding1.jpeg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

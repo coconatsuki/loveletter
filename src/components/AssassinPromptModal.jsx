@@ -196,9 +196,13 @@ export default function AssassinPromptModal({
             bursts into your residence, sent by{" "}
             <span style={ASSASSIN_STYLES.rivalName}>{attacker}</span> with tales
             of treachery. He searches every corner, looking for the "traitor"
-            your rival described… but finds only your loyal ally, the{" "}
+            your rival described (
             <span style={ASSASSIN_STYLES.highlightedText}>
-              {targetCard.name} (Strength {targetCard.strength})
+              strength {guessedStrength}
+            </span>
+            )… but finds only your loyal ally, the{" "}
+            <span style={ASSASSIN_STYLES.highlightedText}>
+              {targetCard.name} (strength {targetCard.strength})
             </span>
             .
           </p>
@@ -255,7 +259,7 @@ export default function AssassinPromptModal({
           <p style={ASSASSIN_STYLES.message}>
             He finds and arrests your secret accomplice, the{" "}
             <span style={ASSASSIN_STYLES.highlightedText}>
-              {targetCard.name}, for conspiracy.
+              {targetCard.name}, for conspiracy
             </span>
             !
           </p>
