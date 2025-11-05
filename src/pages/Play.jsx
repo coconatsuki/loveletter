@@ -2537,16 +2537,23 @@ export default function Play() {
                         eliminationUpdates
                       );
 
-                      // Clear Regent Queen target data in Firebase
-                      await set(
-                        ref(db, `rooms/${roomCode}/regentQueenTarget`),
-                        null
+                      // Notify about the elimination
+                      pushNotification(
+                        roomCode,
+                        `👑💀 ${regentQueenResultModalData.eliminatedPlayer} has been eliminated by the Regent Queen's judgment!`
                       );
-                      setRegentQueenResultModalData(null);
+                    }
 
-                      if (selectedCardIndex !== null) {
-                        handleEffectResultClose();
-                      }
+                    // Clear Regent Queen target data in Firebase
+                    await set(
+                      ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                      null
+                    );
+                    setRegentQueenResultModalData(null);
+
+                    // Complete the Regent Queen turn (discard card, advance turn)
+                    if (selectedCardIndex !== null) {
+                      handleEffectResultClose();
                     }
                   })
                 }
