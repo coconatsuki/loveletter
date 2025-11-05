@@ -86,6 +86,7 @@ export default function Play() {
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null); // For card effect popover
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false); // Track if user manually scrolled up
   const [newNotificationsCount, setNewNotificationsCount] = useState(0); // Count of unread notifications
+  const [deckCount, setDeckCount] = useState(0); // Track remaining cards in deck
   const chronicleContentRef = useRef(null); // Ref for the chronicle content div
 
   // Total players count for popover positioning
@@ -189,6 +190,11 @@ export default function Play() {
 
         if (data?.players && nickname) {
           setPlayer(data.players[nickname]);
+        }
+
+        // Update deck count whenever room data changes
+        if (data?.round?.deck) {
+          setDeckCount(data.round.deck.length);
         }
 
         // Check if round ended and show round end modal
@@ -1564,6 +1570,10 @@ export default function Play() {
       console.log(
         "🔄 completeTurnWithCardIndex - Card discarded, checking round end:"
       );
+
+      // Update deck count in local state after discarding
+      const currentDeck = roomData?.round?.deck || [];
+      setDeckCount(currentDeck.length);
     }
 
     // Checking if the round should end now
@@ -1638,7 +1648,7 @@ export default function Play() {
       // Notify all players about the turn change
       pushNotification(
         roomCode,
-        `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+        `🕰️ The crown now passes to <span class="effect-player">${nextPlayer}</span>. Destiny awaits...`
       );
 
       // Update Firebase with the turn completion
@@ -2689,14 +2699,16 @@ export default function Play() {
           {/* ROYAL CHRONICLE SIDEBAR */}
           <div className="royal-chronicle-sidebar">
             <div className="chronicle-header">
-              {/* ROUND */}
+              {/* ROUND & DECK INFO */}
               <div className="round-container">
                 <div className="round-content">
-                  <span role="img" aria-label="Round">
-                    ⚔️
-                  </span>
-                  <span>Round</span>
+                  <span>Round:</span>
                   <span className="round-number">{roundNumber}</span>
+                </div>
+                <div className="round-separator"></div>
+                <div className="deck-counter">
+                  <span>Deck:</span>
+                  <span className="deck-number">{deckCount}</span>
                 </div>
               </div>
               <h3>📜 Game Chronicle</h3>

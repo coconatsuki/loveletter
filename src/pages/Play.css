@@ -50,34 +50,61 @@
   z-index: 1;
 }
 
-/* Round counter - spans both columns */
+/* Round & Deck container - positioned in top-right of chronicle header */
 .round-container {
-  width: 50%;
-  position: absolute;
-  top: 0px;
-  right: 0px;
-}
-
-.round-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   background: rgba(139, 0, 0, 0.8);
-  color: #ffd700;
   border: 2px solid #ffd700;
   border-top: none;
   border-right: none;
   border-radius: 0 0 0 20px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  align-self: flex-end;
+  margin-bottom: 0.5rem;
   padding: 0.4rem 1.2rem;
+  gap: 0.8rem;
+}
+
+.round-content {
+  color: #ffd700;
   font-weight: bold;
   font-size: 1rem;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
   text-shadow: 1px 1px 2px #000;
   letter-spacing: 1px;
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  gap: 0.4rem;
 }
 
 .round-number {
   color: #fff;
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+/* Separator between round and deck */
+.round-separator {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, #ffd700, transparent);
+}
+
+/* Deck counter styling */
+.deck-counter {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1rem;
+  text-shadow: 1px 1px 2px #000;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.deck-number {
+  color: #87ceeb;
   font-weight: 900;
   font-size: 1.2rem;
 }
@@ -322,21 +349,20 @@
 }
 
 .chronicle-header {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(45deg, #8b0000, #b8860b);
   color: #ffd700;
-  padding-left: 0.7rem;
-  text-align: center;
   font-weight: bold;
   font-size: 1.1rem;
   border-bottom: 2px solid #ffd700;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
 
-  h3 {
-    margin-top: 18%;
-    margin-bottom: 5%;
-    justify-self: flex-start;
-  }
+.chronicle-header h3 {
+  margin: 0.5rem 0;
+  order: 2;
+  padding: 0.5rem;
 }
 
 .chronicle-content {
