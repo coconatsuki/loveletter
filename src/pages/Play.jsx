@@ -1646,9 +1646,11 @@ export default function Play() {
       };
 
       // Notify all players about the turn change
+      const nextPlayerRealName =
+        updatedPlayers[nextPlayer]?.realName || nextPlayer;
       pushNotification(
         roomCode,
-        `🕰️ The crown now passes to <span class="effect-player">${nextPlayer}</span>. Destiny awaits...`
+        `🕰️ The crown now passes to <span class="effect-player">${nextPlayer} (${nextPlayerRealName})</span>. Destiny awaits...`
       );
 
       // Update Firebase with the turn completion
