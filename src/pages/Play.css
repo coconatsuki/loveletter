@@ -189,7 +189,8 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
   min-height: 120px;
-  width: 250px;
+  min-width: 325px;
+  max-width: 335px;
   max-height: 150px;
 }
 

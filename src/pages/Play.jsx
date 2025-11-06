@@ -1556,13 +1556,18 @@ export default function Play() {
         [`players/${nickname}/discard`]: newDiscard,
       };
 
-      const finalUpdates = handleCardDiscard({
+      const finalUpdates = await handleCardDiscard({
         roomCode,
         playerName: nickname,
         card: playedCard,
         gameMode: roomData?.mode,
         existingUpdates: discardUpdates,
       });
+
+      console.log(
+        "🔄 completeTurnWithCardIndex - Discard updates:",
+        finalUpdates
+      );
 
       // Update Firebase with the turn completion
       await update(ref(db, `rooms/${roomCode}`), finalUpdates);
@@ -1730,14 +1735,14 @@ export default function Play() {
       return;
     }
 
-    // Increment Duke token for this player (can stack)
+    /*   // Increment Duke token for this player (can stack)
     const currentDukeToken = player.dukeToken || 0;
     const newDukeToken = currentDukeToken + 1;
 
     // Update game state: discard Duke, advance turn, set Duke token
     await update(ref(db, `rooms/${roomCode}`), {
       [`players/${nickname}/dukeToken`]: newDukeToken,
-    });
+    }); */
   };
 
   /**

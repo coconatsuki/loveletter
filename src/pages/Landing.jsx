@@ -131,7 +131,7 @@ export default function Landing() {
     // Set up the first track
     if (audioRef.current) {
       audioRef.current.src = shuffled[0].src;
-      audioRef.current.volume = 0.7;
+      audioRef.current.volume = 0.3;
       audioRef.current.load();
 
       console.log("🎵 Audio element prepared with first track:", {
@@ -160,7 +160,7 @@ export default function Landing() {
           .then(() => {
             console.log("🎵 Next track started playing");
             setCurrentTrackIndex(nextIndex);
-            fadeIn(audioRef.current, 0.7, 2000);
+            fadeIn(audioRef.current, 0.3, 2000);
           })
           .catch((error) => {
             console.error("🎵 Error playing next track:", error);

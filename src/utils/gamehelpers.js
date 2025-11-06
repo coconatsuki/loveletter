@@ -39,9 +39,9 @@ export function getCardCount(cardId, gameMode, cards) {
  * @param {Object} params.card - The card being discarded
  * @param {string} params.gameMode - The game mode (normal/premium)
  * @param {Object} params.existingUpdates - Existing Firebase updates to append to
- * @returns {Object} Firebase updates including any special token logic
+ * @returns {Promise<Object>} Firebase updates including any special token logic
  */
-export function handleCardDiscard({
+export async function handleCardDiscard({
   roomCode,
   playerName,
   card,
@@ -61,8 +61,18 @@ export function handleCardDiscard({
 
   // In premium mode, check if this is a Duke card
   if (gameMode === "premium" && card.id === 16) {
+    // Fetch current Duke token count from Firebase
+    const snapshot = await get(
+      ref(db, `rooms/${roomCode}/players/${playerName}`)
+    );
+    const playerData = snapshot.val();
+    const currentDukeToken = playerData?.dukeToken || 0;
+
+    console.log(
+      `👑🐕 Current Duke token for ${playerName}: ${currentDukeToken}`
+    );
+
     // Increment Duke token (can stack multiple Duke discards)
-    const currentDukeToken = updates[`players/${playerName}/dukeToken`] || 0;
     updates[`players/${playerName}/dukeToken`] = currentDukeToken + 1;
     console.log(
       `👑🐕 Duke token incremented for ${playerName} - now has ${
