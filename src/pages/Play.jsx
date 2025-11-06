@@ -86,6 +86,7 @@ export default function Play() {
   const [hoveredCardIndex, setHoveredCardIndex] = useState(null); // For card effect popover
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false); // Track if user manually scrolled up
   const [newNotificationsCount, setNewNotificationsCount] = useState(0); // Count of unread notifications
+  const [deckCount, setDeckCount] = useState(0); // Track remaining cards in deck
   const chronicleContentRef = useRef(null); // Ref for the chronicle content div
 
   // Total players count for popover positioning
@@ -189,6 +190,11 @@ export default function Play() {
 
         if (data?.players && nickname) {
           setPlayer(data.players[nickname]);
+        }
+
+        // Update deck count whenever room data changes
+        if (data?.round?.deck) {
+          setDeckCount(data.round.deck.length);
         }
 
         // Check if round ended and show round end modal
@@ -1550,7 +1556,7 @@ export default function Play() {
         [`players/${nickname}/discard`]: newDiscard,
       };
 
-      const finalUpdates = handleCardDiscard({
+      const finalUpdates = await handleCardDiscard({
         roomCode,
         playerName: nickname,
         card: playedCard,
@@ -1558,12 +1564,21 @@ export default function Play() {
         existingUpdates: discardUpdates,
       });
 
+      console.log(
+        "🔄 completeTurnWithCardIndex - Discard updates:",
+        finalUpdates
+      );
+
       // Update Firebase with the turn completion
       await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
       console.log(
         "🔄 completeTurnWithCardIndex - Card discarded, checking round end:"
       );
+
+      // Update deck count in local state after discarding
+      const currentDeck = roomData?.round?.deck || [];
+      setDeckCount(currentDeck.length);
     }
 
     // Checking if the round should end now
@@ -1636,9 +1651,11 @@ export default function Play() {
       };
 
       // Notify all players about the turn change
+      const nextPlayerRealName =
+        updatedPlayers[nextPlayer]?.realName || nextPlayer;
       pushNotification(
         roomCode,
-        `🕰️ The crown now passes to ${nextPlayer}. Destiny awaits...`
+        `🕰️ The crown now passes to <span class="effect-player">${nextPlayer} (${nextPlayerRealName})</span>. Destiny awaits...`
       );
 
       // Update Firebase with the turn completion
@@ -1718,14 +1735,14 @@ export default function Play() {
       return;
     }
 
-    // Increment Duke token for this player (can stack)
+    /*   // Increment Duke token for this player (can stack)
     const currentDukeToken = player.dukeToken || 0;
     const newDukeToken = currentDukeToken + 1;
 
     // Update game state: discard Duke, advance turn, set Duke token
     await update(ref(db, `rooms/${roomCode}`), {
       [`players/${nickname}/dukeToken`]: newDukeToken,
-    });
+    }); */
   };
 
   /**
@@ -2525,16 +2542,23 @@ export default function Play() {
                         eliminationUpdates
                       );
 
-                      // Clear Regent Queen target data in Firebase
-                      await set(
-                        ref(db, `rooms/${roomCode}/regentQueenTarget`),
-                        null
+                      // Notify about the elimination
+                      pushNotification(
+                        roomCode,
+                        `👑💀 ${regentQueenResultModalData.eliminatedPlayer} has been eliminated by the Regent Queen's judgment!`
                       );
-                      setRegentQueenResultModalData(null);
+                    }
 
-                      if (selectedCardIndex !== null) {
-                        handleEffectResultClose();
-                      }
+                    // Clear Regent Queen target data in Firebase
+                    await set(
+                      ref(db, `rooms/${roomCode}/regentQueenTarget`),
+                      null
+                    );
+                    setRegentQueenResultModalData(null);
+
+                    // Complete the Regent Queen turn (discard card, advance turn)
+                    if (selectedCardIndex !== null) {
+                      handleEffectResultClose();
                     }
                   })
                 }
@@ -2689,14 +2713,16 @@ export default function Play() {
           {/* ROYAL CHRONICLE SIDEBAR */}
           <div className="royal-chronicle-sidebar">
             <div className="chronicle-header">
-              {/* ROUND */}
+              {/* ROUND & DECK INFO */}
               <div className="round-container">
                 <div className="round-content">
-                  <span role="img" aria-label="Round">
-                    ⚔️
-                  </span>
-                  <span>Round</span>
+                  <span>Round:</span>
                   <span className="round-number">{roundNumber}</span>
+                </div>
+                <div className="round-separator"></div>
+                <div className="deck-counter">
+                  <span>Deck:</span>
+                  <span className="deck-number">{deckCount}</span>
                 </div>
               </div>
               <h3>📜 Game Chronicle</h3>

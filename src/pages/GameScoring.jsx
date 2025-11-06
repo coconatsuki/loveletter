@@ -38,9 +38,10 @@ export default function GameScoring() {
   }, []);
 
   // Fade utility functions for smooth volume transitions
-  const fadeIn = (audio, targetVolume = 0.6, duration = 3000) => {
+  const fadeIn = (audio, targetVolume = 0.3, duration = 3000) => {
     return new Promise((resolve) => {
       if (!audio) {
+        console.error("❌ fadeIn: no audio element");
         resolve();
         return;
       }
@@ -158,7 +159,7 @@ export default function GameScoring() {
             .play()
             .then(() => {
               console.log("🎵 Next track playing, fading in...");
-              fadeIn(currentAudioRef.current, 0.6, 3000);
+              fadeIn(currentAudioRef.current, 0.3, 3000);
             })
             .catch((err) => console.error("🎵 Error playing next track:", err));
         }
@@ -203,7 +204,7 @@ export default function GameScoring() {
           .then(() => {
             console.log("🎵 First track started playing");
             setIsPlaying(true);
-            fadeIn(currentAudioRef.current, 0.6, 3000);
+            fadeIn(currentAudioRef.current, 0.3, 3000);
           })
           .catch((error) => {
             console.error("🎵 Error starting first track:", error);
@@ -240,7 +241,7 @@ export default function GameScoring() {
         .then(() => {
           setIsPlaying(true);
           console.log("🎵 Music resumed by user, fading in...");
-          fadeIn(currentAudioRef.current, 0.6, 2000);
+          fadeIn(currentAudioRef.current, 0.3, 2000);
         })
         .catch((error) => {
           console.error("🎵 Error resuming music:", error);
@@ -454,8 +455,8 @@ export default function GameScoring() {
             className="music-toggle-btn"
             style={{
               position: "fixed",
-              top: "20px",
-              right: "20px",
+              top: "15px",
+              left: "15px",
               width: "50px",
               height: "50px",
               borderRadius: "50%",
