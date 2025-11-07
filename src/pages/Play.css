@@ -168,8 +168,8 @@
   flex-direction: row !important;
   justify-content: space-around !important;
   flex-wrap: wrap !important;
-  gap: 3rem !important;
-  padding: 2rem 1rem 5.5rem;
+  gap: 2rem !important;
+  padding: 1.5rem 1rem 5.5rem;
   box-sizing: border-box;
   flex: 1;
 }
@@ -188,10 +188,10 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   position: relative;
-  min-height: 120px;
-  min-width: 325px;
-  max-width: 335px;
-  max-height: 150px;
+  min-height: 17%;
+  min-width: 25%;
+  max-width: 27%;
+  max-height: 20%;
 }
 
 .royal-player-section:hover {

@@ -278,8 +278,8 @@ export default function Room() {
 
   const isHost = nickname === host;
   const playerCount = players.length;
-  const canStartGame = playerCount >= 2 && playerCount <= 11;
-  const isOverCapacity = playerCount > 11;
+  const canStartGame = playerCount >= 2 && playerCount <= 12;
+  const isOverCapacity = playerCount > 12;
 
   const kickPlayer = async (playerToKick) => {
     if (!isHost || playerToKick === host) {
@@ -309,9 +309,9 @@ export default function Room() {
 
   const startGame = () => {
     // Double-check validation before starting
-    if (playerCount < 2 || playerCount > 11) {
+    if (playerCount < 2 || playerCount > 12) {
       console.warn(
-        `Cannot start game with ${playerCount} players. Must be 2-11 players.`
+        `Cannot start game with ${playerCount} players. Must be 2-12 players.`
       );
       return;
     }
@@ -437,7 +437,7 @@ export default function Room() {
                   isOverCapacity ? "over-capacity" : ""
                 }`}
               >
-                ({playerCount}/11)
+                ({playerCount}/12)
               </span>{" "}
               ⚔️
             </h3>
@@ -496,7 +496,7 @@ export default function Room() {
             {isOverCapacity && (
               <div className="over-capacity-notice">
                 <p>
-                  ⚠️ The royal court is overflowing! Maximum 11 noble guests
+                  ⚠️ The royal court is overflowing! Maximum 12 noble guests
                   allowed.
                 </p>
                 <p style={{ fontSize: "0.8rem", opacity: 0.7 }}>
