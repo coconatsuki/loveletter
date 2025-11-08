@@ -1,7 +1,6 @@
 const names = [
   { name: "Sir Lancelint", gender: "male" },
   { name: "Lady Scriptoria", gender: "female" },
-  { name: "Dame JSONette", gender: "female" },
   { name: "Lord Loopalot", gender: "male" },
   { name: "Count Bracket", gender: "male" },
   { name: "Baroness Backendia", gender: "female" },

@@ -28,7 +28,7 @@ export default function CreateRoom() {
   const navigate = useNavigate();
 
   // Fade utility functions for smooth volume transitions
-  const fadeIn = (audio, targetVolume = 0.7, duration = 1000) => {
+  const fadeIn = (audio, targetVolume = 0.3, duration = 1000) => {
     return new Promise((resolve) => {
       if (!audio) {
         resolve();
@@ -190,7 +190,7 @@ export default function CreateRoom() {
     // Set up the first track
     if (audioRef.current) {
       audioRef.current.src = shuffled[0].src;
-      audioRef.current.volume = 0.7;
+      audioRef.current.volume = 0.3;
       audioRef.current.load();
 
       console.log("🎵 Audio element prepared with first track:", {
@@ -219,7 +219,7 @@ export default function CreateRoom() {
           .then(() => {
             console.log("🎵 Next track started playing");
             setCurrentTrackIndex(nextIndex);
-            fadeIn(audioRef.current, 0.7, 2000);
+            fadeIn(audioRef.current, 0.3, 2000);
           })
           .catch((error) => {
             console.error("🎵 Error playing next track:", error);
@@ -373,14 +373,16 @@ export default function CreateRoom() {
         onClick={toggleMusic}
         className="music-toggle-btn"
         style={{
-          position: "absolute",
-          top: "0.5rem",
-          left: "0.5rem",
+          position: "fixed",
+          top: "15px",
+          left: "15px",
           width: "50px",
           height: "50px",
           borderRadius: "50%",
-          border: "none",
-          background: isPlaying ? "#4CAF50" : "#666",
+          border: "2px solid #d4af37",
+          background: isPlaying
+            ? "linear-gradient(135deg, #4CAF50, #45a049)"
+            : "linear-gradient(135deg, #666, #555)",
           color: "white",
           fontSize: "24px",
           cursor: "pointer",
@@ -389,11 +391,13 @@ export default function CreateRoom() {
           alignItems: "center",
           justifyContent: "center",
           transition: "all 0.3s ease",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+          boxShadow: isPlaying
+            ? "0 0 20px rgba(76, 175, 80, 0.5)"
+            : "0 2px 10px rgba(0,0,0,0.3)",
         }}
-        title={isPlaying ? "Stop Music" : "Play Music"}
+        title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
       >
-        {isPlaying ? "🔊" : "🔇"}
+        {isPlaying ? "🎵" : "🔇"}
       </button>
 
       {/* Full width centered title */}
@@ -409,7 +413,7 @@ export default function CreateRoom() {
           </h1>
           <p className="royal-subtitle-centered">
             "Noble Game Master, Prepare Thy Sacred Chamber for the Grand
-            Tournament of Love Letters!"
+            Tournament!"
           </p>
         </div>
         <img
@@ -579,7 +583,7 @@ export default function CreateRoom() {
                 <div className="mode-option-content">
                   <div>🧙 Premium Court</div>
                   <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                    (6–11 Noble Suitors)
+                    (6–12 Noble Suitors)
                   </div>
                   <div
                     style={{

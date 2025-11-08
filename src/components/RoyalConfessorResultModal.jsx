@@ -97,7 +97,7 @@ export default function RoyalConfessorResultModal({
   const [revealedCard, setRevealedCard] = useState(null);
   const [showDropdown, setShowDropdown] = useState(!isSelfTarget);
   const newTarget1Card = swappedCards?.target1Received;
-  const newTarget2Card = swappedCards?.target2Received;
+  const newTarget2Card = swappedCards?.target1Gave;
 
   // 🐛 DEBUG: Log props to ensure we never get invalid values
   useEffect(() => {

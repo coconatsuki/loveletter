@@ -30,7 +30,7 @@ export default function Room() {
   const { imagesLoaded, loadedCount, totalImages } = useImagePreloader();
 
   // Fade utility functions for smooth volume transitions
-  const fadeIn = (audio, targetVolume = 0.7, duration = 800) => {
+  const fadeIn = (audio, targetVolume = 0.3, duration = 800) => {
     return new Promise((resolve) => {
       if (!audio) {
         resolve();
@@ -278,8 +278,8 @@ export default function Room() {
 
   const isHost = nickname === host;
   const playerCount = players.length;
-  const canStartGame = playerCount >= 2 && playerCount <= 11;
-  const isOverCapacity = playerCount > 11;
+  const canStartGame = playerCount >= 2 && playerCount <= 12;
+  const isOverCapacity = playerCount > 12;
 
   const kickPlayer = async (playerToKick) => {
     if (!isHost || playerToKick === host) {
@@ -309,9 +309,9 @@ export default function Room() {
 
   const startGame = () => {
     // Double-check validation before starting
-    if (playerCount < 2 || playerCount > 11) {
+    if (playerCount < 2 || playerCount > 12) {
       console.warn(
-        `Cannot start game with ${playerCount} players. Must be 2-11 players.`
+        `Cannot start game with ${playerCount} players. Must be 2-12 players.`
       );
       return;
     }
@@ -386,14 +386,16 @@ export default function Room() {
           onClick={toggleMusic}
           className="music-toggle-btn"
           style={{
-            position: "absolute",
-            top: "20px",
-            left: "20px",
+            position: "fixed",
+            top: "15px",
+            left: "15px",
             width: "50px",
             height: "50px",
             borderRadius: "50%",
-            border: "none",
-            background: isPlaying ? "#4CAF50" : "#666",
+            border: "2px solid #d4af37",
+            background: isPlaying
+              ? "linear-gradient(135deg, #4CAF50, #45a049)"
+              : "linear-gradient(135deg, #666, #555)",
             color: "white",
             fontSize: "24px",
             cursor: "pointer",
@@ -402,11 +404,13 @@ export default function Room() {
             alignItems: "center",
             justifyContent: "center",
             transition: "all 0.3s ease",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+            boxShadow: isPlaying
+              ? "0 0 20px rgba(76, 175, 80, 0.5)"
+              : "0 2px 10px rgba(0,0,0,0.3)",
           }}
-          title={isPlaying ? "Stop Music" : "Play Music"}
+          title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
         >
-          {isPlaying ? "🔊" : "🔇"}
+          {isPlaying ? "🎵" : "🔇"}
         </button>
       )}
 
@@ -433,7 +437,7 @@ export default function Room() {
                   isOverCapacity ? "over-capacity" : ""
                 }`}
               >
-                ({playerCount}/11)
+                ({playerCount}/12)
               </span>{" "}
               ⚔️
             </h3>
@@ -492,7 +496,7 @@ export default function Room() {
             {isOverCapacity && (
               <div className="over-capacity-notice">
                 <p>
-                  ⚠️ The royal court is overflowing! Maximum 11 noble guests
+                  ⚠️ The royal court is overflowing! Maximum 12 noble guests
                   allowed.
                 </p>
                 <p style={{ fontSize: "0.8rem", opacity: 0.7 }}>
