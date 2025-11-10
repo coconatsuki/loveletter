@@ -802,6 +802,51 @@ export default function Play() {
     // Note: Turn will be completed when player closes the result modal
   };
 
+  /**
+   * Track targeted players for game statistics
+   * Updates Firebase with targeting counts for the final game scoring screen
+   */
+  const trackTargetedPlayers = async (target, target2, roomCode, players) => {
+    const targetsToTrack = [];
+
+    // Check if target is a valid player (not SKIP_TURN, not null)
+    if (target && target !== "SKIP_TURN" && players?.[target]) {
+      targetsToTrack.push({
+        name: target,
+        realName: players[target].realName,
+      });
+    }
+
+    // Check if target2 exists and is a valid player
+    if (target2 && players?.[target2]) {
+      targetsToTrack.push({
+        name: target2,
+        realName: players[target2].realName,
+      });
+    }
+
+    // Update Firebase with targeting stats
+    if (targetsToTrack.length > 0) {
+      const gameStatsRef = ref(
+        db,
+        `rooms/${roomCode}/gameStats/targetedPlayers`
+      );
+      const snapshot = await get(gameStatsRef);
+      const currentTargetedPlayers = snapshot.val() || {};
+
+      const updates = {};
+      targetsToTrack.forEach(({ name, realName }) => {
+        const currentCount = currentTargetedPlayers[name]?.targetCount || 0;
+        updates[name] = {
+          targetCount: currentCount + 1,
+          realName: realName,
+        };
+      });
+
+      await update(gameStatsRef, updates);
+    }
+  };
+
   const handleTargetConfirm = async ({ target, target2, guess }) => {
     const cardPlayed = player.hand[selectedCardIndex];
     const isDeckEmpty =
@@ -825,6 +870,9 @@ export default function Play() {
       // Note: Turn will be completed when player closes the result modal
       return;
     }
+
+    // === TRACK TARGETED PLAYERS FOR STATS ===
+    await trackTargetedPlayers(target, target2, roomCode, roomData?.players);
 
     // === JESTER CARD LOGIC (ID: 0) ===
     if (cardPlayed.id === 0) {

@@ -375,6 +375,21 @@ export default function GameScoring() {
     };
   };
 
+  const getMostTargetedPlayers = () => {
+    const targetedPlayers = roomData?.gameStats?.targetedPlayers;
+    if (!targetedPlayers) return [];
+
+    // Convert to array and sort by targetCount (descending)
+    return Object.entries(targetedPlayers)
+      .map(([name, data]) => ({
+        name,
+        realName: data.realName,
+        targetCount: data.targetCount,
+      }))
+      .sort((a, b) => b.targetCount - a.targetCount)
+      .slice(0, 3); // Get top 3
+  };
+
   // Listen for redirect signals
   useEffect(() => {
     if (roomData?.gameState === "returnToLanding") {
@@ -408,6 +423,7 @@ export default function GameScoring() {
   const isHost = roomData.host === nickname;
   const sortedPlayers = getSortedPlayers();
   const totalRounds = roomData.gameStats?.totalRoundsPlayed || 0;
+  const mostTargetedPlayers = getMostTargetedPlayers();
 
   if (roomData.gameState === "returnToLanding") {
     return (
@@ -684,6 +700,22 @@ export default function GameScoring() {
                             : "🏰 Classic Court"}
                         </span>
                       </div>
+                      {mostTargetedPlayers.length > 0 && (
+                        <div className="stat-item stat-item-third-row">
+                          <span className="stat-label">
+                            Most Targeted Players:
+                          </span>
+                          <span className="stat-value">
+                            {mostTargetedPlayers.map((player, index) => (
+                              <span key={player.name}>
+                                {index > 0 && ", "}
+                                {player.name} ({player.realName}) -{" "}
+                                {player.targetCount}x
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
