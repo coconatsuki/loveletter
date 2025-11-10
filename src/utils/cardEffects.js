@@ -42,13 +42,13 @@ export async function applyJesterEffect({ roomCode, attacker, target }) {
     target,
     // 🎭 Colorful, joyful medieval narrative! 🎭
     attackerMessage: `
-<div class="effect-description">💰 After your generous tip for his little juggling show, the <span class="effect-card">Jester</span> offers you a shiny charm — the <span class="effect-card">Fool's Favor</span>! 💎</div>
+<div class="effect-description top">💰 After your generous tip for his little juggling show, the <span class="effect-card">Jester</span> offers you a shiny charm — the <span class="effect-card">Fool's Favor</span>! 💎</div>
 <div class="effect-description">You smile, hand raised in refusal, and whisper a name: <span class="effect-player">${targetPlayer.name}</span>.</div>
 <div class="effect-description">Delighted, he spins on his heels and bounds away to your rival. 🎪</div>
 <div class="effect-description jester">If they win, this charm will bring you the Princess’s affection! 👑💕</div>
 `,
-    targetMessage: `<div class="effect-description">🎪 The Jester dances before you, pressing into your hand a shiny charm:</div><div class="effect-description">✨💍 "<span class="quotation jester">Keep it close, my friend, and the Princess will surely smile on you!</span>"</div><div class="effect-description">It feels more like a joke than a gift... but you cannot refuse. 🎭😊</div>`,
-    publicMessage: `<div class="effect-description">🎭🎪 <span class="effect-player">${attackerPlayer.name}</span> asked the <span class="effect-card">Jester</span> to hand the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name}</span>! Is it a gift... or a trick? 🤔✨</div>`,
+    targetMessage: `<div class="effect-description top">🎪 The <span class="effect-card">Jester</span> dances before you, pressing into your hand a shiny charm:</div><div class="effect-description">✨💍 "<span class="quotation jester">Here's a gift from me and <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>. Keep it close, my friend, and the Princess will surely smile on you!</span>"</div><div class="effect-description">It feels more like a joke than a gift... but you cannot refuse. 🎭😊</div>`,
+    publicMessage: `<div class="effect-description">🎭🎪 <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> asked the <span class="effect-card">Jester</span> to hand the <span class="effect-card">Fool's Favor</span> to <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>! If the <span class="effect-card">Fool's Favor</span> receiver wins the round, the giver will also gain a love token! 👑💕</div>`,
   };
 }
 
@@ -70,8 +70,8 @@ export async function applyChamberlainEffect({ roomCode, attacker }) {
     result: "chamberlainInfluence",
     attacker,
     // 🏰💰 Rich, powerful, and slightly dramatic medieval narrative! 💰🏰
-    attackerMessage: `<div class="effect-description">🏰✨ You have secured the loyalty of the <span class="effect-card">Royal Chamberlain</span> — keeper of golden keys, guardian of royal secrets, and master of the crown's purse!</div><div class="effect-description">💰🗝️ This shrewd ally whispers in the right ears... Should misfortune befall you this round, the Chamberlain's influence shall ensure your sacrifice earns the Princess's favor! 👑💎</div>`,
-    publicMessage: `<div class="effect-description">🏰💰 <span class="effect-player">${attackerPlayer.name}</span> has gained the <span class="effect-card">Royal Chamberlain's</span> favor!</div><div class="effect-description">🗝️✨ Even in defeat, such powerful allies ensure victory... The court whispers of golden influence! 💎👑</div>`,
+    attackerMessage: `<div class="effect-description top">🏰✨ You have secured the loyalty of the <span class="effect-card">Royal Chamberlain</span> — keeper of golden keys, guardian of royal secrets, and master of the crown's purse!</div><div class="effect-description">💰🗝️ This shrewd ally whispers in the right ears... Should misfortune befall you this round, the Chamberlain's influence shall ensure your sacrifice earns the Princess's favor! 👑💎</div>`,
+    publicMessage: `<div class="effect-description">🏰💰 <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> has gained the <span class="effect-card">Royal Chamberlain's</span> favor!</div><div class="effect-description">🗝️✨ If they're eliminated, the Chamberlain's influence would bring them a love token! 💎👑</div>`,
   };
 }
 
@@ -143,6 +143,7 @@ export async function applyGuard2Effect({
 
   const players = roomData.players;
   const targetPlayerData = players[target];
+  const attackerPlayerData = players[attacker];
 
   let attackerMessage, targetMessage, publicMessage;
   let attackerMarkedForElimination = false;
@@ -176,22 +177,21 @@ export async function applyGuard2Effect({
 
       await update(ref(db, `rooms/${roomCode}`), eliminationUpdates);
 
-      publicMessage = `🎯 Rumors echo through the corridors — <span class="effect-player">${attacker}</span>’s Guard burst into <span class="effect-player">${target}</span>’s chambers and exposed a treacherous ally!
-        The scandal spreads like wildfire 🔥 — <span class="effect-player">${target}</span> is cast from the court in disgrace.`;
+      publicMessage = `🎯 <span class="effect-player">${attacker} (${attackerPlayerData.realName})</span>’s <span class="effect-card">Guard</span> burst into <span class="effect-player">${target} (${targetPlayerData.realName})</span>’s chambers and exposed a treacherous ally (the <span class="effect-card">${targetCard.name}</span>)!<span class="effect-player">${target} (${targetPlayerData.realName})</span> is cast from the court in disgrace.`;
 
       attackerMessage = `
         <div class="effect-description top">🎯 Your instincts were flawless.</div>
-        <div class="effect-description">The Guard you sent to <span class="effect-player">${target}</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${targetCard.name}</span>!</div>
+        <div class="effect-description">The Guard you sent to <span class="effect-player">${target} (${targetPlayerData.realName})</span>’s residence returns with a proud salute — your rival <em>was</em> conspiring with whom you suspected: the <span class="effect-card">${targetCard.name}</span>!</div>
         <div class="effect-description">Murmurs of betrayal sweep through the court like wildfire 🔥.</div>
         <div class="effect-description"><span class="effect-player">${target}</span> is disgraced, their schemes laid bare before the Princess.</div>`;
     } else {
       // Attacker guessed incorrectly - target survives
 
-      publicMessage = `The Guard returns to <span class="effect-player">${attacker}</span> with a "bad" news: the accusation against <span class="effect-player">${target}</span> proved unfounded.`;
+      publicMessage = `The <span class="effect-card">Guard</span> returns to <span class="effect-player">${attacker} (${attackerPlayerData.realName})</span> with a "bad" news: the accusation against <span class="effect-player">${target} (${targetPlayerData.realName})</span> proved unfounded.`;
 
       attackerMessage = `
         <div class="effect-description top">👮🏼 Your Guard returns at dawn, shaking his head.</div>
-        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target} (${targetPlayerData.realName})</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
         <div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
     }
   }
@@ -233,22 +233,22 @@ export async function applyGuard2Effect({
       "🗡️ ASSASSIN DEFENSE: Immediate effects applied - Card discarded, new card drawn, attacker marked for elimination"
     );
 
-    publicMessage = `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker}</span>’s Guard never makes it back.
-        From the darkness of <span class="effect-player">${target}</span>’s residence, the Royal Assassin has struck again ⚔️🌙`;
+    publicMessage = `🗡️💀 A silent shadow moves before dawn… <span class="effect-player">${attacker} (${attackerPlayerData.realName})</span>’s <span class="effect-card">Guard</span> never makes it back.
+        From the darkness of <span class="effect-player">${target} (${targetPlayerData.realName})</span>’s residence, the <span class="effect-card">Royal Assassin</span> has struck again ⚔️🌙`;
 
-    attackerMessage = `<div class="effect-description top">⚔️ Your Guard approached <span class="effect-player">${target}</span>’s residence…</div>
+    attackerMessage = `<div class="effect-description top">⚔️ Your <span class="effect-card">Guard</span> approached <span class="effect-player">${target} (${targetPlayerData.realName})</span>’s residence…</div>
         <div class="effect-description">But from the shadows, a blade flashed — silent and merciless!</div>
         <div class="effect-description"><span class="effect-player">${target}</span>’s ally, the <span class="effect-card">Royal Assassin</span>, cut your Guard down. 🩸</div>
         <div class="effect-description">The news reaches you at dawn; fear grips your heart. You dare not linger at court any longer…</div>
-        <div class="effect-description">You have been <span class="effect-card">ELIMINATED</span> from this round! 💔</div>`;
+        <div class="effect-description">You have been <span class="effect-warning">ELIMINATED</span> from this round! 💔</div>`;
   }
 
   // TARGET HAD ASSASSIN, BUT ATTACKER DID NOT REVEAL IT ("Let them go" button)
   if (actionUsed === "onIgnore") {
-    publicMessage = `🕯️ ${target} denies the charge with calm poise. “I fear your Guard has wasted his time, ${attacker}.”`;
+    publicMessage = `🕯️ ${target} (${targetPlayerData.realName}) denies the charge with calm poise. “I fear your <span class="effect-card">Guard</span> has wasted his time, ${attacker} (${attackerPlayerData.realName}).”`;
 
-    attackerMessage = `<div class="effect-description top">👮🏼 Your Guard returns at dawn, shaking his head.</div>
-        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target}</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
+    attackerMessage = `<div class="effect-description top">👮🏼 Your <span class="effect-card">Guard</span> returns at dawn, shaking his head.</div>
+        <div class="effect-description"><span class="quotation">“My lord… the accusation against <span class="effect-player">${target} (${targetPlayerData.realName})</span> proved unfounded,”</span> he says. <span class="quotation">“The halls were quiet, the servants loyal — no trace of conspiracy.”</span></div>
         <div class="effect-description">Your false alarm echoes through the palace corridors, earning you wary glances and polite smiles that hide their laughter.</div>`;
   }
 
@@ -289,6 +289,7 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
   }
 
   const targetPlayer = data.players[target];
+  const attackerPlayer = data.players[attacker];
 
   if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) {
     return {
@@ -308,16 +309,16 @@ export async function applyPriestEffect({ roomCode, attacker, target }) {
     targetCard,
     // Fun medieval notification messages 🏰
     attackerMessage: `
-<div class="effect-description justify top">⛪✨ The priest lifts his eyes to the heavens, murmuring a prayer for your generous donation.</div>
+<div class="effect-description justify top">⛪✨ The <span class="effect-card">Priest</span> lifts his eyes to the heavens, murmuring a prayer for your generous donation.</div>
 <div class="effect-description justify">A halo of light swirls above his head before he gasps — <span class="quotation">“Ah! The truth is revealed!”</span></div>
-<div class="effect-description justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul…</div>
+<div class="effect-description justify">💫 Through divine sight, you glimpse into <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>’s soul…</div>
 <div class="effect-description justify">Their secret ally is <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>`,
     targetMessage: `
-<div class="effect-description top">🙈⚡ The Priest turns his shining gaze upon you:</div>
+<div class="effect-description top">🙈⚡ The <span class="effect-card">Priest</span> turns his shining gaze upon you:</div>
 <div class="effect-description"><span class="quotation">“The soul hides nothing from the light,”</span> he declares, peering straight through your composure.</div>
-<div class="effect-description">You feel the chill of divine intrusion — your trusted ally, the <span class="effect-card">${targetCard.name}</span>, who could have helped you in this game of love (and throne!), has been revealed to <span class="effect-player">${attacker}</span>!</div>`,
+<div class="effect-description">You feel the chill of divine intrusion — your trusted ally, the <span class="effect-card">${targetCard.name}</span>, who could have helped you in this game of love (and throne!), has been revealed to <span class="effect-player">${attacker} (${attackerPlayer.realName})</span>!</div>`,
     publicMessage: `
-<div class="effect-description">🔮📿 <span class="effect-player">${attacker}</span> seeks the Priest’s divine guidance, asking him to glimpse into <span class="effect-player">${targetPlayer.name}</span>’s soul. ✨</div>`,
+<div class="effect-description">🔮📿 <span class="effect-player">${attacker} (${attackerPlayer.realName})</span> seeks the <span class="effect-card">Priest</span>’s divine guidance, asking him to glimpse into <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>’s hand! ✨</div>`,
   };
 }
 
@@ -339,6 +340,9 @@ export async function applyBaronEffect({
     playedCardIndex === 0 ? attackerHand[1] : attackerHand[0];
   const targetCard = data.players[target].hand[0];
   const baronCard = attackerHand[playedCardIndex];
+
+  const attackerPlayer = data.players[attacker];
+  const targetPlayer = data.players[target];
 
   let eliminatedPlayer = null;
   let winner = null;
@@ -398,40 +402,10 @@ export async function applyBaronEffect({
     // Medieval notifications for different audiences
     attackerMessage:
       eliminatedPlayer === target
-        ? `<div class="effect-description">⚔️🏆 Your Baron's duel is victorious! Your <span class="effect-card">${
-            attackerCard.name
-          }</span> (<span class="effect-strength">${
-            attackerCard.strength
-          }</span>) defeats <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            targetCard.name
-          }</span> (<span class="effect-strength">${
-            targetCard.strength
-          }</span>). <span class="effect-warning">They are eliminated from the round!</span></div>`
+        ? `<div class="effect-description">⚔️🏆 Your Baron's duel is victorious! Your <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>) defeats <span class="effect-player">${targetPlayer.name}</span>'s <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>). <span class="effect-warning">They are eliminated from the round!</span></div>`
         : eliminatedPlayer === attacker
-        ? `<div class="effect-description">⚔️💀 Your Baron's duel ends in defeat! Your <span class="effect-card">${
-            attackerCard.name
-          }</span> (<span class="effect-strength">${
-            attackerCard.strength
-          }</span>) falls to <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            targetCard.name
-          }</span> (<span class="effect-strength">${
-            targetCard.strength
-          }</span>). <span class="effect-warning">You are eliminated!</span></div>`
-        : `<div class="effect-description">⚔️🤝 An honorable draw! Your <span class="effect-card">${
-            attackerCard.name
-          }</span> (<span class="effect-strength">${
-            attackerCard.strength
-          }</span>) matches <span class="effect-player">${
-            data.players[target]?.name || target
-          }</span>'s <span class="effect-card">${
-            targetCard.name
-          }</span> (<span class="effect-strength">${
-            targetCard.strength
-          }</span>). Both knights live to fight another day!</div>`,
+        ? `<div class="effect-description">⚔️💀 Your Baron's duel ends in defeat! Your <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>) falls to <span class="effect-player">${targetPlayer.name}</span>'s <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>). <span class="effect-warning">You are eliminated!</span></div>`
+        : `<div class="effect-description">⚔️🤝 An honorable draw! Your <span class="effect-card">${attackerCard.name}</span> (<span class="effect-strength">${attackerCard.strength}</span>) matches <span class="effect-player">${targetPlayer.name}</span>'s <span class="effect-card">${targetCard.name}</span> (<span class="effect-strength">${targetCard.strength}</span>). Both knights live to fight another day!</div>`,
 
     targetMessage:
       eliminatedPlayer === target
@@ -442,21 +416,23 @@ export async function applyBaronEffect({
 
     publicMessage: eliminatedPlayer
       ? `<div class="effect-description">⚖️💥 <span class="effect-player">${
-          data.players[attacker]?.name || attacker
-        }</span> plays Baron and challenges <span class="effect-player">${
-          data.players[target]?.name || target
-        }</span> to a duel of honor! <span class="effect-card">${
+          attackerPlayer.name
+        } (${
+          attackerPlayer.realName
+        })</span> plays <span class="effect-card">Baron</span> and challenges <span class="effect-player">${
+          targetPlayer.name
+        } (${
+          targetPlayer.realName
+        })</span> to a duel of honor! <span class="effect-card">${
           loserCard.name
         }</span> (<span class="effect-strength">${
           loserCard.strength
         }</span>) falls to superior strength - <span class="effect-warning">${
           data.players[eliminatedPlayer]?.name || eliminatedPlayer
-        } is eliminated!</span> ⚔️👑</div>`
-      : `<div class="effect-description">⚖️🤝 <span class="effect-player">${
-          data.players[attacker]?.name || attacker
-        }</span> plays Baron and challenges <span class="effect-player">${
-          data.players[target]?.name || target
-        }</span> to a duel! Both cards match in strength - an honorable draw with no casualties! 🛡️✨</div>`,
+        } (${
+          data.players[eliminatedPlayer]?.realName || ""
+        }) is eliminated!</span> ⚔️👑</div>`
+      : `<div class="effect-description">⚖️🤝 <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> plays <span class="effect-card">Baron</span> and challenges <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span> to a duel! Both cards match in strength - an honorable draw with no casualties! 🛡️✨</div>`,
   };
 }
 
@@ -472,6 +448,9 @@ export async function applyRegentQueenEffect({
 
   // Get the attacker's hand (should have 2 cards at this point)
   const attackerHand = data.players[attacker].hand;
+
+  const attackerPlayer = data.players[attacker];
+  const targetPlayer = data.players[target];
 
   // The attackerCard should be the OTHER card (not the Regent Queen being played)
   const attackerCard =
@@ -534,14 +513,8 @@ export async function applyRegentQueenEffect({
     isTie: !eliminatedPlayer,
     result: eliminatedPlayer ? "elimination" : "tie",
     publicMessage: eliminatedPlayer
-      ? `The Regent Queen took an interest in the suitor ${
-          data.players[attacker]?.name || attacker
-        } who, not long after, vanished from the court. The Queen's idea of 'help,' it seems, is a dangerous blessing. 👑💀`
-      : `The Regent Queen studied both suitors carefully. '${
-          data.players[attacker]?.name || attacker
-        }' and '${
-          data.players[target]?.name || target
-        }' - both show promise,' she mused. 'You may both remain... for now.' 👑⚖️`,
+      ? `The <span class="effect-card">Regent Queen</span> took an interest in <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> who, not long after, vanished from the court. Less threatening, <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span> is now the new Queen's favorite. 👑`
+      : `The <span class="effect-card">Regent Queen</span> studied both suitors carefully: <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> and <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span> - both show promise,' she mused. 'You may both remain... for now.' 👑⚖️`,
   };
 }
 
@@ -558,6 +531,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   }
 
   const targetPlayer = data.players[target];
+  const attackerPlayer = data.players[attacker];
   const deck = data.round.deck || [];
   const isSelfTarget = attacker === target;
 
@@ -641,8 +615,8 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
   await update(ref(db, `rooms/${roomCode}`), finalUpdates);
 
   // Generate royal messages! 👑✨
-  const attackerName = data.players[attacker]?.name || attacker;
-  const targetName = data.players[target]?.name || target;
+  const attackerName = attacker;
+  const targetName = target;
   const discardedCardName = targetCard.name;
   const newCardName = newCard?.name || "none";
 
@@ -652,7 +626,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     if (isSelfTarget) {
       // if selfTarget, we Don't need a targetMessage
       publicMessage = `
-<div class="effect-description">👑 The Prince roared at <span class="effect-player">${attackerName}</span> for courting his sister in secret. They are cast from the court!</div>
+<div class="effect-description">👑 The Prince roared at <span class="effect-player">${attackerName} (${attackerPlayer.realName})</span> for courting his sister in secret. They are cast from the court!</div>
 `;
       attackerMessage = `
 <div class="effect-description">You thought your bond with the Princess was safe… yet her brother saw through it.</div>
@@ -662,18 +636,18 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     } else {
       // if NOT selfTarget, we ALSO need a targetMessage
       publicMessage = `
-<div class="effect-description">👑 At <span class="effect-player">${attackerName}</span>’s word, the Prince banished <span class="effect-player">${targetName}</span> for having courted her sister in secret!</div>
+<div class="effect-description">👑 At <span class="effect-player">${attackerName} (${attackerPlayer.realName})</span>’s word, the <span class="effect-card">Prince</span> banished <span class="effect-player">${targetName} (${targetPlayer.realName})</span> for having courted her sister in secret!</div>
 `;
       attackerMessage = `
 <div class="effect-description"> You lean close to the Prince's ear, <span class="effect-player">${attackerName}</span>, voice low with concern:</div>
-<div class="effect-description"><span class="quotation">“Your Highness, rumors point to <span class="effect-player">${targetName}</span> near your sister.”</span> 🕵️</div>
+<div class="effect-description"><span class="quotation">“Your Highness, rumors point to <span class="effect-player">${targetName} (${targetPlayer.realName})</span> near your sister.”</span> 🕵️</div>
 <div class="effect-description">The Prince’s face darkens. <span class="quotation">“They are courting my sister? Without my leave?”</span> ⛈️</div>
 <div class="effect-description effect-warning">His decree falls; <span class="effect-player">${targetName}</span> goes to the gates at once.</div>
 <div class="effect-description">Bootsteps fade over marble… and your plan holds firm ❤️‍🔥.</div>
 `;
       targetMessage = `
 <div class="effect-description"> 🏹The Prince’s eyes pin you like arrows.</div>
-<div class="effect-description"><span class="quotation">“You think to charm my sister —without my permission?”</span> 😠</div>
+<div class="effect-description"><span class="quotation">“I heard from my friend <span class="effect-player">${attackerName} (${attackerPlayer.realName})</span> that you were courting my sister —without my permission?”</span> 😠</div>
 <div class="effect-description">Steel rings; guards close the distance before a word leaves your mouth.</div>
 <div class="effect-description effect-warning">You are expelled from court in disgrace 🚪. </div>
 `;
@@ -682,7 +656,7 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     // if !wasPrincessDiscarded
     if (isSelfTarget) {
       publicMessage = `
-<div class="effect-description">🤝 The Prince favors <span class="effect-player">${attackerName}</span>: the <span class="effect-card">${discardedCardName}</span>,judged unworthy, left their side; a new contact steps in.</div>
+<div class="effect-description">The <span class="effect-card">Prince</span> judged the <span class="effect-card">${discardedCardName}</span> unworthy of <span class="effect-player">${attackerName} (${attackerPlayer.realName})</span>'s company, and shoo them away; a new contact steps in.</div>
 `;
       attackerMessage = `
 <div class="effect-description">The Prince clasps your shoulder. <span class="quotation">“You suit my sister better than most… yet your company falls short!”</span></div>
@@ -692,17 +666,17 @@ export async function applyPrinceEffect({ roomCode, attacker, target }) {
     } else {
       // if NOT selfTarget, we ALSO need a targetMessage
       publicMessage = `
-<div class="effect-description">Jealous and protective, the Prince dismissed <span class="effect-player">${targetName}</span>’ accomplice (the <span class="effect-card">${discardedCardName}</span>), after ${attackerName} whispered in his ear.</div>
+<div class="effect-description">Having heard some nasty rumors from <span class="effect-player">${attackerName} (${attackerPlayer.realName})</span>, the <span class="effect-card">Prince</span> dismissed <span class="effect-player">${targetName} (${targetPlayer.realName})</span>’ accomplice (the <span class="effect-card">${discardedCardName}</span>).</div>
 `;
       attackerMessage = `
-<div class="effect-description"><span class="quotation">“Your Highness,”</span> you begin softly, <span class="quotation">“some rumors say that ${targetName} has been using the <span class="effect-card">${discardedCardName}</span>'s help to get close to your sister.”</span></div>
+<div class="effect-description top"><span class="quotation">“Your Highness,”</span> you begin softly, <span class="quotation">“some rumors say that ${targetName} (${targetPlayer.realName}) has been using the <span class="effect-card">${discardedCardName}</span>'s help to get close to your sister.”</span></div>
 <div class="effect-description">The Prince’s brow tightens, fury and jealousy gleaming in his eyes.</div>
 <div class="effect-description effect-warning">The <span class="effect-card">${discardedCardName}</span> is cast from the court at once.</div>
 <div class="effect-description quotation">“Thank you, my friend. I shall remember that.”</div>
 `;
       targetMessage = `
-<div class="effect-description">The Prince’s glare cools the air around you.</div>
-<div class="effect-description"><span class="quotation">“You’ve been keeping curious company, <span class="effect-player">${targetName}</span>. No one courts my sister without my leave.”</span></div>
+<div class="effect-description top">The Prince’s glare cools the air around you.</div>
+<div class="effect-description"><span class="quotation">“I heard from ${attackerName} (${attackerPlayer.realName}) that you’ve been keeping curious company. Forget your schemes. No one courts my sister without my leave.”</span></div>
 <div class="effect-description effect-warning">Your accomplice, the <span class="effect-card">${discardedCardName}</span>, is led away, eyes lowered.</div>
 <div class="effect-description">A new face —the <span class="effect-card">${newCardName}</span>— appears at your side, with a careful smile.</div>
 <div class="effect-description">A new connection, perhaps…? or maybe a trap? 🤔</div>
@@ -733,6 +707,8 @@ export async function applyHandmaidEffect({ roomCode, player }) {
   // Get current protected players array (or initialize if doesn't exist)
   const currentProtected = data.protectedPlayers || [];
 
+  const attackerPlayer = data.players[player];
+
   // Add this player to protected players if not already there
   const updatedProtected = currentProtected.includes(player)
     ? currentProtected
@@ -748,11 +724,9 @@ export async function applyHandmaidEffect({ roomCode, player }) {
     result: "protection",
     protectedPlayer: player,
     // Cozy medieval notification for everyone
-    publicMessage: `<div class="effect-description">🫖✨ The Princess' Handmaid graciously invites <span class="effect-player">${
-      data.players[player]?.name || player
-    }</span> for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
+    publicMessage: `<div class="effect-description">🫖✨ The Princess' <span class="effect-card">Handmaid</span> graciously invites <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> for tea and biscuits in her cozy chambers. <span class="effect-success">They are now protected until their next turn!</span> ☕🛡️</div>`,
     // Personal message for the protected player's modal
-    playerMessage: `<div class="effect-description">The Princess' loyal Handmaid has taken you under her wing! She invites you for tea and biscuits in her cozy chambers 🫖✨.</div>
+    playerMessage: `<div class="effect-description top">The Princess' loyal <span class="effect-card">Handmaid</span> has taken you under her wing! She invites you for tea and biscuits in her cozy chambers 🫖✨.</div>
     <div class="effect-description quotation">"Come, dear. Let us chat by the fireplace while the others play their games. You're safe with me!"</div>
     <div class="effect-technical">Effect: You cannot be targeted by any cards until your next turn. 🛡️</div>
 `,
@@ -780,9 +754,7 @@ export async function applyCountessEffect({ roomCode, player }) {
       result: "countess_played",
       message: `The Countess has graced the court with her presence!`,
       // Royal notification for everyone in the court
-      publicMessage: `<div class="effect-description">💃 The <span class="effect-card">Countess</span> turns on her heel, eyes aflame, leaving <span class="effect-player">${
-        playerData.name || player
-      }</span> behind, her fan snapping shut with an icy hiss ❄️.</div>`,
+      publicMessage: `<div class="effect-description">Eyes aflame, the <span class="effect-card">Countess</span> leaves <span class="effect-player">${playerData.name} (${playerData.realName})</span>'s company in a huff. Why is she so furious? 🤔</div>`,
       // Personal message for the player's modal (if needed)
       playerMessage: `<div class="effect-description top">The <span class="effect-card">Countess</span> gazes at you, her voice trembling with indignation:</div>
 <div class="effect-description"><span class="quotation countess">“I had faith in your judgment, but to seek counsel among such men?”</span> 😠</div>
@@ -798,9 +770,10 @@ export async function applyCountessEffect({ roomCode, player }) {
   }
 }
 
-export async function applyAssassinEffect({ player }) {
+export async function applyAssassinEffect({ player, playerRealName }) {
   console.log("🗡️ ASSASSIN DEBUG: A shadow moves in the court...", {
     player,
+    playerRealName,
   });
 
   try {
@@ -808,12 +781,11 @@ export async function applyAssassinEffect({ player }) {
       result: "assassin_played",
       message: `A shadow passes through the court...`,
       // Mysterious notification for everyone in the court
-      publicMessage: `<div class="effect-description">🌙🐾 A shadow glides silently through the corridors... Was it merely a cat, or something far more sinister? <span class="effect-player">${player}</span> seems to have noticed something, but speaks not a word. 🕯️✨</div>`,
+      publicMessage: `<div class="effect-description">🌙🐾 A shadow leaves <span class="effect-player">${player} (${playerRealName})</span>'s residence. Was it merely a cat, or something far more sinister like... the <span class="effect-card">Royal Assassin</span>? 🕯️✨</div>`,
       // Personal dramatic message for the player's modal
-      playerMessage: `<div class="effect-description">🐾 A shadow passes through the court like a whisper of silk...</div>
-      <div class="effect-description">Your lethal asset slips away unnoticed, but your opportunity for a decisive strike is now lost.</div>
-      <div class="effect-quote">"The darkness is patient. It waits for the perfect moment to strike."</div>
-      <div class="effect-signature">- A Voice from the Shadows</div>`,
+      playerMessage: `<div class="effect-description top">🌙🐾 Your graceful guest leaves your residence at night, without you noticing.</div>
+      <div class="effect-description">You thought you were hosting a charming lady of the court, and didn't realize she was in fact a deadly assassin.</div>
+      <div class="effect-description">You're just left with questions... and lost the chance of forming a precious alliance!</div>`,
     };
   } catch (error) {
     console.error("🗡️ ASSASSIN ERROR: Shadow compromised!", error);
@@ -912,16 +884,16 @@ export async function applyPhantomKingEffect({
     newTargetCard: attackerCard,
 
     // New formatted messages
-    attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The ghost of the King floats in, crown crooked, wine cup in hand. 👻🍷</div>
+    attackerMessage: `<div class="effect-description phantom-king top">From nowhere, you hear a loud hiccup. The <span class="effect-card">ghost of the King</span> floats in, crown crooked, wine cup in hand. 👻🍷</div>
       <div class="effect-description phantom-king"><span class="quotation">'Ah! My favorite suitor!'</span> he says. <span class="quotation">'Let me fix this little love mess for you!'</span></div>
       <div class="effect-description phantom-king">He waves his cup, spilling ghost-wine everywhere — and suddenly, your standing in the court… changes.</div>
       <div class="effect-description phantom-king">Whether that's good or bad, only the future will tell.</div>`,
 
-    targetMessage: `<div class="effect-description phantom-king top">✨ A ghostly burp echoes through the hall. The Phantom King wobbles before you, trying to pat your shoulder but missing by several inches.</div>
-      <div class="effect-description phantom-king"><span class="quotation">'Ha! I'd rather have ${attacker} sit on my throne than you!'</span> he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
+    targetMessage: `<div class="effect-description phantom-king top">✨ A ghostly burp echoes through the hall. The <span class="effect-card">Phantom King</span> wobbles before you, trying to pat your shoulder but missing by several inches.</div>
+      <div class="effect-description phantom-king"><span class="quotation">'Ha! I'd rather have <span class="effect-player">${attacker} (${attackerData.realName})</span> sit on my throne than you!'</span> he declares, then spins in a dramatic swirl that somehow changes your fate.</div>
       <div class="effect-description phantom-king">When the ghost fades, the only thing left is confusion… and the faint sound of laughter. 👻</div>`,
 
-    publicMessage: `<div class="effect-description">👻 The Phantom King showed up again, 'helping' one suitor at the expense of another. No one's quite sure what changed — but the throne room smells faintly of brandy and regret. 🍷</div>`,
+    publicMessage: `<div class="effect-description">👻 The <span class="effect-card">Phantom King</span> showed up again, 'helping' one suitor at the expense of another. <span class="effect-player">${attacker} (${attackerData.realName})</span> and <span class="effect-player">${target} (${targetData.realName})</span> just swapped their hands!.</div>`,
   };
 
   console.log(
@@ -974,13 +946,14 @@ export async function applyRoyalConfessorEffect({
     const gameData = snapshot.val();
 
     const attackerData = gameData.players[attacker];
+    const target2Data = gameData.players[target2];
+    const target1Data = gameData.players[target1];
+
     const attackerSecondCard = attackerData.hand.find((card) => card.id !== 13); // The other card in attacker's hand
     const royalConfessorCard = attackerData.hand.find((card) => card.id === 13);
 
-    const target1Card = isSelfTarget
-      ? attackerSecondCard
-      : gameData.players[target1].hand[0];
-    const target2Card = gameData.players[target2].hand[0];
+    const target1Card = isSelfTarget ? attackerSecondCard : target1Data.hand[0];
+    const target2Card = target2Data.hand[0];
 
     // STEP 1: Apply hand swap effect (now both players have exactly 1 card)
     console.log("🎭 ROYAL CONFESSOR: Preparing mutual confession between:", {
@@ -1018,28 +991,34 @@ export async function applyRoyalConfessorEffect({
     const newTarget1Card = target2Card;
     const newTarget2Card = target1Card;
 
-    const externalAttackerMessage = `<div class="effect-description top">The Royal Confessor clasps his hands. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> cleanse each other's souls before the light.”</span></div>
+    const externalAttackerMessage = `<div class="effect-description top">The <span class="effect-card">Royal Confessor</span> clasps his hands. <span class="quotation">“Sin festers when left alone,”</span> he declares. <span class="quotation">“Let <span class="effect-player">${target1} (${target1Data.realName})</span> and <span class="effect-player">${target2} (${target2Data.realName})</span> cleanse each other's souls.”</span></div>
 <div class="effect-description">While they whisper, he listens — not so — discreetly, eyes twinkling through the incense 👀✨. Then he turns to you with a grin:</div>
 <div class="effect-description quotation">“A fine selection, my child. As reward for your pious donations, allow me to share a morsel of their wickedness...”</div>`;
 
     // Attacker message (when attacker = target1)
 
-    const attackerSelfTargetMessage = `<div class="effect-description top">Seeking divine favor, you step forth before the Royal Confessor.</div>
-<div class="effect-description"><span class="quotation">“Such humility warms the heavens,”</span> he proclaims. <span class="quotation">“<span class="effect-player">${target2}</span> shall join you — for nothing cleanses the soul like mutual confession.”</span></div>
+    const attackerSelfTargetMessage = `<div class="effect-description top">Seeking divine favor, you step forth before the <span class="effect-card">Royal Confessor</span>.</div>
+<div class="effect-description"><span class="quotation">“Such humility warms the heavens,”</span> he proclaims. <span class="quotation">“<span class="effect-player">${target2} (${target2Data.realName})</span> shall join you — for nothing cleanses the soul like mutual confession.”</span></div>
 <div class="effect-description">As your whispers fade, he leans closer, smirking beneath his hood:</div>
 <div class="effect-description quotation">“A brave act, my child. And between us… their secret was worth the effort, don’t you think?”</div>`;
 
-    const target2Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${
-      isSelfTarget ? "them" : target1
+    const target2Message = `<div class="effect-description confessor top">The <span class="effect-card">Royal Confessor</span>’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker} (${
+      attackerData.realName
+    })</span>, you and <span class="effect-player">${
+      isSelfTarget ? "them" : target1 + ` (${target1Data.realName})`
     }</span> shall purify your hearts before the light!”</span></div>
-<div class="effect-description confessor">You kneel beside <span class="effect-player">${target1}</span>, exchanging your hidden sins as incense clouds the air.</div>
+<div class="effect-description confessor">You kneel beside <span class="effect-player">${target1} (${
+      target1Data.realName
+    })</span>, exchanging your hidden sins as incense clouds the air.</div>
 <div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some Court's secrets 👀✨.</div>`;
 
-    const target1Message = `<div class="effect-description confessor top">The Royal Confessor’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker}</span>, you and <span class="effect-player">${target2}</span> shall purify your hearts before the light!”</span></div>
-<div class="effect-description confessor">You kneel beside <span class="effect-player">${target2}</span>, exchanging your hidden sins as incense clouds the air.</div>
+    const target1Message = `<div class="effect-description confessor top">The <span class="effect-card">Royal Confessor</span>’s voice booms through the chapel: <span class="quotation">“By order of our devout benefactor, <span class="effect-player">${attacker} (${attackerData.realName})</span>, you and <span class="effect-player">${target2} (${target2Data.realName})</span> shall purify your hearts before the light!”</span></div>
+<div class="effect-description confessor">You kneel beside <span class="effect-player">${target2} (${target2Data.realName})</span>, exchanging your hidden sins as incense clouds the air.</div>
 <div class="effect-description confessor">The Confessor nods gravely, though his eager eyes betray a man far too pleased to learn some Court's secrets 👀✨.</div>`;
 
-    const publicMessage = `<div class="effect-description">✝️ The <span class="effect-card">Royal Confessor</span> ordered <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> to confess their sins to each other. The court applauded the piety.</div>`;
+    const publicMessage = isSelfTarget
+      ? `<div class="effect-description">✝️ At <span class="effect-player">${attacker} (${attackerData.realName})</span>'s demand, the <span class="effect-card">Royal Confessor</span> ordered <span class="effect-player">them</span> and <span class="effect-player">${target2} (${target2Data.realName})</span> to confess their sins to each other. They just swapped their cards!</div>`
+      : `<div class="effect-description">✝️ At <span class="effect-player">${attacker} (${attackerData.realName})</span>'s demand, the <span class="effect-card">Royal Confessor</span> ordered <span class="effect-player">${target1} (${target1Data.realName})</span> and <span class="effect-player">${target2} (${target2Data.realName})</span> to confess their sins to each other. They swapped their cards, and <span class="effect-player">${attacker} (${attackerData.realName})</span> had a glimpse of one of them!</div>`;
 
     return {
       result: "confession",
@@ -1059,7 +1038,6 @@ export async function applyRoyalConfessorEffect({
 }
 
 // 👑 Princess Card (ID: 8, Strength: 8)
-// Effect: If the player plays or discards this card for any reason, they are eliminated from the round.
 export async function applyPrincessEffect({ roomCode, player }) {
   console.log("👑 PRINCESS DEBUG: The ultimate tragedy unfolds...", {
     player,
@@ -1092,16 +1070,13 @@ export async function applyPrincessEffect({ roomCode, player }) {
     // Elimination will happen in completePrincessTurn() after player reads the modal
 
     // Craft dramatic medieval-geek messages
-    const publicMessage = `<div class="effect-description">In a moment of desperate love, <span class="effect-player">${playerName}</span> approached the Princess directly...</div>
-    <div class="effect-description">But in all her royal dignity, she simply turned away! 💔</div>
-    <div class="effect-description"><span class="quotation">"You presume too much!"</span> declared Her Highness.</div>
-    <div class="effect-warning"><span class="effect-player">${playerName}</span> is banished from the royal court! 👑✨</div>`;
-    const playerMessage = `<div class="effect-description top">Oh no! You've been rejected by the <span class="effect-card">PRINCESS</span>...! 🙈</div>
-    <div class="effect-description">You approached Her Royal Highness directly with your letter...</div>
-    <div class="effect-description">But she gave you the coldest royal stare before walking away, ignoring you. 💔</div>
+    const publicMessage = `<div class="effect-description">In a moment of desperate love, <span class="effect-player">${playerName} (${playerData.realName})</span> approached the Princess directly... But in all her royal dignity, she simply turned away! 💔</div>
+    <div class="effect-description"><div class="effect-warning"><span class="effect-player">${playerName}</span> is banished from the royal court!</div> 👑✨</div>`;
+    const playerMessage = `<div class="effect-description top"><div class="effect-warning">Oh no!</span> You've been rejected by the <span class="effect-card">PRINCESS</span>...! 🙈</div>
+    <div class="effect-description">You approached Her Royal Highness directly with your letter... But she gave you the coldest royal stare before walking away, ignoring you. 💔</div>
     <div class="effect-warning">You are eliminated from the round, you hopeless romantic! 😘</div>
     <div class="effect-quote">"Next time, try working your way up the social ladder first..."</div>
-    <div class="effect-signature">- The Princess (rolling her eyes) 🙄</div>`;
+    <div class="effect-signature">- The Princess (rolling her eyes)</div>`;
 
     return {
       result: "princess_played",
@@ -1234,65 +1209,33 @@ export async function applyInquisitorEffect({
       attackerMessage = `<div class="effect-description top">🔍 Your Inquisitor searched for a heretic of <span class="effect-strength">strength ${guess}</span> at <span class="effect-player">${attackerPlayer.name}</span>'s place,  but didn't find the suspect.</div>
       <div class="effect-description">⚖️ The investigation yields nothing...</div>`;
 
-      targetMessage = `<div class="effect-description top">🕵️ <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor came looking for some heretic of strength <span class="effect-strength">${guess}</span> at your place...</div>
-      <div class="effect-description">🛡️ But they only found you in the company of <span class="effect-card">${
-        targetCard.name
-      }</span> (Strength <span class="effect-strength">${
-        targetCard.strength
-      }</span>).</div>
+      targetMessage = `<div class="effect-description top">🕵️ <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s <span class="effect-card">Inquisitor</span> came looking for some heretic of strength <span class="effect-strength">${guess}</span> at your place...</div>
+      <div class="effect-description">🛡️ But they only found you in the company of <span class="effect-card">${targetCard.name}</span> (Strength <span class="effect-strength">${targetCard.strength}</span>).</div>
       <div class="effect-description">✨ You are safe from their investigation!</div>`;
 
-      publicMessage = `<div class="effect-description">🔍 <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor investigated <span class="effect-player">${
-        targetPlayer.name || target
-      }</span>'s place, but didn't find the heretic of strength <span class="effect-strength">${guess}</span> they were looking for.</div>`;
+      publicMessage = `<div class="effect-description">🔍 <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s <span class="effect-card">Inquisitor</span> investigated <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>'s place, but didn't find the heretic of strength <span class="effect-strength">${guess}</span> they were looking for.</div>`;
     } else if (isPrincessFound) {
       // Correct guess AND Princess found - SCANDAL!
-      attackerMessage = `<div class="effect-description top">SCANDALOUS DISCOVERY! 😱 Your Inquisitor found <span class="effect-player">${
-        targetPlayer.name || target
-      }</span> consorting directly with the <span class="effect-card">PRINCESS</span>!</div>
+      attackerMessage = `<div class="effect-description top">SCANDALOUS DISCOVERY! 😱 Your <span class="effect-card">Inquisitor</span> found <span class="effect-player">${targetPlayer.name}</span> consorting directly with the <span class="effect-card">PRINCESS</span>!</div>
       <div class="effect-description">💰 Your cunning investigation earns you a <span class="effect-success">Love Token</span>!</div>
       <div class="effect-description">⚖️ Such impropriety cannot be tolerated - they are <span class="effect-elimination">ELIMINATED</span>!</div>`;
 
-      targetMessage = `<div class="effect-description top">⛪ DIVINE JUDGMENT! 🌩️ <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor discovered your secret meetings with the <span class="effect-card">PRINCESS</span>!</div>
+      targetMessage = `<div class="effect-description top">⛪ DIVINE JUDGMENT! 🌩️ <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s <span class="effect-card">Inquisitor</span> discovered your secret meetings with the <span class="effect-card">PRINCESS</span>!</div>
       <div class="effect-description">The Church declares this shocking impropriety absolutely intolerable! 🔥</div>
       <div class="effect-description">You are <span class="effect-elimination">ELIMINATED</span> for this scandalous breach of protocol!</div>`;
 
-      publicMessage = `<div class="effect-description">⛪ SCANDAL! <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor found <span class="effect-player">${
-        targetPlayer.name || target
-      }</span> consorting with the <span class="effect-card">PRINCESS</span>! <span class="effect-elimination">${
-        targetPlayer.name || target
-      } eliminated for this shocking impropriety.</span></div>`;
+      publicMessage = `<div class="effect-description">⛪ SCANDAL! <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s Inquisitor found <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span> consorting with the <span class="effect-card">PRINCESS</span>! <span class="effect-elimination">${targetPlayer.name} eliminated for this shocking impropriety.</span></div>`;
     } else {
       // Correct guess but not Princess - normal investigation success
-      attackerMessage = `<div class="effect-description top">🕵️ INVESTIGATION SUCCESSFUL! Your Inquisitor found the heretic they were looking for in <span class="effect-player">${
-        targetPlayer.name || target
-      }</span>'s company.</div>
+      attackerMessage = `<div class="effect-description top">🕵️ INVESTIGATION SUCCESSFUL! Your <span class="effect-card">Inquisitor</span> found the heretic they were looking for in <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>'s company.</div>
       <div class="effect-description">Your cunning earns you a <span class="effect-success">Love Token</span>! 💰</div>
       <div class="effect-description">They must dismiss their heretic ally and seek new counsel... </div>`;
 
-      targetMessage = `<div class="effect-description top">🔍 ROYAL INVESTIGATION! <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor suspected you of plotting with some heretic of strength <span class="effect-strength">${guess}</span>...</div>
-      <div class="effect-description">They were RIGHT! 😱 They discovered your <span class="effect-card">${
-        targetCard.name
-      }</span> ally in your company!</div>
-      <div class="effect-description">⚖️ Your treacherous alliance is exposed - dismiss your accomplice immediately!</div>`;
+      targetMessage = `<div class="effect-description top">🔍 ROYAL INVESTIGATION! <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s <span class="effect-card">Inquisitor</span> suspected you of plotting with some heretic of strength <span class="effect-strength">${guess}</span>...</div>
+      <div class="effect-description">They were RIGHT! 😱 They discovered your <span class="effect-card">${targetCard.name}</span> ally in your company!</div>
+      <div class="effect-description effect-warning">⚖️ Your treacherous alliance is exposed - dismiss your accomplice immediately!</div>`;
 
-      publicMessage = `<div class="effect-description">🕵️ <span class="effect-player">${
-        attackerPlayer.name || attacker
-      }</span>'s Inquisitor exposed <span class="effect-player">${
-        targetPlayer.name || target
-      }</span>'s <span class="effect-card">${
-        targetCard.name
-      }</span>! Secrets revealed!</div>`;
+      publicMessage = `<div class="effect-description">🕵️ <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span>'s <span class="effect-card">Inquisitor</span> discovered the <span class="effect-card">${targetCard.name}</span> (suspected of heresy!) in <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>'s company! The <span class="effect-card">${targetCard.name}</span> is arrested, and replaced by a more pious ally.</div>`;
     }
 
     return {
@@ -1350,7 +1293,7 @@ export async function applyCourtWhispererEffect({
 <div class="effect-description">By nightfall, your name dances through every corridor — servants, courtiers, even the guards at the gate whisper it with delight. 🕯️</div>
 <div class="effect-warning">You're the center of every conversation… and all eyes turn your way — including the princesss'! 👸🏼💖</div>`
       : `<div class="effect-description top">
-        You lean toward the infamous Court Whisperer and drop a few well-placed words about <span style="color: #FF1493; font-weight: bold;">${targetPlayer.name}</span>.
+        You lean toward the infamous Court Whisperer and drop a few well-placed words about <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>.
       </div>
       <div class="effect-description">
         A wide grin spreads across her painted face. Within hours, every servant, scribe, and stable boy is whispering that name!
@@ -1366,16 +1309,16 @@ export async function applyCourtWhispererEffect({
         You arrive at court and the air changes.
       </div>
       <div class="effect-description">
-        Eyes follow you, fans flutter, and every laugh seems to end in your name.
+        Eyes follow you, fans flutter, and every laugh seems to end with your name. You became the talk of the town overnight!
       </div>
       <div class="effect-description">
-        The Court Whisperer has clearly been busy — your reputation is now the court's favorite entertainment. 🎭✨
+        It looks like <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> and their ally, the <span class="effect-card">Court Whisperer</span>, have been spreading some nasty rumors about you 😱
       </div>
       <div class="effect-technical">
         🎯 Next player MUST target <span style="font-weight: bold;">YOU</span> (if their card requires targeting)
       </div>`;
 
-    const publicMessage = `<div class="effect-description">🗣️ <span class="effect-player">${attackerPlayer.name}</span> gives the Court Whisperer a new subject: <span class="effect-player">${targetPlayer.name}</span>. 📣 Rumors spread faster than perfume in the throne room, and no one dares speak of anything — or anyone — else. 👄</div>`;
+    const publicMessage = `<div class="effect-description">🗣️ <span class="effect-player">${attackerPlayer.name} (${attackerPlayer.realName})</span> gives the <span class="effect-card">Court Whisperer</span> a new subject: <span class="effect-player">${targetPlayer.name} (${targetPlayer.realName})</span>. 📣 Rumors spread fast, and no one dares speak of anything — or anyone — else. 👄</div>`;
 
     return {
       result: "success",
@@ -1420,6 +1363,7 @@ export async function applyBaronessEffect({
       };
     }
 
+    const attackerPlayer = data.players[attacker];
     const target1Player = data.players[target1];
     let target2Player = null;
 
@@ -1450,31 +1394,31 @@ export async function applyBaronessEffect({
 
     // Generate romantic narratives 💋✨
     const attackerMessage = target2
-      ? `<div class="effect-description baroness top">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rivals might stand in your way!"</span></div>
-<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span>, filling their glasses until they speak too freely. 🥂</div>
+      ? `<div class="effect-description baroness top">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rivals might stand in your way!"</span></div>
+<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1} (${target1Player.realName})</span> and <span class="effect-player">${target2} (${target2Player.realName})</span>, filling their glasses until they speak too freely. 🥂</div>
 <div class="effect-description baroness">Later, she returns to you, eyes sparkling. ✨ <span class="quotation">"Well,"</span> she whispers, <span class="quotation">"I've uncovered the allies who guard their letters... and what a charming tangle of love it is!"</span> 💕</div>`
-      : `<div class="effect-description baroness">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, <span class="effect-player">${attacker}</span>, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rival might stand in your way!"</span></div>
-<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1}</span>, filling their glass until they speak too freely. 🥂</div>
+      : `<div class="effect-description baroness">🍷✨ At her evening soirée, the Baroness fans herself with excitement. <span class="quotation">"Ah, my favorite dreamer of romance,"</span> she says with a wink. <span class="quotation">"Allow me to see which rival might stand in your way!"</span></div>
+<div class="effect-description baroness">🌹 She drifts toward <span class="effect-player">${target1} (${target1Player.realName})</span>, filling their glass until they speak too freely. 🥂</div>
 <div class="effect-description baroness">Later, she returns to you, eyes sparkling. ✨ <span class="quotation">"Well,"</span> she whispers, <span class="quotation">"I've uncovered the ally who guards their letter... what a charming secret it is."</span> 💕</div>`;
 
     const target1Message = target2
-      ? `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target2}</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile.</div>
+      ? `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target2} (${target2Player.realName})</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile.</div>
 <div class="effect-description baroness">Moments later, both of you find yourselves telling her ALL about your lives! 💬✨</div>
-<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`
+<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker} (${attackerPlayer.realName})</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`
       : `<div class="effect-description baroness">🎉💋 The Baroness' soirée hums with laughter when she takes your arm with a playful smile.</div>
 <div class="effect-description baroness">Moments later, you find yourself speaking far too freely about your romantic intentions. 💬✨</div>
-<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
+<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker} (${attackerPlayer.realName})</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
 
     let target2Message = null;
     if (target2) {
-      target2Message = `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target1}</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile.</div>
+      target2Message = `<div class="effect-description baroness top">🎉💋 The Baroness' soirée hums with laughter when she takes you and <span class="effect-player">${target1} (${target1Player.realName})</span> by the arm. <span class="quotation">"My darlings, you and I need a little talk of love,"</span> she says with a playful smile.</div>
 <div class="effect-description baroness">Moments later, both of you find yourselves telling her ALL about your lives! 💬✨</div>
-<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker}</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
+<div class="effect-description baroness">😱 You realize, too late, that it was all arranged by <span class="effect-player">${attacker} (${attackerPlayer.realName})</span> — the Baroness's favorite suitor — who now knows more than they should. 🕵️‍♀️💕</div>`;
     }
 
     const publicMessage = target2
-      ? `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> and <span class="effect-player">${target2}</span> into a most revealing conversation 💬🌹 that she shared, later, with her favorite suitor —<span class="effect-player">${attacker}</span>!</div>`
-      : `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1}</span> into a most revealing conversation 💬🌹 that she shared, later, with her favorite suitor —<span class="effect-player">${attacker}</span>!</div>`;
+      ? `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1} (${target1Player.realName})</span> and <span class="effect-player">${target2} (${target2Player.realName})</span> into a most intimate conversation 💬🌹 Their hands have been revealed to her favorite suitor —<span class="effect-player">${attacker} (${attackerPlayer.realName})</span>!</div>`
+      : `<div class="effect-description">🍷✨ The Baroness drew <span class="effect-player">${target1} (${target1Player.realName})</span> into a most intimate conversation 💬🌹 Their hand have been revealed to her favorite suitor —<span class="effect-player">${attacker} (${attackerPlayer.realName})</span>!</div>`;
 
     return {
       result: "baronessReveal",
@@ -1497,7 +1441,7 @@ export async function applyBaronessEffect({
   }
 }
 
-export async function applyDukeEffect({ player }) {
+export async function applyDukeEffect({ player, playerRealName }) {
   try {
     const attackerMessage = `
 <div class="effect-description top">👑 The Duke approaches you with quiet authority. His loyal little hound 🐕 trots proudly at his heels, wearing a velvet collar far too grand for its size.</div>
@@ -1506,7 +1450,7 @@ export async function applyDukeEffect({ player }) {
 <div class="effect-technical">✨ If you're still standing when the round ends, add +1 to your last card's strength!</div>`;
 
     const publicMessage = `
-<div class="effect-description">🏛️ The Duke, uncle to the Princess, has granted his favor to <span class="effect-player">${player}</span>.</div><div class="effect-description">His word elevates their standing in the eyes of the court.</div>`;
+<div class="effect-description">🏛️ The Duke, uncle to the Princess, has granted his favor to <span class="effect-player">${player} (${playerRealName})</span>!</div><div class="effect-description">That will give them a <span class="effect-strength">+1 strength</span> bonus at the end of the round.</div>`;
 
     return {
       result: "duke_favor",

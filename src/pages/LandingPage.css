@@ -489,136 +489,6 @@ Medieval-themed CSS for the most glorious card game experience
   animation: float 3s ease-in-out infinite;
 }
 
-/* 📱 Responsive Design */
-@media (max-width: 1024px) {
-  .royal-landing-container {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
-  .royal-artwork-panel {
-    order: -1;
-    min-height: 40vh;
-  }
-
-  .royal-form-panel {
-    border-right: none;
-    border-top: 3px solid var(--royal-gold);
-  }
-
-  .royal-title {
-    font-size: 2.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .royal-main-content {
-    grid-template-columns: 1fr;
-    flex-direction: column;
-  }
-
-  .royal-header {
-    padding: 1rem 0;
-  }
-
-  .royal-title-centered {
-    font-size: 2.5rem;
-  }
-
-  .royal-subtitle-centered {
-    font-size: 1rem;
-  }
-
-  .royal-form-panel {
-    padding: 2rem 1rem;
-    border-right: none;
-    border-bottom: 2px solid var(--royal-gold);
-  }
-
-  .royal-artwork-panel {
-    min-height: 300px;
-  }
-
-  .princess-artwork {
-    max-width: 300px;
-  }
-
-  .royal-title {
-    font-size: 2rem;
-  }
-
-  .gender-options {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .gender-option {
-    justify-content: flex-start;
-  }
-
-  .mode-options {
-    flex-direction: column;
-  }
-
-  .name-generator-container {
-    flex-direction: column;
-  }
-
-  /* Waiting Room Responsive */
-  .royal-guest-card {
-    padding: 0.8rem;
-  }
-
-  .guest-nickname {
-    font-size: 1rem;
-  }
-
-  .royal-start-button {
-    font-size: 1.1rem !important;
-    padding: 1rem 1.5rem !important;
-  }
-
-  .portrait-placeholder {
-    width: 250px;
-    height: 300px;
-  }
-
-  .portrait-placeholder p:first-child {
-    font-size: 2rem;
-  }
-
-  .waiting-room-artwork {
-    max-width: 300px;
-  }
-
-  /* Guest counter responsive */
-  .royal-section-title {
-    font-size: 1.1rem;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .guest-counter {
-    font-size: 0.9rem;
-    padding: 0.2rem 0.6rem;
-  }
-
-  .guest-position-number {
-    width: 24px;
-    height: 24px;
-    font-size: 0.8rem;
-    top: -6px;
-    right: -6px;
-  }
-
-  .kick-player-button {
-    font-size: 0.6rem;
-    padding: 0.2rem 0.4rem;
-    bottom: 6px;
-    right: 6px;
-  }
-}
-
 /* 🎯 Special Effects */
 .royal-form-panel::after {
   content: "";
@@ -1184,6 +1054,143 @@ Medieval-themed CSS for the most glorious card game experience
 
 .password-toggle-btn:active {
   transform: scale(1.05);
+}
+
+/* 📱 Responsive Design */
+
+@media (min-width: 1650px) {
+  .princess-artwork.create-room {
+    max-width: 750px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .royal-landing-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .royal-artwork-panel {
+    order: -1;
+    min-height: 40vh;
+  }
+
+  .royal-form-panel {
+    border-right: none;
+    border-top: 3px solid var(--royal-gold);
+  }
+
+  .royal-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .royal-main-content {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .royal-header {
+    padding: 1rem 0;
+  }
+
+  .royal-title-centered {
+    font-size: 2.5rem;
+  }
+
+  .royal-subtitle-centered {
+    font-size: 1rem;
+  }
+
+  .royal-form-panel {
+    padding: 2rem 1rem;
+    border-right: none;
+    border-bottom: 2px solid var(--royal-gold);
+  }
+
+  .royal-artwork-panel {
+    min-height: 300px;
+  }
+
+  .princess-artwork {
+    max-width: 300px;
+  }
+
+  .royal-title {
+    font-size: 2rem;
+  }
+
+  .gender-options {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .gender-option {
+    justify-content: flex-start;
+  }
+
+  .mode-options {
+    flex-direction: column;
+  }
+
+  .name-generator-container {
+    flex-direction: column;
+  }
+
+  /* Waiting Room Responsive */
+  .royal-guest-card {
+    padding: 0.8rem;
+  }
+
+  .guest-nickname {
+    font-size: 1rem;
+  }
+
+  .royal-start-button {
+    font-size: 1.1rem !important;
+    padding: 1rem 1.5rem !important;
+  }
+
+  .portrait-placeholder {
+    width: 250px;
+    height: 300px;
+  }
+
+  .portrait-placeholder p:first-child {
+    font-size: 2rem;
+  }
+
+  .waiting-room-artwork {
+    max-width: 300px;
+  }
+
+  /* Guest counter responsive */
+  .royal-section-title {
+    font-size: 1.1rem;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .guest-counter {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .guest-position-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    top: -6px;
+    right: -6px;
+  }
+
+  .kick-player-button {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    bottom: 6px;
+    right: 6px;
+  }
 }
 
 /* Responsive: Stack on smaller screens */

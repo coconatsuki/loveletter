@@ -445,6 +445,21 @@
   line-height: 1.4 !important;
 }
 
+.chronicle-message .effect-card {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.chronicle-message .effect-player {
+  font-weight: bold;
+  color: #87ceeb;
+}
+
+.chronicle-message .effect-strength {
+  font-weight: bold;
+  color: #8cf990;
+}
+
 .chronicle-empty {
   text-align: start;
   color: #999;
@@ -497,9 +512,1019 @@
   transform: translateY(-50%) scale(1.1);
 }
 
+.game-header h2 {
+  text-align: center;
+  margin-top: 0rem;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.turn-info {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.current-turn {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.your-turn {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.not-your-turn {
+  color: #6c757d;
+}
+
+/* Hand Display */
+.hand-display {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hand-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hand-card-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Player Lists */
+.players-section {
+  margin-top: 1rem;
+}
+
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-item {
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+.player-item.protected {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.player-item.eliminated {
+  background-color: #f8d7da;
+  color: #721c24;
+  text-decoration: line-through;
+}
+
+.player-item.current-player {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  font-weight: bold;
+}
+
+/* Royal Elimination Banner */
+.royal-elimination-banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  min-height: 50px;
+  padding: 0.8rem 0.8rem;
+  background: linear-gradient(135deg, #8b0000 0%, #660000 100%);
+  border-top: 3px solid #b8860b;
+  color: #ffd700;
+  font-family: "Cinzel", serif;
+}
+
+.royal-elimination-banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 215, 0, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.elimination-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+  animation: fadeInOut 2s ease-in-out infinite alternate;
+  z-index: 1;
+  position: relative;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.elimination-content {
+  flex: 1;
+  z-index: 1;
+  position: relative;
+}
+
+.elimination-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.elimination-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-style: italic;
+  line-height: 1.3;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Players Section */
+.players-section {
+  margin-top: 1rem;
+}
+
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-item {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+.player-item.protected {
+  padding: 5px;
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  background-color: #fff8dc;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.player-item.eliminated {
+  background-color: #f8d7da;
+  color: #721c24;
+  text-decoration: line-through;
+}
+
+.player-item.current-player {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  font-weight: bold;
+}
+
+/* Countess Warning */
+.countess-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.countess-warning p.countess-warning-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: #ffd700;
+}
+
+.countess-warning p.countess-warning-reason {
+  font-family: "Lora", serif;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Hand Section */
+.hand-section {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.hand-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.cards-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 200px;
+}
+
+.card:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.card.selected {
+  border-color: #28a745;
+  background-color: #d4edda;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.card-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.card-name.small {
+  font-size: 1.02rem;
+}
+
+/* Card Buttons in Hand */
+.card-button {
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.card-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-button.blocked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-blocked-text {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Play Button */
+.play-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.play-button:hover {
+  background: #218838;
+}
+
+.play-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Discard Pile */
+.discard-section {
+  margin-top: 2rem;
+  color: #999;
+}
+
+.discard-title {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.discard-empty {
+  color: #999;
+  font-style: italic;
+}
+
+.discard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.discard-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.discard-card-name {
+  font-weight: bold;
+  color: #495057;
+}
+
+.discard-card-details {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Right Sidebar */
+.right-sidebar {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+/* Waiting Message */
+.waiting-message {
+  margin-top: 2rem;
+  color: #999;
+  font-style: italic;
+}
+
+/* Right Sidebar */
+.right-sidebar {
+  background-color: #f9f9f9;
+  border-left: 3px solid #ccc;
+  padding: 1rem;
+  height: 90vh;
+  overflow-y: auto;
+}
+
+/* Notifications */
+.notifications-section {
+  margin-bottom: 2rem;
+}
+
+.notifications-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.notifications-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  background: white;
+}
+
+.notification-item {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Game Info */
+.game-info-section {
+  margin-bottom: 2rem;
+}
+
+.game-info-title {
+  margin: 0 0 1rem 0;
+  color: #495057;
+}
+
+.game-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.game-info-item:last-child {
+  border-bottom: none;
+}
+
+.game-info-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.game-info-value {
+  color: #007bff;
+  font-weight: bold;
+}
+
 /* ==========================================
-   RESPONSIVE DESIGN - Desktop to Small Desktop
+   ROYAL ACTIONS MODAL SYSTEM
    ========================================== */
+
+/* The actual modal content */
+.royal-actions-area {
+  position: relative;
+  background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
+  border: 3px solid #ffd700;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 5px 15px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 215, 0, 0.2);
+  min-width: 50%;
+  max-width: 55%;
+  max-height: 80vh;
+  animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: none; /* Reset any transforms */
+  bottom: auto;
+  left: auto;
+}
+
+/* Modal overlay - creates the blur effect and centers the modal */
+.royal-action-area-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px) brightness(0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: auto;
+  animation: modalBackdropFadeIn 0.3s ease-out;
+}
+
+/* Crown decoration for the modal */
+.royal-actions-area::before {
+  content: "👑";
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #8b0000;
+  padding: 5px 15px;
+  border: 2px solid #ffd700;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Modal animations */
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px) brightness(1);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px) brightness(0.7);
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Turn section styling */
+.turn-section {
+  text-align: center;
+  color: #ffd700;
+  background: transparent;
+  margin-top: 0;
+  position: relative;
+}
+
+.turn-section h3 {
+  font-family: "Cinzel", serif;
+  font-size: 1.3rem;
+  margin: 1.5rem 0 2rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.turn-section p {
+  font-size: 1.5rem;
+}
+
+.choose-card-header {
+  margin-top: 1.5rem;
+}
+
+/* Card container for portrait layout */
+.card-selection-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  margin: 2% 0;
+}
+
+/* When a card is selected, change to side-by-side layout */
+.card-selection-container.card-selected {
+  justify-content: space-between;
+}
+
+/* Container for the selected card display */
+.selected-card-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Container for the target modal when displayed inline */
+.target-modal-display {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 60%;
+}
+
+/* Container for the assassin waiting message when displayed inline */
+.assassin-waiting-display {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-width: 60%;
+}
+
+.assassin-waiting-content {
+  color: #ffd700;
+  font-family: "Cinzel", serif;
+  text-align: center;
+  position: relative;
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+.assassin-waiting-icon {
+  font-size: 2.5rem;
+  margin-bottom: 6%;
+  animation: rotate 2s linear infinite;
+}
+
+.assassin-waiting-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  color: #ffed4e;
+  margin-bottom: 5%;
+}
+
+.assassin-waiting-message {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  color: #e6d7b0;
+  font-family: "Lora", serif;
+  font-style: italic;
+}
+
+.assassin-waiting-message strong {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+@keyframes subtlePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Style for selected card */
+.card-button.selected {
+  border-color: #ffd700;
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, #fffaf0 0%, #f5f5dc 100%);
+}
+
+/* Card buttons styling - Portrait card design */
+.card-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  height: 320px;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f8f5f0 0%, #f0ead6 100%);
+  border: 4px solid #8b4513;
+  border-radius: 15px;
+  color: #2c1810;
+  font-family: "Cinzel", serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-button:hover:not(:disabled) {
+  transform: translateY(-8px) scale(1.03);
+  border-color: #ffd700;
+  box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.card-button:active:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Card image at the top */
+.card-image {
+  width: initial;
+  height: 60%;
+  background-image: url("../img/countess1.jpeg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 10px 10px 0 0;
+  margin: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  border: 2px solid #d4af37;
+}
+
+/* Strength number overlay - positioned on the button, not the image */
+.card-strength {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 3px solid #8b4513;
+  border-radius: 50%;
+  color: #8b0000;
+  font-weight: bold;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+  color: #007bff;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Card content area */
+.card-content {
+  padding: 2% 3% 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #faf8f5 0%, #f2ede0 100%);
+  border-radius: 0 0 11px 11px;
+}
+
+/* Card name */
+.card-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #8b0000;
+  margin: 2% 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Card effect text */
+.card-effect {
+  padding: 0 1%;
+  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.3;
+  color: #3a2a1a;
+  text-align: justify;
+  font-family: "Lora", serif;
+  font-style: italic;
+}
+
+/* Ensure royal-player-section has relative positioning for popover */
+.royal-player-section {
+  position: relative;
+  z-index: 1; /* Default z-index */
+}
+
+/* Boost z-index when hovering to show popover above other player sections */
+.royal-player-section:hover {
+  z-index: 10000; /* Higher than the popover's z-index: 9999 */
+}
+
+.card-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a0000 0%, #8b0000 100%);
+  border-color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.card-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.card-button.blocked {
+  background: linear-gradient(135deg, #e0e0e0 0%, #c8c8c8 100%);
+  border-color: #888;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.card-button.blocked:hover {
+  transform: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.card-button.blocked .card-strength {
+  background: linear-gradient(135deg, #aaa 0%, #888 100%);
+  color: #444;
+  border-color: #666;
+}
+
+.card-button.blocked .card-name {
+  color: #777;
+}
+
+.card-button.blocked .card-effect {
+  color: #777;
+  background: rgba(200, 200, 200, 0.3);
+  border-color: rgba(136, 136, 136, 0.3);
+}
+
+.card-blocked-text {
+  color: #cc0000;
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  text-align: center;
+  font-weight: bold;
+  padding: 4px 8px;
+  background: rgba(204, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+/* Countess warning styling */
+.countess-warning {
+  background: rgba(255, 107, 107, 0.2);
+  border: 2px solid #ff6b6b;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 1rem 0 2rem;
+  color: #ffcccb;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* Waiting message styling */
+.waiting-message {
+  text-align: center;
+  color: #ccc;
+  font-style: italic;
+  font-size: 1.1rem;
+  padding: 20px;
+}
+
+/* Draw card button styling */
+.royal-actions-area button {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: none;
+  border-radius: 8px;
+  color: #8b0000;
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.royal-actions-area button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.royal-actions-area button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.royal-actions-area button:disabled {
+  background: #666;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.royal-actions-area .draw-card-button {
+  width: 90%;
+  font-size: 1.5rem !important;
+  padding: 2% 0;
+}
+
+.royal-actions-area .discard-history-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none !important;
+  border: 1px dashed #d4af37;
+  border-radius: 0 0 0 15px;
+  color: #d4af37 !important;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: inherit;
+  padding: 0.6rem 0.5rem;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* Modal responsive adjustments for mobile - handled above in main responsive section */
+
+/* Royal Select Dropdown Styling */
+.royal-select {
+  background: linear-gradient(135deg, #f4f1e8 0%, #e8e0d0 100%);
+  border: 2px solid #8b4513;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-family: "Cinzel", serif;
+  font-size: 1rem;
+  color: #2c1810;
+  cursor: pointer;
+  width: 100%;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.royal-select:hover {
+  border-color: #ffd700;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.royal-select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.royal-select option {
+  background: #f4f1e8;
+  color: #2c1810;
+  padding: 8px;
+}
+
+/* Dropdown section labels */
+.dropdown-section-label {
+  font-family: "Cinzel", serif;
+  font-size: 1.1rem;
+  color: #8b0000;
+  margin: 15px 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: bold;
+  text-align: left;
+}
+
+/* Modal animations */
+@keyframes assassinModalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+@keyframes assassinModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================
+   EFFECT RESULT MODAL ANIMATIONS
+   ========================================== */
+
+@keyframes effectModalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px) brightness(1);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px) brightness(0.6);
+  }
+}
+
+@keyframes effectModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN - Media Queries
+   ========================================== */
+
+/* Extra Large Desktop - 1650px and above */
+@media (min-width: 1650px) {
+  .turn-section .choose-card-header {
+    margin-top: 2.2rem;
+  }
+
+  .card-button {
+    width: 220px;
+    height: 350px;
+  }
+
+  .royal-actions-area {
+    min-width: 45%;
+  }
+}
 
 /* Large Desktop - 1400px and above: Everything stays as designed */
 
@@ -987,445 +2012,6 @@
     height: 140px;
   }
 }
-.game-header h2 {
-  text-align: center;
-  margin-top: 0rem;
-  margin-bottom: 0.5rem;
-  color: #495057;
-}
-
-.turn-info {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.current-turn {
-  font-weight: bold;
-  color: #007bff;
-}
-
-.your-turn {
-  color: #28a745;
-  font-weight: bold;
-}
-
-.not-your-turn {
-  color: #6c757d;
-}
-
-/* Hand Display */
-.hand-display {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.hand-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.hand-card-item {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-}
-
-/* Player Lists */
-.players-section {
-  margin-top: 1rem;
-}
-
-.players-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.player-item {
-  padding: 0.5rem;
-  margin: 0.25rem 0;
-  border-radius: 4px;
-  background: #f8f9fa;
-}
-
-.player-item.protected {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-}
-
-.player-item.eliminated {
-  background-color: #f8d7da;
-  color: #721c24;
-  text-decoration: line-through;
-}
-
-.player-item.current-player {
-  background-color: #d4edda;
-  border: 2px solid #28a745;
-  font-weight: bold;
-}
-
-/* Royal Elimination Banner */
-.royal-elimination-banner {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: flex-start;
-  min-height: 50px;
-  padding: 0.8rem 0.8rem;
-  background: linear-gradient(135deg, #8b0000 0%, #660000 100%);
-  border-top: 3px solid #b8860b;
-  color: #ffd700;
-  font-family: "Cinzel", serif;
-}
-
-.royal-elimination-banner::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 215, 0, 0.1) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.elimination-icon {
-  font-size: 2rem;
-  margin-right: 1rem;
-  animation: fadeInOut 2s ease-in-out infinite alternate;
-  z-index: 1;
-  position: relative;
-}
-
-@keyframes fadeInOut {
-  0% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
-
-.elimination-content {
-  flex: 1;
-  z-index: 1;
-  position: relative;
-}
-
-.elimination-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 0.3rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.elimination-subtitle {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  font-style: italic;
-  line-height: 1.3;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Players Section */
-.players-section {
-  margin-top: 1rem;
-}
-
-.players-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.player-item {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  background: #f8f9fa;
-}
-
-.player-item.protected {
-  padding: 5px;
-  border: 2px solid #ffd700;
-  border-radius: 8px;
-  background-color: #fff8dc;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-}
-
-.player-item.eliminated {
-  background-color: #f8d7da;
-  color: #721c24;
-  text-decoration: line-through;
-}
-
-.player-item.current-player {
-  background-color: #d4edda;
-  border: 2px solid #28a745;
-  font-weight: bold;
-}
-
-/* Countess Warning */
-.countess-warning {
-  background-color: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.countess-warning p.countess-warning-title {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  margin-top: 0;
-  font-size: 1.1rem;
-  color: #ffd700;
-}
-
-.countess-warning p.countess-warning-reason {
-  font-family: "Lora", serif;
-  font-size: 1.1rem;
-  line-height: 1.4;
-  margin: 0;
-}
-
-/* Hand Section */
-.hand-section {
-  background: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.hand-title {
-  margin: 0 0 1rem 0;
-  color: #495057;
-}
-
-.cards-container {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.card {
-  background: white;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex: 1;
-  min-width: 200px;
-}
-
-.card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
-}
-
-.card.selected {
-  border-color: #28a745;
-  background-color: #d4edda;
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
-}
-
-.card-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #495057;
-}
-
-/* Card Buttons in Hand */
-.card-button {
-  margin-right: 1rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.card-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.card-button.blocked {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.card-blocked-text {
-  color: #6c757d;
-  font-style: italic;
-}
-
-/* Play Button */
-.play-button {
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: background-color 0.2s ease;
-}
-
-.play-button:hover {
-  background: #218838;
-}
-
-.play-button:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-}
-
-/* Discard Pile */
-.discard-section {
-  margin-top: 2rem;
-  color: #999;
-}
-
-.discard-title {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #666;
-}
-
-.discard-empty {
-  color: #999;
-  font-style: italic;
-}
-
-.discard-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.discard-card {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 0.75rem;
-}
-
-.discard-card-name {
-  font-weight: bold;
-  color: #495057;
-}
-
-.discard-card-details {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-top: 0.25rem;
-}
-
-/* Right Sidebar */
-.right-sidebar {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 1.5rem;
-  height: fit-content;
-}
-
-/* Waiting Message */
-.waiting-message {
-  margin-top: 2rem;
-  color: #999;
-  font-style: italic;
-}
-
-/* Right Sidebar */
-.right-sidebar {
-  background-color: #f9f9f9;
-  border-left: 3px solid #ccc;
-  padding: 1rem;
-  height: 90vh;
-  overflow-y: auto;
-}
-
-/* Notifications */
-.notifications-section {
-  margin-bottom: 2rem;
-}
-
-.notifications-title {
-  margin: 0 0 1rem 0;
-  color: #495057;
-}
-
-.notifications-list {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 1rem;
-  background: white;
-}
-
-.notification-item {
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #f1f3f4;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-/* Game Info */
-.game-info-section {
-  margin-bottom: 2rem;
-}
-
-.game-info-title {
-  margin: 0 0 1rem 0;
-  color: #495057;
-}
-
-.game-info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f1f3f4;
-}
-
-.game-info-item:last-child {
-  border-bottom: none;
-}
-
-.game-info-label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.game-info-value {
-  color: #007bff;
-  font-weight: bold;
-}
 
 /* Very small mobile screens - 480px and below */
 @media (max-width: 480px) {
@@ -1482,533 +2068,7 @@
   .chronicle-message {
     font-size: 0.75rem;
   }
-}
 
-/* ==========================================
-   ROYAL ACTIONS MODAL SYSTEM
-   ========================================== */
-
-/* The actual modal content */
-.royal-actions-area {
-  position: relative;
-  background: linear-gradient(135deg, #8b0000 0%, #4a0000 50%, #2d1b1b 100%);
-  border: 3px solid #ffd700;
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 5px 15px rgba(255, 215, 0, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.2);
-  width: 50%;
-  max-width: 600px;
-  max-height: 80vh;
-  animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transform: none; /* Reset any transforms */
-  bottom: auto;
-  left: auto;
-}
-
-/* Modal overlay - creates the blur effect and centers the modal */
-.royal-action-area-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px) brightness(0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  pointer-events: auto;
-  animation: modalBackdropFadeIn 0.3s ease-out;
-}
-
-/* Crown decoration for the modal */
-.royal-actions-area::before {
-  content: "👑";
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #8b0000;
-  padding: 5px 15px;
-  border: 2px solid #ffd700;
-  border-radius: 20px;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-/* Modal animations */
-@keyframes modalBackdropFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px) brightness(1);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px) brightness(0.7);
-  }
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Turn section styling */
-.turn-section {
-  text-align: center;
-  color: #ffd700;
-  background: transparent;
-  margin-top: 0;
-  position: relative;
-}
-
-.turn-section h3 {
-  font-family: "Cinzel", serif;
-  font-size: 1.3rem;
-  margin: 1.5rem 0 2rem 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.turn-section p {
-  font-size: 1.5rem;
-}
-
-.choose-card-header {
-  margin-top: 0.7rem;
-}
-
-/* Card container for portrait layout */
-.card-selection-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
-  margin: 2% 0;
-}
-
-/* When a card is selected, change to side-by-side layout */
-.card-selection-container.card-selected {
-  justify-content: space-between;
-}
-
-/* Container for the selected card display */
-.selected-card-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Container for the target modal when displayed inline */
-.target-modal-display {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 60%;
-}
-
-/* Container for the assassin waiting message when displayed inline */
-.assassin-waiting-display {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  max-width: 60%;
-}
-
-.assassin-waiting-content {
-  color: #ffd700;
-  font-family: "Cinzel", serif;
-  text-align: center;
-  position: relative;
-  animation: subtlePulse 3s ease-in-out infinite;
-}
-
-.assassin-waiting-icon {
-  font-size: 2.5rem;
-  margin-bottom: 6%;
-  animation: rotate 2s linear infinite;
-}
-
-.assassin-waiting-title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-  color: #ffed4e;
-  margin-bottom: 5%;
-}
-
-.assassin-waiting-message {
-  font-size: 1.1rem;
-  line-height: 1.5;
-  margin-bottom: 15px;
-  color: #e6d7b0;
-  font-family: "Lora", serif;
-  font-style: italic;
-}
-
-.assassin-waiting-message strong {
-  color: #ffd700;
-  font-weight: bold;
-}
-
-@keyframes subtlePulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.01);
-  }
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Style for selected card */
-.card-button.selected {
-  border-color: #ffd700;
-  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
-  background: linear-gradient(135deg, #fffaf0 0%, #f5f5dc 100%);
-}
-
-/* Card buttons styling - Portrait card design */
-.card-button {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 200px;
-  height: 320px;
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #f8f5f0 0%, #f0ead6 100%);
-  border: 4px solid #8b4513;
-  border-radius: 15px;
-  color: #2c1810;
-  font-family: "Cinzel", serif;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  position: relative;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.card-button:hover:not(:disabled) {
-  transform: translateY(-8px) scale(1.03);
-  border-color: #ffd700;
-  box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.card-button:active:not(:disabled) {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-/* Card image at the top */
-.card-image {
-  width: initial;
-  height: 60%;
-  background-image: url("../img/countess1.jpeg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 10px 10px 0 0;
-  margin: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  border: 2px solid #d4af37;
-}
-
-/* Strength number overlay - positioned on the button, not the image */
-.card-strength {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  border: 3px solid #8b4513;
-  border-radius: 50%;
-  color: #8b0000;
-  font-weight: bold;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  z-index: 3;
-  color: #007bff;
-  font-weight: bold;
-  margin: 0;
-}
-
-/* Card content area */
-.card-content {
-  padding: 2% 3% 0;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(135deg, #faf8f5 0%, #f2ede0 100%);
-  border-radius: 0 0 11px 11px;
-}
-
-/* Card name */
-.card-name {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #8b0000;
-  margin: 2% 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Card effect text */
-.card-effect {
-  padding: 0 1%;
-  font-weight: 300;
-  font-size: 1rem;
-  line-height: 1.3;
-  color: #3a2a1a;
-  text-align: justify;
-  font-family: "Lora", serif;
-  font-style: italic;
-}
-
-/* Ensure royal-player-section has relative positioning for popover */
-.royal-player-section {
-  position: relative;
-  z-index: 1; /* Default z-index */
-}
-
-/* Boost z-index when hovering to show popover above other player sections */
-.royal-player-section:hover {
-  z-index: 10000; /* Higher than the popover's z-index: 9999 */
-}
-
-.card-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4a0000 0%, #8b0000 100%);
-  border-color: #fff;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-  transform: translateY(-2px);
-}
-
-.card-button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-}
-
-.card-button.blocked {
-  background: linear-gradient(135deg, #e0e0e0 0%, #c8c8c8 100%);
-  border-color: #888;
-  color: #666;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.card-button.blocked:hover {
-  transform: none;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.card-button.blocked .card-strength {
-  background: linear-gradient(135deg, #aaa 0%, #888 100%);
-  color: #444;
-  border-color: #666;
-}
-
-.card-button.blocked .card-name {
-  color: #777;
-}
-
-.card-button.blocked .card-effect {
-  color: #777;
-  background: rgba(200, 200, 200, 0.3);
-  border-color: rgba(136, 136, 136, 0.3);
-}
-
-.card-blocked-text {
-  color: #cc0000;
-  font-style: italic;
-  font-size: 0.85rem;
-  margin-top: 8px;
-  text-align: center;
-  font-weight: bold;
-  padding: 4px 8px;
-  background: rgba(204, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-/* Countess warning styling */
-.countess-warning {
-  background: rgba(255, 107, 107, 0.2);
-  border: 2px solid #ff6b6b;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 1rem 0 2rem;
-  color: #ffcccb;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-/* Waiting message styling */
-.waiting-message {
-  text-align: center;
-  color: #ccc;
-  font-style: italic;
-  font-size: 1.1rem;
-  padding: 20px;
-}
-
-/* Draw card button styling */
-.royal-actions-area button {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  border: none;
-  border-radius: 8px;
-  color: #8b0000;
-  font-family: "Cinzel", serif;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.royal-actions-area button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.royal-actions-area button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.royal-actions-area button:disabled {
-  background: #666;
-  color: #999;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.royal-actions-area .draw-card-button {
-  width: 90%;
-  font-size: 1.5rem !important;
-  padding: 2% 0;
-}
-
-.royal-actions-area .discard-history-link {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: none !important;
-  border: 1px dashed #d4af37;
-  border-radius: 0 0 0 15px;
-  color: #d4af37 !important;
-  font-size: 0.85rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-family: inherit;
-  padding: 0.6rem 0.5rem;
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-/* Modal responsive adjustments for mobile - handled above in main responsive section */
-
-/* Royal Select Dropdown Styling */
-.royal-select {
-  background: linear-gradient(135deg, #f4f1e8 0%, #e8e0d0 100%);
-  border: 2px solid #8b4513;
-  border-radius: 8px;
-  padding: 12px 15px;
-  font-family: "Cinzel", serif;
-  font-size: 1rem;
-  color: #2c1810;
-  cursor: pointer;
-  width: 100%;
-  margin: 10px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-.royal-select:hover {
-  border-color: #ffd700;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-}
-
-.royal-select:focus {
-  outline: none;
-  border-color: #ffd700;
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
-}
-
-.royal-select option {
-  background: #f4f1e8;
-  color: #2c1810;
-  padding: 8px;
-}
-
-/* Dropdown section labels */
-.dropdown-section-label {
-  font-family: "Cinzel", serif;
-  font-size: 1.1rem;
-  color: #8b0000;
-  margin: 15px 0 8px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: bold;
-}
-
-/* Modal animations */
-@keyframes assassinModalFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(5px);
-  }
-}
-
-@keyframes assassinModalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-40px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Responsive design for assassin modal */
-@media (max-width: 480px) {
   .assassin-modal-content {
     min-width: 300px;
     max-width: 90vw;
@@ -2023,31 +2083,5 @@
   .assassin-modal-btn {
     min-width: auto;
     width: 100%;
-  }
-}
-
-/* ==========================================
-   EFFECT RESULT MODAL ANIMATIONS
-   ========================================== */
-
-@keyframes effectModalFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px) brightness(1);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px) brightness(0.6);
-  }
-}
-
-@keyframes effectModalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }

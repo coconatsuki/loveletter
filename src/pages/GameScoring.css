@@ -720,6 +720,13 @@
 }
 
 /* Responsive Design */
+
+@media (min-width: 1650px) {
+  .princess-image {
+    min-height: 470px;
+  }
+}
+
 @media (max-width: 768px) {
   .game-scoring-main {
     padding: 1.5rem;

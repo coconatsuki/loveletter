@@ -40,9 +40,9 @@ const styles = {
       "linear-gradient(135deg, #1a0000 0%, #4a0000 30%, #8b0000 70%, #2d1b1b 100%)",
     border: "4px solid #ffd700",
     borderRadius: "20px",
-    padding: "30px",
-    width: "85%",
-    maxWidth: "900px",
+    padding: "2.5rem",
+    minWidth: "75%",
+    maxWidth: "80%",
     maxHeight: "85vh",
     overflowY: "auto",
     boxShadow:
@@ -223,6 +223,8 @@ const styles = {
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)",
     boxShadow:
       "0 6px 20px rgba(26, 0, 0, 0.7), 0 3px 8px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
+    width: "65%",
+    marginTop: "1.5rem",
   },
 
   continueButtonHover: {

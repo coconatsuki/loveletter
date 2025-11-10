@@ -88,6 +88,8 @@ export default function Play() {
   const [newNotificationsCount, setNewNotificationsCount] = useState(0); // Count of unread notifications
   const [deckCount, setDeckCount] = useState(0); // Track remaining cards in deck
   const chronicleContentRef = useRef(null); // Ref for the chronicle content div
+  const [playerOrder, setPlayerOrder] = useState([]); // Player display order (just names) set once on mount
+  const hasSetPlayerOrder = useRef(false); // Track if we've already set the player order
 
   // Total players count for popover positioning
   const totalPlayers = roomData?.players
@@ -465,6 +467,31 @@ export default function Play() {
   const currentPlayer = round?.currentPlayer;
   const isMyTurn = nickname === currentPlayer;
 
+  // Set player display order once when we first have players and currentPlayer
+  useEffect(() => {
+    if (hasSetPlayerOrder.current || !players || !currentPlayer) {
+      return; // Skip if already set or no data yet
+    }
+
+    const playerNames = Object.keys(players);
+    const currentPlayerIndex = playerNames.findIndex(
+      (name) => name === currentPlayer
+    );
+
+    if (currentPlayerIndex === -1) {
+      setPlayerOrder(playerNames);
+    } else {
+      // Reorder: current player first, then the rest in original order
+      const reordered = [
+        ...playerNames.slice(currentPlayerIndex),
+        ...playerNames.slice(0, currentPlayerIndex),
+      ];
+      setPlayerOrder(reordered);
+    }
+
+    hasSetPlayerOrder.current = true; // Mark as set so it never runs again
+  }, [players, currentPlayer]);
+
   const drawCard = () => {
     // Prevent drawing card if round has ended
     if (roomData?.gameState === "roundScoring") {
@@ -665,6 +692,7 @@ export default function Play() {
     // Apply Duke noble favor effect
     const result = await applyDukeEffect({
       player: nickname,
+      playerRealName: roomData.players[nickname].realName,
     });
 
     // Send public notification
@@ -759,6 +787,7 @@ export default function Play() {
     // Apply Assassin effect (mysterious shadow moves)
     const result = await applyAssassinEffect({
       player: nickname,
+      playerRealName: roomData.players[nickname].realName,
     });
 
     // Send public notification about the shadow in the court
@@ -847,10 +876,13 @@ export default function Play() {
         guess,
       });
 
+      var targetPlayerData = roomData.players[target];
+      var attackerPlayerData = roomData.players[nickname];
+
       // Notify all players about the Guard action
       pushNotification(
         roomCode,
-        `🕵️‍♂️ ${nickname} summoned a Guard and accused ${target} of conspiring with someone of influence ${guess}!`
+        `🕵️‍♂️ <span class="effect-player">${nickname} (${attackerPlayerData.realName})</span> summoned a <span class="effect-card">Guard</span> and accused <span class="effect-player">${target} (${targetPlayerData.realName})</span> of conspiring with someone of <span class="effect-strength">strength -${guess}-</span>!`
       );
 
       // ALWAYS show AssassinPromptModal to target (good UX for both modes)
@@ -1606,7 +1638,7 @@ export default function Play() {
           "🏆 completeTurnWithCardIndex - TRIGGERING ROUND END after delay"
         );
         await triggerRoundEnd(roomCode);
-      }, 2000);
+      }, 1500);
 
       return;
     } else {
@@ -1618,8 +1650,57 @@ export default function Play() {
       const activePlayers = Object.keys(updatedPlayers).filter(
         (p) => !updatedPlayers[p].isOut
       );
-      const currentIndex = activePlayers.indexOf(nickname);
-      let nextIndex = (currentIndex + 1) % activePlayers.length;
+
+      // Check if current player was eliminated
+      const currentPlayerEliminated = updatedPlayers[nickname]?.isOut;
+
+      let nextIndex;
+      if (currentPlayerEliminated) {
+        // Current player was eliminated - find their position in the ORIGINAL player order
+        // and advance from there
+        const allPlayers = Object.keys(updatedPlayers);
+        const originalIndex = allPlayers.indexOf(nickname);
+
+        // Find the next active player after the eliminated player's position
+        let searchIndex = (originalIndex + 1) % allPlayers.length;
+        let foundNextPlayer = false;
+
+        for (let i = 0; i < allPlayers.length; i++) {
+          const candidatePlayer = allPlayers[searchIndex];
+          if (!updatedPlayers[candidatePlayer]?.isOut) {
+            nextIndex = activePlayers.indexOf(candidatePlayer);
+            foundNextPlayer = true;
+            break;
+          }
+          searchIndex = (searchIndex + 1) % allPlayers.length;
+        }
+
+        if (!foundNextPlayer) {
+          console.error(
+            "🔴 CRITICAL ERROR: No active player found after elimination! This should never happen - round end check failed.",
+            {
+              eliminatedPlayer: nickname,
+              activePlayers,
+              allPlayers,
+            }
+          );
+          return; // Abort turn advancement
+        }
+
+        console.log(
+          "🔄 Current player eliminated - advancing to next active player:",
+          {
+            eliminatedPlayer: nickname,
+            originalIndex,
+            nextIndex,
+            nextPlayer: activePlayers[nextIndex],
+          }
+        );
+      } else {
+        // Normal turn advancement - current player is still active
+        const currentIndex = activePlayers.indexOf(nickname);
+        nextIndex = (currentIndex + 1) % activePlayers.length;
+      }
 
       // Skip any players that got eliminated during this turn
       while (
@@ -1907,7 +1988,10 @@ export default function Play() {
 
             {/* PLAYERS GRID */}
             <div className="game-grid">
-              {Object.entries(players).map(([name, p], index) => {
+              {playerOrder.map((name, index) => {
+                const p = players[name]; // Get current player data from players object
+                if (!p) return null; // Safety check
+
                 const isProtected = roomData?.protectedPlayers?.includes(name);
                 const isCurrentPlayer = name === currentPlayer;
                 const isEliminated = p.isOut;
@@ -1984,32 +2068,6 @@ export default function Play() {
                         </div>
                       )}
                     </div>
-
-                    {/* Special Status Indicators */}
-                    {isProtected && (
-                      <div
-                        style={{
-                          textAlign: "center",
-                          marginTop: "0.5rem",
-                          color: "#90EE90",
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        🫖✨ Protected by Handmaid
-                      </div>
-                    )}
-                    {isEliminated && (
-                      <div
-                        style={{
-                          textAlign: "center",
-                          marginTop: "0.5rem",
-                          color: "#888",
-                          fontSize: "0.8rem",
-                        }}
-                      >
-                        Eliminated this round
-                      </div>
-                    )}
 
                     {/* Discard Pile Popover */}
                     <DiscardPilePopover
@@ -2152,7 +2210,13 @@ export default function Play() {
                                               ></div>
 
                                               <div className="card-content">
-                                                <div className="card-name">
+                                                <div
+                                                  className={`card-name ${
+                                                    card.name.length > 12
+                                                      ? "small"
+                                                      : ""
+                                                  }`}
+                                                >
                                                   {card.name}
                                                 </div>
                                                 <div className="card-effect">
