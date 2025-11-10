@@ -701,19 +701,31 @@ export default function GameScoring() {
                         </span>
                       </div>
                       {mostTargetedPlayers.length > 0 && (
-                        <div className="stat-item stat-item-third-row">
-                          <span className="stat-label">
-                            Most Targeted Players:
-                          </span>
-                          <span className="stat-value">
+                        <div className="stat-item stat-item-targeted-players">
+                          <div className="targeted-players-title">
+                            🎯 Most Targeted Players 🎯
+                          </div>
+                          <div className="targeted-players-list">
                             {mostTargetedPlayers.map((player, index) => (
-                              <span key={player.name}>
-                                {index > 0 && ", "}
-                                {player.name} ({player.realName}) -{" "}
-                                {player.targetCount}x
-                              </span>
+                              <div
+                                key={player.name}
+                                className="targeted-player-entry"
+                              >
+                                <span className="target-rank">
+                                  #{index + 1}
+                                </span>
+                                <span className="target-nickname">
+                                  {player.name}
+                                </span>
+                                <span className="target-realname">
+                                  ({player.realName})
+                                </span>
+                                <span className="target-count">
+                                  {player.targetCount}x
+                                </span>
+                              </div>
                             ))}
-                          </span>
+                          </div>
                         </div>
                       )}
                     </div>
