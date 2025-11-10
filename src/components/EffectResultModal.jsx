@@ -101,6 +101,65 @@ const effectTextStyles = `
     text-align: center;
     color: #dfdf73;
 }
+
+.royal-confessor-card {
+    width: 180px;
+    height: 280px;
+  }
+
+  .royal-confessor-content-container {
+    padding: 2rem 1.5rem 0;
+  }
+
+  .priest-card-container {
+    width: 200px;
+    height: 330px;
+  }
+
+  .phantom-king-card-container {
+    width: 180px;
+    height: 280px;
+  }
+
+  .baroness-card-container {
+    width: 180px;
+    height: 280px;
+  }
+
+  .card-name-small {
+    font-size: 1.02rem;
+  }
+
+  .card-name-normal {
+    font-size: 1.3rem;
+  }
+
+  @media (min-width: 1640px) {
+    .royal-confessor-card {
+      width: 190px;
+      height: 300px;
+    }
+
+    .royal-confessor-content-container {
+      padding: 3rem 1.7rem 0;
+    }
+
+    .priest-card-container {
+      width: 220px;
+      height: 350px;
+    }
+
+    .phantom-king-card-container {
+      width: 200px;
+      height: 300px;
+    }
+
+    
+    .baroness-card-container {
+      width: 190px;
+      height: 300px;
+    }
+  }
 `;
 
 export default function EffectResultModal({
@@ -458,7 +517,7 @@ export default function EffectResultModal({
             <div style={priestLayoutStyle}>
               {/* Left side - The revealed card */}
               <div style={priestCardContainerStyle}>
-                <div style={priestCardStyle}>
+                <div className="priest-card-container" style={priestCardStyle}>
                   <div style={priestCardStrengthStyle}>
                     {revealedCard.strength}
                   </div>
@@ -471,7 +530,16 @@ export default function EffectResultModal({
                     }}
                   ></div>
                   <div style={priestCardContentStyle}>
-                    <div style={priestCardNameStyle}>{revealedCard.name}</div>
+                    <div
+                      className={`${
+                        revealedCard.name.length > 12
+                          ? "card-name-small"
+                          : "card-name-normal"
+                      }`}
+                      style={priestCardNameStyle}
+                    >
+                      {revealedCard.name}
+                    </div>
                     <div style={priestCardEffectStyle}>
                       {revealedCard.effect}
                     </div>
@@ -527,7 +595,10 @@ export default function EffectResultModal({
                 <div style={phantomKingCardRowStyle}>
                   {/* Card given away */}
                   <div style={phantomCardContainerStyle}>
-                    <div style={phantomKingCardStyle}>
+                    <div
+                      className="phantom-king-card-container"
+                      style={phantomKingCardStyle}
+                    >
                       <div style={phantomKingCardStrengthStyle}>
                         {role === "attacker"
                           ? swappedCards.attackerGave.strength
@@ -568,7 +639,10 @@ export default function EffectResultModal({
 
                   {/* Card received */}
                   <div style={phantomCardContainerStyle}>
-                    <div style={phantomKingCardStyle}>
+                    <div
+                      className="phantom-king-card-container"
+                      style={phantomKingCardStyle}
+                    >
                       <div style={phantomKingCardStrengthStyle}>
                         {role === "attacker"
                           ? swappedCards.attackerReceived.strength
@@ -647,239 +721,295 @@ export default function EffectResultModal({
           ) : isRoyalConfessorEffect && swappedCards ? (
             /* Special Royal Confessor Layout with Card Swap Display */
             <div style={royalConfessorLayoutStyle}>
-              {/* Left side - The swapped cards */}
-              <div style={royalConfessorCardsContainerStyle}>
-                <div style={royalConfessorCardRowStyle}>
-                  {/* Card given away */}
-                  <div style={royalConfessorCardContainerStyle}>
-                    <div style={royalConfessorCardStyle}>
-                      <div style={royalConfessorCardStrengthStyle}>
-                        {swappedCards.targetGave.strength}
-                      </div>
+              <div
+                className="royal-confessor-content-container"
+                style={royalConfessorContentContainerStyle}
+              >
+                {/* Left side - The swapped cards */}
+                <div style={royalConfessorCardsContainerStyle}>
+                  <div style={royalConfessorCardRowStyle}>
+                    {/* Card given away */}
+                    <div style={royalConfessorCardContainerStyle}>
                       <div
-                        style={{
-                          ...royalConfessorCardImageStyle,
-                          backgroundImage: `url(/img/${getCardImage(
-                            swappedCards.targetGave.name
-                          )})`,
-                        }}
-                      ></div>
-                      <div style={royalConfessorCardNameStyle}>
-                        {swappedCards.targetGave.name}
+                        className="royal-confessor-card"
+                        style={royalConfessorCardStyle}
+                      >
+                        <div style={royalConfessorCardStrengthStyle}>
+                          {swappedCards.targetGave.strength}
+                        </div>
+                        <div
+                          style={{
+                            ...royalConfessorCardImageStyle,
+                            backgroundImage: `url(/img/${getCardImage(
+                              swappedCards.targetGave.name
+                            )})`,
+                          }}
+                        ></div>
+                        <div
+                          className={`${
+                            swappedCards.targetGave.name.length > 12
+                              ? "card-name-small"
+                              : "card-name-normal"
+                          }`}
+                          style={royalConfessorCardNameStyle}
+                        >
+                          {swappedCards.targetGave.name}
+                        </div>
+                        <div style={royalConfessorCardEffectStyle}>
+                          {swappedCards.targetGave.effect}
+                        </div>
+                        <CardCountStars count={swappedCards.targetGave.count} />
                       </div>
-                      <div style={royalConfessorCardEffectStyle}>
-                        {swappedCards.targetGave.effect}
-                      </div>
-                      <CardCountStars count={swappedCards.targetGave.count} />
+                      <p style={royalConfessorCardLabelStyle}>You Gave</p>
                     </div>
-                    <p style={royalConfessorCardLabelStyle}>You Gave</p>
+
+                    <div style={royalConfessorArrowStyle}>⇄</div>
+
+                    {/* Card received */}
+                    <div style={royalConfessorCardContainerStyle}>
+                      <div
+                        className="royal-confessor-card"
+                        style={royalConfessorCardStyle}
+                      >
+                        <div style={royalConfessorCardStrengthStyle}>
+                          {swappedCards.targetReceived.strength}
+                        </div>
+                        <div
+                          style={{
+                            ...royalConfessorCardImageStyle,
+                            backgroundImage: `url(/img/${getCardImage(
+                              swappedCards.targetReceived.name
+                            )})`,
+                          }}
+                        ></div>
+                        <div
+                          className={`${
+                            swappedCards.targetReceived.name.length > 12
+                              ? "card-name-small"
+                              : "card-name-normal"
+                          }`}
+                          style={royalConfessorCardNameStyle}
+                        >
+                          {swappedCards.targetReceived.name}
+                        </div>
+                        <div style={royalConfessorCardEffectStyle}>
+                          {swappedCards.targetReceived.effect}
+                        </div>
+                        <CardCountStars
+                          count={swappedCards.targetReceived.count}
+                        />
+                      </div>
+                      <p style={royalConfessorCardLabelStyle}>You Received</p>
+                    </div>
                   </div>
+                </div>
 
-                  <div style={royalConfessorArrowStyle}>⇄</div>
-
-                  {/* Card received */}
-                  <div style={royalConfessorCardContainerStyle}>
-                    <div style={royalConfessorCardStyle}>
-                      <div style={royalConfessorCardStrengthStyle}>
-                        {swappedCards.targetReceived.strength}
-                      </div>
-                      <div
-                        style={{
-                          ...royalConfessorCardImageStyle,
-                          backgroundImage: `url(/img/${getCardImage(
-                            swappedCards.targetReceived.name
-                          )})`,
-                        }}
-                      ></div>
-                      <div style={royalConfessorCardNameStyle}>
-                        {swappedCards.targetReceived.name}
-                      </div>
-                      <div style={royalConfessorCardEffectStyle}>
-                        {swappedCards.targetReceived.effect}
-                      </div>
-                      <CardCountStars
-                        count={swappedCards.targetReceived.count}
-                      />
-                    </div>
-                    <p style={royalConfessorCardLabelStyle}>You Received</p>
+                {/* Right side - The confession message */}
+                <div style={royalConfessorMessageContainerStyle}>
+                  <div style={royalConfessorMessageStyle}>
+                    {formatText(resultText)}
                   </div>
                 </div>
               </div>
 
-              {/* Right side - The confession message */}
-              <div style={royalConfessorMessageContainerStyle}>
-                <div style={royalConfessorMessageStyle}>
-                  {formatText(resultText)}
-                </div>
-                <div
+              <div
+                style={{
+                  ...buttonContainerStyle,
+                  ...royalConfessorButtonContainerStyle,
+                }}
+              >
+                <button
+                  onClick={onClose}
                   style={{
-                    ...buttonContainerStyle,
-                    ...royalConfessorButtonContainerStyle,
+                    ...buttonStyle,
+                    ...royalConfessorButtonStyle,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = "#2a1a0a";
+                    e.target.style.background =
+                      "linear-gradient(135deg, #f4e5c2 0%, #d4af37 100%)";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 25px rgba(212, 175, 55, 0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = "#f4e5c2";
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(139, 69, 19) 100%)";
                   }}
                 >
-                  <button
-                    onClick={onClose}
-                    style={{
-                      ...buttonStyle,
-                      ...royalConfessorButtonStyle,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = "#2a1a0a";
-                      e.target.style.background =
-                        "linear-gradient(135deg, #f4e5c2 0%, #d4af37 100%)";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 25px rgba(212, 175, 55, 0.5)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = "#f4e5c2";
-                      e.target.style.background =
-                        "linear-gradient(135deg, rgb(42, 20, 8) 0%, rgb(139, 69, 19) 100%)";
-                    }}
-                  >
-                    Continue
-                  </button>
-                </div>
+                  Continue
+                </button>
               </div>
             </div>
           ) : isBaronessAttacker && cardDetails ? (
             /* Special Baroness Layout with Revealed Cards Display */
             <div style={baronessLayoutStyle}>
               {/* Left side - The revealed cards */}
-              <div style={baronessCardsContainerStyle}>
-                <div style={baronessCardRowStyle}>
-                  {/* Target 1's card */}
-                  <div style={baronessCardContainerStyle}>
-                    <div style={baronessCardStyle}>
-                      <div style={phantomKingCardStrengthStyle}>
-                        {cardDetails.target1Card.strength}
-                      </div>
-                      <div
-                        style={{
-                          ...phantomKingCardImageStyle,
-                          backgroundImage: `url(/img/${getCardImage(
-                            cardDetails.target1Card.name
-                          )})`,
-                        }}
-                      ></div>
-                      <div style={phantomKingCardNameStyle}>
-                        {cardDetails.target1Card.name}
-                      </div>
-                      <div style={phantomKingCardEffectStyle}>
-                        {cardDetails.target1Card.effect}
-                      </div>
-                      <CardCountStars count={cardDetails.target1Card.count} />
-                    </div>
-                    <p style={baronessCardLabelStyle}>
-                      {cardDetails.target1Name}'s ally
-                    </p>
-                  </div>
-
-                  {/* Target 2's card (if exists) */}
-                  {cardDetails.target2Card && (
+              <div style={baronessAttackerContentContainerStyle}>
+                <div style={baronessCardsContainerStyle}>
+                  <div style={baronessCardRowStyle}>
+                    {/* Target 1's card */}
                     <div style={baronessCardContainerStyle}>
-                      <div style={baronessCardStyle}>
+                      <div
+                        className="baroness-card-container"
+                        style={baronessCardStyle}
+                      >
                         <div style={phantomKingCardStrengthStyle}>
-                          {cardDetails.target2Card.strength}
+                          {cardDetails.target1Card.strength}
                         </div>
                         <div
                           style={{
                             ...phantomKingCardImageStyle,
                             backgroundImage: `url(/img/${getCardImage(
-                              cardDetails.target2Card.name
+                              cardDetails.target1Card.name
                             )})`,
                           }}
                         ></div>
-                        <div style={phantomKingCardNameStyle}>
-                          {cardDetails.target2Card.name}
+                        <div
+                          className={`${
+                            cardDetails.target1Card.name.length > 12
+                              ? "card-name-small"
+                              : "card-name-normal"
+                          }`}
+                          style={phantomKingCardNameStyle}
+                        >
+                          {cardDetails.target1Card.name}
                         </div>
                         <div style={phantomKingCardEffectStyle}>
-                          {cardDetails.target2Card.effect}
+                          {cardDetails.target1Card.effect}
                         </div>
-                        <CardCountStars count={cardDetails.target2Card.count} />
+                        <CardCountStars count={cardDetails.target1Card.count} />
                       </div>
                       <p style={baronessCardLabelStyle}>
-                        {cardDetails.target2Name}'s ally
+                        {cardDetails.target1Name}'s ally
                       </p>
                     </div>
-                  )}
+
+                    {/* Target 2's card (if exists) */}
+                    {cardDetails.target2Card && (
+                      <div style={baronessCardContainerStyle}>
+                        <div
+                          className="baroness-card-container"
+                          style={baronessCardStyle}
+                        >
+                          <div style={phantomKingCardStrengthStyle}>
+                            {cardDetails.target2Card.strength}
+                          </div>
+                          <div
+                            style={{
+                              ...phantomKingCardImageStyle,
+                              backgroundImage: `url(/img/${getCardImage(
+                                cardDetails.target2Card.name
+                              )})`,
+                            }}
+                          ></div>
+                          <div
+                            className={`${
+                              cardDetails.target2Card.name.length > 12
+                                ? "card-name-small"
+                                : "card-name-normal"
+                            }`}
+                            style={phantomKingCardNameStyle}
+                          >
+                            {cardDetails.target2Card.name}
+                          </div>
+                          <div style={phantomKingCardEffectStyle}>
+                            {cardDetails.target2Card.effect}
+                          </div>
+                          <CardCountStars
+                            count={cardDetails.target2Card.count}
+                          />
+                        </div>
+                        <p style={baronessCardLabelStyle}>
+                          {cardDetails.target2Name}'s ally
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right side - The romantic message */}
+                <div style={baronessMessageContainerStyle}>
+                  <div style={{ fontSize: "1.1rem", lineHeight: "1.6" }}>
+                    {formatText(resultText)}
+                  </div>
                 </div>
               </div>
-
-              {/* Right side - The romantic message */}
-              <div style={baronessMessageContainerStyle}>
-                <div style={{ fontSize: "1.1rem", lineHeight: "1.6" }}>
-                  {formatText(resultText)}
-                </div>
-                <div style={buttonContainerStyle}>
-                  <button
-                    onClick={onClose}
-                    style={{
-                      ...buttonStyle,
-                      background:
-                        "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)",
-                      color: "#fff",
-                      border: "2px solid #ff69b4",
-                      boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background =
-                        "linear-gradient(135deg, #e91e63 0%, #f06292 100%)";
-                      e.target.style.color = "#fff";
-                      e.target.style.borderColor = "#ffb6c1";
-                      e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow =
-                        "0 6px 18px rgba(233, 30, 99, 0.6)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background =
-                        "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)";
-                      e.target.style.color = "#fff";
-                      e.target.style.borderColor = "#ff69b4";
-                      e.target.style.transform = "translateY(0)";
-                      e.target.style.boxShadow =
-                        "0 4px 12px rgba(233, 30, 99, 0.4)";
-                    }}
-                  >
-                    ☕ Continue
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : isBaronessTarget ? (
-            /* Special Baroness Target Layout - Simple romantic themed message */
-            <div
-              style={{
-                padding: "1.5rem",
-                color: "#ffe4e6",
-                fontFamily: "Lora, serif",
-                textAlign: "justify",
-                fontSize: "1.1rem",
-                lineHeight: "1.6",
-                ...(effectImageUrl ? { overflow: "auto" } : {}),
-              }}
-            >
-              {/* Effect illustration image (if available) */}
-              {effectImageUrl && (
-                <img
-                  src={effectImageUrl}
-                  alt="Effect illustration"
-                  style={effectImageStyle}
-                />
-              )}
-
-              {/* Result text flows around the floated image */}
-              {formatText(resultText)}
-              <div style={{ ...buttonContainerStyle, marginTop: "2rem" }}>
+              <div
+                style={{
+                  ...buttonContainerStyle,
+                  background: "initial",
+                }}
+              >
                 <button
                   onClick={onClose}
                   style={{
                     ...buttonStyle,
                     background:
-                      "linear-gradient(135deg, rgb(96 34 119) 0%, rgb(238 112 149) 100%)",
+                      "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)",
                     color: "#fff",
                     border: "2px solid #ff69b4",
                     boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #e91e63 0%, #f06292 100%)";
+                    e.target.style.color = "#fff";
+                    e.target.style.borderColor = "#ffb6c1";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 18px rgba(233, 30, 99, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background =
+                      "linear-gradient(135deg, #c2185b 0%, #e91e63 100%)";
+                    e.target.style.color = "#fff";
+                    e.target.style.borderColor = "#ff69b4";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 12px rgba(233, 30, 99, 0.4)";
+                  }}
+                >
+                  ☕ Continue
+                </button>
+              </div>
+            </div>
+          ) : isBaronessTarget ? (
+            /* Special Baroness Target Layout - Simple romantic themed message */
+            <div style={imageTextButtonContainerStyle}>
+              <div
+                style={{
+                  ...imageTextContainerStyle,
+                  ...baronessTargetImageTextContainerStyle,
+                  ...(effectImageUrl ? { overflow: "auto" } : {}),
+                }}
+              >
+                {effectImageUrl && (
+                  <img
+                    src={effectImageUrl}
+                    alt="Effect illustration"
+                    style={effectImageStyle}
+                  />
+                )}
+
+                {/* Result text flows around the floated image */}
+                {formatText(resultText)}
+              </div>
+
+              {/* Effect illustration image (if available) */}
+
+              <div
+                style={{
+                  ...buttonContainerStyle,
+                  ...baronessTargetButtonContainerStyle,
+                }}
+              >
+                <button
+                  onClick={onClose}
+                  style={{
+                    ...buttonStyle,
+                    ...baronessTargetButtonStyle,
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.background =
@@ -907,27 +1037,41 @@ export default function EffectResultModal({
           ) : (
             <div
               style={{
-                ...getMessageStyle(
-                  isCourtWhispererEffect,
+                ...imageTextButtonContainerStyle,
+                ...getImageTextButtonContainerBackground(
                   isDukeEffect,
                   isCountessEffect,
                   isPrinceEffect,
                   isPrincessEffect
                 ),
-                ...(effectImageUrl ? { overflow: "auto" } : {}),
               }}
             >
-              {/* Effect illustration image (if available) */}
-              {effectImageUrl && (
-                <img
-                  src={effectImageUrl}
-                  alt="Effect illustration"
-                  style={effectImageStyle}
-                />
-              )}
+              <div
+                style={{
+                  ...imageTextContainerStyle,
+                  ...getMessageStyle(
+                    isCourtWhispererEffect,
+                    isDukeEffect,
+                    isCountessEffect,
+                    isPrinceEffect,
+                    isPrincessEffect
+                  ),
+                  ...(effectImageUrl ? { overflow: "auto" } : {}),
+                }}
+              >
+                {/* Effect illustration image (if available) */}
+                {effectImageUrl && (
+                  <img
+                    src={effectImageUrl}
+                    alt="Effect illustration"
+                    style={effectImageStyle}
+                  />
+                )}
 
-              {/* Result text flows around the floated image */}
-              {formatText(resultText)}
+                {/* Result text flows around the floated image */}
+                {formatText(resultText)}
+              </div>
+
               <div
                 style={{
                   ...buttonContainerStyle,
@@ -1144,8 +1288,8 @@ const modalContentStyle = {
   borderRadius: "20px",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
-  maxWidth: "900px",
-  width: "75%",
+  maxWidth: "80%",
+  minWidth: "75%",
   textAlign: "center",
   border: "4px solid #ffd700",
   position: "relative",
@@ -1268,9 +1412,30 @@ const getHeaderStyle = (
   position: "relative",
 });
 
+const imageTextButtonContainerStyle = {
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  height: "100%",
+};
+
+const imageTextContainerStyle = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "space-between",
+  padding: "2.5rem 1.5rem 1.5rem",
+};
+
+const baronessTargetImageTextContainerStyle = {
+  color: "#ffe4e6",
+  fontFamily: "Lora, serif",
+  textAlign: "justify",
+  fontSize: "1.1rem",
+  lineHeight: "1.6",
+};
+
 const getMessageStyle = (
   isCourtWhispererEffect,
-  isDukeEffect,
   isCountessEffect,
   isPrinceEffect,
   isPrincessEffect
@@ -1288,7 +1453,16 @@ const getMessageStyle = (
     ? "#ffffff"
     : "white",
   margin: "0",
-  padding: "25px",
+  padding: "2.5rem 1.5rem 1.2rem",
+  fontFamily: '"Lora", serif',
+});
+
+const getImageTextButtonContainerBackground = (
+  isDukeEffect,
+  isCountessEffect,
+  isPrinceEffect,
+  isPrincessEffect
+) => ({
   background: isDukeEffect
     ? "linear-gradient(135deg, rgb(19 25 52) 0%, rgb(51 73 190) 100%)"
     : isCountessEffect
@@ -1298,34 +1472,16 @@ const getMessageStyle = (
     : isPrincessEffect
     ? "linear-gradient(135deg, rgb(7 7 15) 0%, rgb(54 49 133) 50%, rgb(75, 68, 180) 100%)"
     : "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
-  fontFamily: '"Lora", serif',
-  borderRadius: "0 0 20px 20px",
 });
-
-const classicResultTextContainer = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  height: "100%",
-};
-
-const cardDetailsStyle = {
-  margin: "0",
-  padding: "20px 25px",
-  background: "linear-gradient(135deg, #f0ead6 0%, #e8dcc0 100%)",
-  textAlign: "left",
-  borderTop: "2px solid #d4af37",
-  borderBottom: "2px solid #d4af37",
-  fontFamily: '"Lora", serif',
-};
 
 const buttonContainerStyle = {
   display: "flex",
-  padding: "25px 25px 0",
-  marginTop: "1.5rem",
+  padding: "2rem 0px 1.2rem",
   borderRadius: "0 0 20px 20px",
   justifyContent: "center",
   borderTop: "1px inset #ffff00b0",
+  //background: "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 100%)",
+  background: "initial",
 };
 
 const buttonStyle = {
@@ -1438,11 +1594,6 @@ const effectImageStyle = {
   objectPosition: "center",
 };
 
-const effectTextWithImageWrapper = {
-  overflow: "auto", // Clearfix for float
-  textAlign: "justify",
-};
-
 // �🗣️ Court Whisperer Modal Style - Gossip magazine theme! 💅📰
 const courtWhispererModalStyle = {
   background:
@@ -1478,8 +1629,8 @@ const princessModalStyle = {
 
 // Priest-specific modal styles
 const priestModalStyle = {
-  width: "90%",
-  maxWidth: "800px",
+  minWidth: "70%",
+  maxWidth: "75%",
   background:
     "linear-gradient(135deg, rgb(45, 27, 27) 0%, rgb(74, 0, 0) 50%, rgb(139, 0, 0) 100%)",
   border: "4px solid #9b59b6",
@@ -1509,8 +1660,7 @@ const priestLayoutStyle = {
 const priestCardContainerStyle = {
   display: "flex",
   flexDirection: "column",
-  alignItems: "center",
-  width: "30%",
+  alignItems: "flex-start",
   height: "100%",
 };
 
@@ -1518,8 +1668,6 @@ const priestCardStyle = {
   position: "relative",
   backgroundColor: "white",
   borderRadius: "8px",
-  width: "200px",
-  height: "330px",
   display: "flex",
   flexDirection: "column",
   cursor: "default",
@@ -1570,7 +1718,6 @@ const priestCardContentStyle = {
 };
 
 const priestCardNameStyle = {
-  fontSize: "1.3rem",
   fontWeight: "bold",
   color: "#8b0000",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
@@ -1655,7 +1802,7 @@ const phantomKingLayoutStyle = {
   display: "flex",
   gap: "2rem",
   alignItems: "flex-start",
-  padding: "2rem 1rem",
+  padding: "3.5rem 1rem 2rem",
   justifyContent: "space-between",
   height: "100%",
 };
@@ -1690,13 +1837,9 @@ const phantomKingCardStyle = {
   position: "relative",
   backgroundColor: "rgba(255, 255, 255, 0.95)",
   borderRadius: "8px",
-  width: "180px",
-  height: "280px",
   display: "flex",
   flexDirection: "column",
   cursor: "default",
-  boxShadow:
-    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(74, 144, 226, 0.4)",
   transition: "all 0.3s ease",
   transform: "perspective(1000px) rotateY(-2deg) rotateX(1deg)",
   border: "2px solid rgba(74, 144, 226, 0.3)",
@@ -1794,6 +1937,7 @@ const phantomKingButtonContainerStyle = {
   background: "initial",
   width: "100%",
   padding: "0",
+  marginTop: "1.2rem",
 };
 
 const phantomKingButtonStyle = {
@@ -1818,9 +1962,14 @@ const royalConfessorModalStyle = {
 
 const royalConfessorLayoutStyle = {
   display: "flex",
+  flexDirection: "column",
+};
+
+const royalConfessorContentContainerStyle = {
+  display: "flex",
+  flexDirection: "row",
   gap: "2rem",
   alignItems: "flex-start",
-  padding: "2rem 1rem",
   justifyContent: "space-between",
   height: "100%",
 };
@@ -1855,13 +2004,9 @@ const royalConfessorCardStyle = {
   position: "relative",
   backgroundColor: "rgba(244, 229, 194, 0.95)",
   borderRadius: "8px",
-  width: "180px",
-  height: "280px",
   display: "flex",
   flexDirection: "column",
   cursor: "default",
-  boxShadow:
-    "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(139, 69, 19, 0.6)",
   transition: "all 0.3s ease",
   transform: "perspective(1000px) rotateY(-2deg) rotateX(1deg)",
   border: "2px solid rgba(212, 175, 55, 0.5)",
@@ -1872,7 +2017,7 @@ const royalConfessorCardLabelStyle = {
   textAlign: "center",
   color: "rgba(244, 229, 194, 0.95)",
   margin: "0",
-  marginTop: "0.7rem",
+  marginTop: "1rem",
   fontWeight: "500",
   fontSize: "1.2rem",
   textShadow: "1px 1px 3px rgba(0, 0, 0, 0.8)",
@@ -1918,7 +2063,6 @@ const royalConfessorCardImageStyle = {
 };
 
 const royalConfessorCardNameStyle = {
-  fontSize: "1.1rem",
   fontWeight: "bold",
   color: "#2a1a0a",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
@@ -1945,7 +2089,7 @@ const royalConfessorMessageContainerStyle = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  height: "100%",
+  height: "-webkit-fill-available",
   paddingLeft: "1rem",
 };
 
@@ -1964,7 +2108,8 @@ const royalConfessorMessageStyle = {
 const royalConfessorButtonContainerStyle = {
   display: "flex",
   justifyContent: "center",
-  marginTop: "1rem",
+  padding: "2rem 1rem 1.2rem",
+  marginTop: "2rem",
 };
 
 const royalConfessorButtonStyle = {
@@ -2021,11 +2166,17 @@ const baronessModalStyle = {
 
 const baronessLayoutStyle = {
   display: "flex",
+  flexDirection: "column",
+};
+
+const baronessAttackerContentContainerStyle = {
+  display: "flex",
+  flexDirection: "row",
   gap: "2rem",
-  alignItems: "flex-start",
-  padding: "2rem 1rem",
+  alignItems: "center",
   justifyContent: "space-between",
-  height: "100%",
+  padding: "2rem 1rem 1rem",
+  height: "-webkit-fill-available",
 };
 
 const baronessCardsContainerStyle = {
@@ -2034,6 +2185,7 @@ const baronessCardsContainerStyle = {
   alignItems: "center",
   maxWidth: "47%",
   height: "-webkit-fill-available",
+  paddingBottom: "0.2rem",
   gap: "15px",
 };
 
@@ -2058,8 +2210,6 @@ const baronessCardStyle = {
   position: "relative",
   backgroundColor: "rgba(255, 255, 255, 0.95)",
   borderRadius: "8px",
-  width: "180px",
-  height: "280px",
   display: "flex",
   flexDirection: "column",
   cursor: "default",
@@ -2086,10 +2236,25 @@ const baronessMessageContainerStyle = {
   flexDirection: "column",
   justifyContent: "space-between",
   height: "100%",
+  width: "100%",
   color: "#ffe4e6",
   fontFamily: "Lora, serif",
   fontSize: "1.1rem",
   lineHeight: "1.6",
+};
+
+const baronessTargetButtonContainerStyle = {
+  padding: "2rem 0px 1.2rem",
+  marginTop: "0",
+  background: "initial",
+};
+
+const baronessTargetButtonStyle = {
+  background:
+    "linear-gradient(135deg, rgb(96 34 119) 0%, rgb(238 112 149) 100%)",
+  color: "#fff",
+  border: "2px solid #ff69b4",
+  boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
 };
 
 // 👑🐕 Duke modal styling - Royal crimson & deep blue colors

@@ -375,6 +375,21 @@ export default function GameScoring() {
     };
   };
 
+  const getMostTargetedPlayers = () => {
+    const targetedPlayers = roomData?.gameStats?.targetedPlayers;
+    if (!targetedPlayers) return [];
+
+    // Convert to array and sort by targetCount (descending)
+    return Object.entries(targetedPlayers)
+      .map(([name, data]) => ({
+        name,
+        realName: data.realName,
+        targetCount: data.targetCount,
+      }))
+      .sort((a, b) => b.targetCount - a.targetCount)
+      .slice(0, 3); // Get top 3
+  };
+
   // Listen for redirect signals
   useEffect(() => {
     if (roomData?.gameState === "returnToLanding") {
@@ -408,6 +423,7 @@ export default function GameScoring() {
   const isHost = roomData.host === nickname;
   const sortedPlayers = getSortedPlayers();
   const totalRounds = roomData.gameStats?.totalRoundsPlayed || 0;
+  const mostTargetedPlayers = getMostTargetedPlayers();
 
   if (roomData.gameState === "returnToLanding") {
     return (
@@ -684,6 +700,34 @@ export default function GameScoring() {
                             : "🏰 Classic Court"}
                         </span>
                       </div>
+                      {mostTargetedPlayers.length > 0 && (
+                        <div className="stat-item stat-item-targeted-players">
+                          <div className="targeted-players-title">
+                            🎯 Most Targeted Players 🎯
+                          </div>
+                          <div className="targeted-players-list">
+                            {mostTargetedPlayers.map((player, index) => (
+                              <div
+                                key={player.name}
+                                className="targeted-player-entry"
+                              >
+                                <span className="target-rank">
+                                  #{index + 1}
+                                </span>
+                                <span className="target-nickname">
+                                  {player.name}
+                                </span>
+                                <span className="target-realname">
+                                  ({player.realName})
+                                </span>
+                                <span className="target-count">
+                                  {player.targetCount}x
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

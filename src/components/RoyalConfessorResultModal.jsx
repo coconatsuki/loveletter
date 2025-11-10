@@ -81,6 +81,37 @@ const effectTextStyles = `
     text-align: center;
     color: #dfdf73;
 }
+
+.revealed-card-container {
+  width: 200px;
+  height: 330px;
+}
+
+.card-container {
+  width: 200px;
+  height: 330px;
+}
+
+.card-name-small {
+  font-size: 1.05rem;
+}
+
+.card-name-normal {
+  font-size: 1.3rem;
+}
+
+  @media (min-width: 1640px) {
+    .revealed-card-container {
+      width: 215px;
+      height: 345px;
+    }
+
+    .card-container {
+      width: 215px;
+      height: 345px;
+    }
+}
+
 `;
 
 export default function RoyalConfessorResultModal({
@@ -173,7 +204,10 @@ export default function RoyalConfessorResultModal({
             <div style={confessorCardContainerStyle}>
               {showDropdown ? (
                 // Show dropdown for external attacker to choose which target's card to reveal
-                <div style={confessorDropdownContainerStyle}>
+                <div
+                  className="revealed-card-container"
+                  style={confessorDropdownContainerStyle}
+                >
                   <div style={confessorDropdownContainerStyle2}>
                     <div style={confessorDropdownLabelStyle}>
                       Which of these sinners' secrets do you want to know?
@@ -251,7 +285,7 @@ export default function RoyalConfessorResultModal({
               ) : (
                 // Show the revealed card
                 revealedCard && (
-                  <div style={confessorCardStyle}>
+                  <div className="card-container" style={confessorCardStyle}>
                     <div style={confessorCardStrengthStyle}>
                       {revealedCard.strength}
                     </div>
@@ -264,7 +298,14 @@ export default function RoyalConfessorResultModal({
                       }}
                     ></div>
                     <div style={confessorCardContentStyle}>
-                      <div style={confessorCardNameStyle}>
+                      <div
+                        className={`${
+                          revealedCard.name.length > 12
+                            ? "card-name-small"
+                            : "card-name-normal"
+                        }`}
+                        style={confessorCardNameStyle}
+                      >
                         {revealedCard.name}
                       </div>
                       <div style={confessorCardEffectStyle}>
@@ -376,8 +417,8 @@ const modalContentStyle = {
   borderRadius: "20px",
   boxShadow:
     "0 25px 70px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
-  maxWidth: "900px",
-  width: "75%",
+  maxWidth: "77%",
+  minWidth: "72%",
   textAlign: "center",
   border: "4px solid #ffd700",
   position: "relative",
@@ -474,12 +515,10 @@ const confessorDropdownContainerStyle = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "space-between",
-  width: "200px",
-  height: "330px",
   background:
     "linear-gradient(135deg, rgb(141 90 0) 0%, rgb(247 225 114) 100%)",
   borderRadius: "12px",
-  padding: "20px",
+  padding: "0.7rem",
   boxShadow:
     "0 15px 35px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(218, 165, 32, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
   border: "3px solid #8b4513",
@@ -496,7 +535,7 @@ const confessorDropdownContainerStyle2 = {
 const confessorDropdownLabelStyle = {
   color: "#2d1b1b",
   fontWeight: "bold",
-  fontSize: "1.4rem",
+  fontSize: "1.3rem",
   textAlign: "center",
   marginBottom: "2rem",
   lineHeight: "1.3",
@@ -540,14 +579,13 @@ const confessorRevealButtonStyle = {
     "0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 215, 0, 0.3)",
   position: "relative",
   overflow: "hidden",
+  width: "100%",
 };
 
 const confessorCardStyle = {
   position: "relative",
   backgroundColor: "white",
   borderRadius: "8px",
-  width: "200px",
-  height: "330px",
   display: "flex",
   flexDirection: "column",
   cursor: "default",
@@ -600,7 +638,6 @@ const confessorCardContentStyle = {
 };
 
 const confessorCardNameStyle = {
-  fontSize: "1.3rem",
   fontWeight: "bold",
   color: "#4a0028",
   textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",

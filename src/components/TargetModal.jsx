@@ -261,6 +261,7 @@ const cardOptionsContentStyle = {
   color: "#2c1810",
   fontFamily: "Cinzel, serif",
   maxWidth: "none",
+  width: "100%",
 };
 
 const specialQuoteContainerStyle = {

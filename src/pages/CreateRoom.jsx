@@ -634,7 +634,7 @@ export default function CreateRoom() {
           <img
             src="/img/princess-square.jpeg"
             alt="Princess of the Royal Court"
-            className="princess-artwork"
+            className="princess-artwork create-room"
             style={{ margin: "4rem" }}
           />
         </div>

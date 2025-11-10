@@ -525,6 +525,10 @@
   border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
+.stat-item.stat-item-second-row {
+  margin-bottom: 2rem;
+}
+
 .stat-item:last-child {
   border-bottom: none;
 
@@ -543,6 +547,90 @@
   color: #ffd700;
   font-weight: bold;
   font-size: 1.1rem;
+}
+
+/* Most Targeted Players - Custom styling */
+.stat-item-targeted-players {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  padding: 1.2rem !important;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 0, 0, 0.15),
+    rgba(244, 228, 188, 0.1)
+  ) !important;
+  border: 1px solid rgba(255, 99, 71, 0.3) !important;
+  margin-top: 0.5rem;
+}
+
+.targeted-players-title {
+  color: #ff6347;
+  font-weight: 600;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 99, 71, 0.3);
+  text-shadow: 0 0 10px rgba(255, 99, 71, 0.4);
+}
+
+.targeted-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.targeted-player-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.7rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border-left: 3px solid rgba(255, 99, 71, 0.5);
+  transition: all 0.3s ease;
+}
+
+.targeted-player-entry:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-left-color: #ff6347;
+  transform: translateX(3px);
+}
+
+.target-rank {
+  color: #deb887;
+  font-weight: 500;
+  font-size: 0.85rem;
+  min-width: 30px;
+  margin-right: 0.3rem;
+}
+
+.target-nickname {
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-right: 0.4rem;
+}
+
+.target-realname {
+  color: #c9a869;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.target-count {
+  color: #ff6347;
+  font-weight: bold;
+  font-size: 1rem;
+  min-width: 35px;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(255, 99, 71, 0.5);
+  background: rgba(255, 99, 71, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 99, 71, 0.3);
+  margin-left: auto;
 }
 
 .chronicle-title {
@@ -720,6 +808,13 @@
 }
 
 /* Responsive Design */
+
+@media (min-width: 1650px) {
+  .princess-image {
+    min-height: 470px;
+  }
+}
+
 @media (max-width: 768px) {
   .game-scoring-main {
     padding: 1.5rem;
