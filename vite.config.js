@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   test: {
     globals: true,
@@ -21,8 +21,8 @@ export default defineConfig({
       },
     },
   },
-  // Use esbuild to remove console.logs in production
+  // Remove console.logs and debugger statements ONLY in production
   esbuild: {
-    drop: ["console", "debugger"],
+    drop: mode === "production" ? ["console", "debugger"] : [],
   },
-});
+}));
