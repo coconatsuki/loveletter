@@ -380,42 +380,41 @@ export default function Room() {
         </div>
       )}
 
-      {/* Music toggle button */}
-      {!showOverlay && (
-        <button
-          onClick={toggleMusic}
-          className="music-toggle-btn"
-          style={{
-            position: "fixed",
-            top: "15px",
-            left: "15px",
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            border: "2px solid #d4af37",
-            background: isPlaying
-              ? "linear-gradient(135deg, #4CAF50, #45a049)"
-              : "linear-gradient(135deg, #666, #555)",
-            color: "white",
-            fontSize: "24px",
-            cursor: "pointer",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.3s ease",
-            boxShadow: isPlaying
-              ? "0 0 20px rgba(76, 175, 80, 0.5)"
-              : "0 2px 10px rgba(0,0,0,0.3)",
-          }}
-          title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
-        >
-          {isPlaying ? "🎵" : "🔇"}
-        </button>
-      )}
-
       {/* 🏰 Royal Header */}
       <div className="royal-header">
+        {/* Music toggle button */}
+        {!showOverlay && (
+          <button
+            onClick={toggleMusic}
+            className="music-toggle-btn"
+            style={{
+              position: "absolute",
+              top: "15px",
+              left: "15px",
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              border: "2px solid #d4af37",
+              background: isPlaying
+                ? "linear-gradient(135deg, #4CAF50, #45a049)"
+                : "linear-gradient(135deg, #666, #555)",
+              color: "white",
+              fontSize: "24px",
+              cursor: "pointer",
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease",
+              boxShadow: isPlaying
+                ? "0 0 20px rgba(76, 175, 80, 0.5)"
+                : "0 2px 10px rgba(0,0,0,0.3)",
+            }}
+            title={isPlaying ? "Silence the Royal Orchestra" : "Play Music"}
+          >
+            {isPlaying ? "🎵" : "🔇"}
+          </button>
+        )}
         <div className="royal-header-text">
           <h1 className="royal-title-centered floating">
             THE ROYAL ANTECHAMBER
