@@ -1863,15 +1863,6 @@ export default function Play() {
       );
       return;
     }
-
-    /*   // Increment Duke token for this player (can stack)
-    const currentDukeToken = player.dukeToken || 0;
-    const newDukeToken = currentDukeToken + 1;
-
-    // Update game state: discard Duke, advance turn, set Duke token
-    await update(ref(db, `rooms/${roomCode}`), {
-      [`players/${nickname}/dukeToken`]: newDukeToken,
-    }); */
   };
 
   /**
